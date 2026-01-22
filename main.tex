@@ -1,0 +1,53 @@
+\documentclass[acmsmall,screen,review,anonymous]{acmart}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{subfiles}
+\usepackage{xspace}
+
+% MACROS
+\newcommand{\fillin}[1]{{\color{red} #1}}
+\newcommand{\filled}[1]{{\color{blue} #1}}
+\newcommand{\name}{\textsc{ExplaniFloat}\xspace}
+
+\begin{document}
+
+%% Title information
+\title{Core_{sk}}
+
+%% Author with single affiliation.
+\author{Bhargav K Kulkarni}
+\affiliation{
+  \institution{University of Utah}
+  \streetaddress{201 Presidents' Circle}
+  \city{Salt Lake City}
+  \state{UT}
+  \country{USA}
+  \postcode{84112-0090}
+}
+\email{u1471442@utah.edu}
+
+\author{Pavel Panchekha}
+\affiliation{
+  \institution{University of Utah}
+  \streetaddress{201 Presidents' Circle}
+  \city{Salt Lake City}
+  \state{UT}
+  \country{USA}
+  \postcode{84112-0090}
+}
+\email{pavpan@cs.utah.edu}
+
+\subfile{abstract}
+
+%% End of generated code
+
+\maketitle
+
+\subfile{introduction}
+\subfile{skia}
+\subfile{semantics}
+\subfile{compiler}
+\subfile{evaluation}
+\subfile{related_work}
+\subfile{conclusion}
+
+\end{document}

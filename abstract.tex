@@ -1,0 +1,26 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+
+\begin{abstract}
+  In recent years, significant advances have been made in numerical debugging
+  and static analysis tools. Recent debugging tools significantly reduce
+  overhead using double-double oracles, while recent static analysis tools
+  accurately bound rounding errors using condition numbers. However, these new
+  techniques also have downsides: double-double oracles can miss floating-point
+  errors due to correlated errors, while condition number formalisms cannot
+  cleanly handle over- and underflow. We show that combining both techniques
+  avoids the downsides of each and implement this combination in \name. \name
+  uses double-double computations but not as an oracle; instead, it detects
+  erroneous operations using condition numbers, which minimizes overhead while
+  achieving precision and recall similar to more expensive methods. \name also
+  introduces a separate oracle to detect harmful over- and underflows more
+  accurately; we implement this oracle in a new performant number
+  representation. As a result, \name achieves a precision of \filled{80.0\%} and
+  a recall of \filled{96.1\%} on a collection of 500 difficult numeric
+  benchmarks. An ablation study shows that \name combines the strengths of both
+  double-double oracles and condition numbers: it is more accurate than
+  double-double oracles yet dramatically faster than methods based on
+  arbitrary-precision condition number computations.
+\end{abstract}
+
+\end{document}
