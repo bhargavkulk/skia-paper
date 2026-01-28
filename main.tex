@@ -2,11 +2,22 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{subfiles}
 \usepackage{xspace}
+\usepackage{simplebnf}
+\usepackage{stmaryrd}
+\usepackage{todonotes}
+
+% package conf
+\graphicspath{ {./images/} }
 
 % MACROS
 \newcommand{\fillin}[1]{{\color{red} #1}}
 \newcommand{\filled}[1]{{\color{blue} #1}}
-\newcommand{\name}{\textsc{ExplaniFloat}\xspace}
+\newcommand{\name}{\textsc{EasterEgg}\xspace}
+\newcommand{\surface}{\ensuremath{\mathsf{Surface_{Skia}}}}
+\newcommand{\core}{\ensuremath{\mathsf{Core_{Skia}}}}
+\DeclareRobustCommand{\denote}[2]{%
+  \ensuremath{\llbracket #1 \rrbracket_{\textsf{#2}}}%
+}
 
 \begin{document}
 
