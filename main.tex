@@ -5,6 +5,10 @@
 \usepackage{simplebnf}
 \usepackage{stmaryrd}
 \usepackage{todonotes}
+\usepackage{fancyvrb}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{booktabs}
 
 % package conf
 \graphicspath{ {./images/} }
@@ -19,10 +23,14 @@
   \ensuremath{\llbracket #1 \rrbracket_{\textsf{#2}}}%
 }
 
+\newcolumntype{S}{>{\sffamily}l}
+\newcolumntype{M}{>{$}l<{$}}
+\newcolumntype{T}{>{\ttfamily}l}
+
 \begin{document}
 
 %% Title information
-\title{Core_{sk}}
+\title{Core$_{sk}$}
 
 %% Author with single affiliation.
 \author{Bhargav K Kulkarni}

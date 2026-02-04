@@ -2,247 +2,80 @@
 \begin{document}
 \section{Semantics}
 
-We define 2 languages in this section, \surface{} and
-\core. \surface{} corresponds to the \texttt{SkCanvas} API a user of Skia
-typically uses to draw pictures.
-
-\todo[inline]{As this is a description of the Skia API, maybe Draw needs to be
-  specific as in DrawRect etc. and not the generic Geometry Draw}
-
-\begin{center}
-  \begin{bnf}[
-    colspec = {llcll},
-    column{1} = {font = \sffamily},
-    column{2} = {mode = dmath},
-    column{4} = {font = \ttfamily},
-    ]
-    s : \surface ::=
-    | $c$
-    ;;
-    c : Command  ::=
-    | Draw($g$, $p$)
-    | Clip($cl$, Intersect | Difference)
-    | Save() ; $c$ ; Restore()
-    | SaveLayer($p$) ; $c$ ; Restore()
-    | $c$ ; $c$
-    ;;
-    g : DrawGeometry ::=
-    | Rect($\ldots$) | RRect ($\ldots$)
-    | Path($\ldots$) | $\ldots$
-    ;;
-    cl : ClipGeometry ::=
-    | Rect($\ldots$) | RRect ($\ldots$)
-    | Path($\ldots$)
-    ;;
-    p : Paint ::=
-    | Paint($f$, $st$, $c_f$, $b$)
-    ;;
-    f : Fill ::=
-    | Color(Pixel)
-    | LinearGradient($\ldots$)
-    | $\ldots$
-    ;;
-    st : Style ::=
-    | Solid | Stroke
-    ;;
-    c_f : Filter ::=
-    | IdFilter | LumaFilter | $\ldots$
-    ;;
-    b : BlendMode ::=
-    | SrcOver | DstIn | Src | $\ldots$
-  \end{bnf}
-\end{center}
-
-A \surface{} program maintains 2 types of state, the state of canvas and the clip
-state. The canvas state describes what is currently drawn on the drawing
-surface. The clip state constrains the extent of what is drawn on the drawing
-surface. Consider the program:
-
-\begin{verbatim}
-Draw(Rect(64, 64, 256, 256), RED_PAINT)
-\end{verbatim}
-
-Here we are drawing on a canvas of size 256$\times$256 and \texttt{RED\_PAINT}
-being a \texttt{Paint} that just fills a geometry with the color {\color{red}
-  Red}. This program would render to the following image:
-
+As our main goal is to try and verify rewrites in Skia,
+  it is hard to do so over \surface{}.
+This is mainly because of the hidden layer and clip state of \surface{}.
+That is why we introduce a new language called \core{},
+  which is a declarative version of \surface{}.
+\core{} makes layers the main value type of the language,
+  and also make explicit the clip state at each draw command.
+This also has the consequence of completely removing \texttt{Save}s from
+  \core{}.
 
 \begin{center}
-\frame{\includegraphics[scale=0.3]{drawing1.pdf}}
+  \begin{tabular}{S M c T}
+    \core{} & s & ::= & $l$ \\
+    \addlinespace[1pt]
+    Layer & l & ::= & Empty() \\
+          &   & |   & Draw($l$, $g$: \textsf{Geometry}, $p$: \textsf{Paint})\\
+          &   & |   & SaveLayer($l$, $l$, $p$: \textsf{Paint})
+  \end{tabular}
 \end{center}
 
-Now consider the program:
+\todo[inline]{We need to talk about how to convert \surface{} to \core{}. Not
+  sure how to do that.}
 
-\begin{verbatim}
-Clip(Rect(0, 0, 192, 192));
-Draw(Rect(64, 64, 256, 256), RED_PAINT)
-\end{verbatim}
-
-Here we clip to the upper-right corner of the square. The resulting image for
-rendering this program is:
-
-\begin{center}
-\frame{\includegraphics[scale=0.3]{drawing2.pdf}}
-\end{center}
-
-The contents of \texttt{Paint} merit further discussion. \texttt{Fill}s describe
-what pixels to fill the geometry with, which could be the same color or a shader
-describing say a gradient. \texttt{Style} describes how the geometry is drawn,
-whether the extent of the geometry is filled, or only its bounds.
-\texttt{Filter}s basically are functions to transform pixels. Finally
-\texttt{BlendMode}s describe how the drawn and transformed geometry is
-\textit{composited} or \textit{blended} onto the canvas. You can consider a
-blend mode as an operator over pixels.
-
-\todo[inline]{I ran out of gas here. Probably want pictures for all of this? We
-  cannot assume readers have ever used Skia before, so they do not know what I
-  am on about in the previous paragraph.}
-
-It is important to undertsnad that \texttt{Clip}s are additive to current clip
-state of the canvas. Just with \texttt{Clip}s alone you may not reset the clip
-state. This is taken care of by the \texttt{Save(); ...; Restore()} and
-\texttt{SaveLayer(); ...; Restore()} commands. Calling a
-\texttt{Save}/\texttt{SaveLayer} is like saving a checkpoint of the current clip
-state. When a matching \texttt{Restore()} is called, all changes made to the clip
-state are discarded. Internally Skia implements this checkpointing system by
-managing a stack of clip states, with \texttt{Save}/\texttt{SaveLayer} pushsing
-a copy of the current clip state onto the stack, while a \texttt{Restore} pops
-the latest clip state of the stack.
-
-While \texttt{Save}/\texttt{SaveLayer} both manipulate the clip state of the
-canvas, \texttt{SaveLayer} also allocates a new seperate surface. All commands
-between a \texttt{SaveLayer} and a matching \texttt{Restore} affect the new
-surface. Once \texttt{Restore} is called, the new surface is merged onto the old
-one. How this merge happens is dictated by the \texttt{BlendMode} passed to the
-\texttt{Paint} of the \texttt{SaveLayer}. This functions just like \texttt{Draw}
-commands. \texttt{SaveLayer}s can also be used to modify the entire new surface
-before it is blended back onto the old surface. The \texttt{Paint} of a
-\texttt{SaveLayer} can be passed an alpha value, which is multiplied over the
-entire new surface right before blending. In a similiar vein, a \texttt{Filter}
-inside the \texttt{Paint} will be applied over the entire surface before
-blending. It is important to note that complicated fills like gradients, and
-fill/stroke styles do not affect how a \texttt{SaveLayer} blends its surface
-onto the previous one.
-
-\todo[inline]{I dont like old/new/previous here. We always talk about surfaces
-  as bottom and top say for example in the lean formalization. Also probably
-  need to change surfaces to layers here, or layers to surfaces everywhere
-  else.}
-
-As our main goal is to try and verify rewrites in Skia, it is hard to do so over
-\surface{}. This is mainly because of the hidden surface and clip state of
-\surface{}. That is why we introduce a new language called \core{} which is a
-declrative version of \surface{}.\;\core{} makes surfaces the main value type of
-the language, and also make explicit the clip state at each draw command. This
-means neither \texttt{Save}/\texttt{SaveLayer} are needed to ``manage'' clip
-state in \core{}. This also has the consequence of completely removing
-\texttt{Save}s from \core{}. \texttt{SaveLayers} remain in \core{} because they
-also allow us to combine surfaces in addition to managing the clip state.
-
-\todo[inline]{Bad paragraph. We still don't know if this paper is verification
-  first or optimization first. Also there are way to many \surface{} and \core{}
-  in this paragraph.}
-
-\begin{center}
-  \begin{bnf}[
-    colspec = {llcll},
-    column{1} = {font = \sffamily},
-    column{2} = {mode = dmath},
-    column{4} = {font = \ttfamily},
-    ]
-    s : \core ::=
-    | $l$
-    ;;
-    l : Layer ::=
-    | Empty()
-    | Draw($l$, $g$, $p$, $cl$)
-    | SaveLayer($l$, $l$, $p$)
-    ;;
-    g : Geometry ::=
-    | Rect($\ldots$) | RRect ($\ldots$)
-    | Path($\ldots$) | $\ldots$
-    ;;
-    cl : ClipGeometry ::=
-    | Rect($\ldots$) | RRect ($\ldots$)
-    | Path($\ldots$) | Intersect($cl$, $cl$)
-    ;;
-    p : Paint ::=
-    | Paint($f$, $st$, $c_f$, $b$)
-    ;;
-    f : Fill ::=
-    | Color(Pixel)
-    | LinearGradient($\ldots$)
-    | $\ldots$
-    ;;
-    st : Style ::=
-    | Solid | Stroke
-    ;;
-    c_f : Filter ::=
-    | IdFilter | LumaFilter | $\ldots$
-    ;;
-    b : BlendMode ::=
-    | SrcOver | DstIn | Src | $\ldots$
-  \end{bnf}
-\end{center}
-
-The main syntactical structures of \core{} are \textsf{Layer}s. A \texttt{Layer}
-correpsonds to one state of the draw surface. An \textsf{Empty} layer is a draw
-surface with all the pixels set to the argb color \texttt{(0, 0, 0, 0)}. A
-\textsf{Draw} layer draws a geometry onto the given layer. Just like the
-\textsf{Draw*} commands in \surface, how the shape is drawn and blended onto the
-layer is governed by the \textsf{Paint}. A \textsf{SaveLayer} layer is similiar
-to a \textsf{SaveLayer(); ...; Restore();} pair in \surface{}.
-
-\begin{minipage}{0.48\textwidth}
-\begin{verbatim}
-bottom
-...
-SaveLayer(paint);
-top
-...
-Restore();
-\end{verbatim}
-\end{minipage}\hfill
-\begin{minipage}{0.48\textwidth}
-\begin{verbatim}
-SaveLayer(bottom, top, paint)
-\end{verbatim}
-\end{minipage}
-
-\textsf{Paint}s behave the same way in \core{} as they do in \surface{}. Now
-that we have syntax for \core{} we can define a denotational semantics over it.
-
-\todo[inline]{everything after this i sprobably written in the worst way
-  possible}
-
-We define a denotation function over \texttt{Layer}s called
-\denote{\;\cdot\;}{Layer}. Its signature is:
+To verify rewrites in \core{} we define semantics for it.
+We define a denotation function $\llbracket\;\cdot\;\rrbracket$ over \texttt{Layer}s.
 
 \begin{equation*}
-  \denote{\;\cdot\;}{Layer} : int^2 \to int^4
+\llbracket \texttt{ Layer } \rrbracket : \mathsf{Point} \to \mathsf{Pixel}
 \end{equation*}
 
-That is the denotation of Layer is map from 2D points to ARGB pixels. We now
-define the denotations of the various constructors of \texttt{Layer}.
+That is,
+  A \texttt{Layer} is a map from \textsf{Point}s to \textsf{Pixel}s,
+  or more literally a buffer of pixels, indexed by points.
+We now define the denotation function over the 3 types of \texttt{Layer}s.
+First, the \texttt{Empty} layer.
 
 \begin{equation*}
-  \denote{\;\texttt{Empty()}\;}{Layer} = \lambda pt . (0, 0, 0, 0)
+\llbracket \texttt{ Empty() } \rrbracket = \lambda pt . (0, 0, 0, 0)
 \end{equation*}
 
-\begin{align*}
-  \denote{\;\texttt{Draw(l, g, (f, sty, cf, bm), cl)}\;}{Layer} = \lambda pt .
-  bm (l pt) (cf (if (style g) and (clip pt) then (fill pt) else (0, 0, 0, 0)))
-\end{align*}
-
-\todo[inline]{I have not added savelayer because it will be to painful to looka
-  t at as is}
+Next, \texttt{Draw}.
 
 \begin{equation*}
-  \denote{\;\texttt{Empty()}\;}{Layer} = \lambda pt . (0, 0, 0, 0)
+\llbracket \texttt{ Draw($l$, $g$, $p$, $c$) } \rrbracket =
 \end{equation*}
 
+\begin{BVerbatim}
+    let l_b := denote l_b
+    let (fill, blend_mode, style, filter) := paint
+    let drawPx := if (style geo) pt && (clip pt)
+                  then ((getFillFunc fill) pt)
+                  else Pixel.Transparent
+    blend_mode (l_b pt) (filter drawPx)
+\end{BVerbatim}
 
+\todo[inline]{idk how to typeset this man}
 
+Next, \texttt{Draw}.
+
+\begin{equation*}
+\llbracket \texttt{ SaveLayer($l_b$, $l_t$, $g$, $p$) } \rrbracket =
+\end{equation*}
+
+\begin{BVerbatim}
+    let l_b := denote l_b
+    let l_t := denote l_t
+    let blend_mode : BlendMode := paint.2.1
+    let filter     : Filter    := paint.2.2.2
+    let alpha      : Real      := getAlpha paint.1
+    blend_mode (l_b pt) (filter (applyAlpha alpha (l_t pt)))
+\end{BVerbatim}
+
+\todo[inline]{Argument symbols are all over the place. There is
+  \texttt{applyAlpha} here for som god forsaken reason. I am very sleepy.}
 
 
 

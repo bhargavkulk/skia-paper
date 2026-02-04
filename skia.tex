@@ -1,4 +1,373 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
 \section{Skia}
+
+We define 2 languages in this section, \surface{} and
+\core.
+\surface{} corresponds to the \texttt{SkCanvas} API a user of Skia
+typically uses to draw pictures.
+
+\begin{center}
+  \begin{tabular}{S M c T}
+    \surface{} & s & ::= & $c$ \\
+    \addlinespace[1pt]
+    Command & c & ::= & Draw($g$, $p$) \\
+               &   & | & DrawText(string, $p$) \\
+               &   & | & Clip($cl$, Intersect | Difference) \\
+               &   & | & Save(); $c$; Restore() \\
+               &   & | & SaveLayer($p$); $c$; Restore() \\
+               &   & | & $c$; $c$ \\
+    \addlinespace[1pt]
+    Geometry & g,\;cl & ::= & Rect($\ldots$) | RRect($\ldots$) | Path($\ldots$) \\
+    \addlinespace[1pt]
+    Paint & p & ::= & Paint($f$, $st$, $c_f$, $b$) \\
+    \addlinespace[1pt]
+    Fill & f & ::= & Color(pixel) | LinearGradient($\ldots$) | $\ldots$ \\
+    \addlinespace[1pt]
+    Style & st & ::= & Solid | Stroke \\
+    \addlinespace[1pt]
+    Filter & f & ::= & Id | Luma | $\ldots$ \\
+    \addlinespace[1pt]
+    BlendMode & b & ::= & SrcOver | DstIn | Src | $\ldots$\\
+  \end{tabular}
+\end{center}
+
+A drawing described by the \texttt{SkCanvas} API,
+  and by extension a \surface{} program,
+  is managed by a canvas.
+A canvas maintains 2 types of state:
+  a layer state and a clip state.
+The layer state describes the pixel buffer currently managed by the program.
+It can also be described as the current surface that is being drawn into.
+While a layer is conceptually infinite,
+  only the part of the layer that is within the set bounds of the canvas.
+  is ``drawn''.
+Consider the following \surface{} program,
+  which draws into a canvas of size 256$\times$256.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192), DEFAULT_PAINT)
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing1.pdf}}
+\end{minipage}
+\end{center}
+
+The layer state before the \texttt{Draw} command
+  is an empty pixel buffer.
+The layer state after the \texttt{Draw} command
+  is a pixel buffer with a black square.
+It's easy to see how a \texttt{Draw} command
+  manipulates the layer state
+  by the drawing a specified geometry
+  onto the layer.
+But just ``drawing'' geometries on a layer
+  is a pretty bad drawing API
+  as we have no way to describe
+  how the pixels within the geometry are filled.
+That role is filled by \texttt{Paint}s.
+
+\begin{equation*}
+\texttt{Paint($f$, $st$, $c_f$, $b$)}
+\end{equation*}
+
+A \texttt{Paint} in \surface{} is made of 4 components:
+  fill, style, color filter and blend mode.
+Each of these components change how a geometry is drawn.
+The fill defines the mapping from geometry to pixel color values in the buffer.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+      Paint(Color((1, 1, 0, 0)), ...))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing2.pdf}}
+\end{minipage}
+\end{center}
+
+A fill does not need to be a constant fill of the same pixel.
+More interesting fills can be implemented with gradients:
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+      Paint(LinearGradient(...), ...))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing3.pdf}}
+\end{minipage}
+\end{center}
+
+A style modifies the geometry that is being drawn.
+The \texttt{Solid} style,
+  the default style,
+  fills the entire geometry.
+While a \texttt{Stroke} style
+  only fills the boundaries of the geometry.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(48, 96, 112, 160),
+      Paint(..., Fill, ...));
+Draw(Rect(114, 96, 208, 160),
+      Paint(..., Stroke, ...))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing4.pdf}}
+\end{minipage}
+\end{center}
+
+A color filter further modifies the pixels filled in by \texttt{Fill}.
+It can be a considered as a function from pixels to pixels.
+The default color filter is basically a function that returns pixels unmodified.
+The following example applies a ``luminance filter'' over the earlier gradient example.
+It turns brightness,
+  as percieved by the human eyes,
+  into transparency.
+Brighter pixels are more opaque,
+  and darker pixels more transparent.\footnote{Red is brighter than blue if we
+    consider their relative luminances.}
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+     Paint(..., LumaFilter, ...))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing5.pdf}}
+\end{minipage}
+\end{center}
+
+Finally, a blend mode describes how
+  the geometry is drawn on to existing pixels of the current layer state.
+A blend mode is essentially a binary operator over pixels.
+The default blend mode is \texttt{SrcOver},
+  and it describes what is commonly known as ``alpha compositing''.
+We may even write down \texttt{SrcOver} as an algebraic equation over pixels.
+
+\begin{equation*}
+\texttt{SrcOver}(d,\; s) = s + (1-s.\texttt{alpha})\times d
+\tag*{\text{\footnotemark}}
+\end{equation*}
+\footnotetext{Instead of describing the blend mode separately over each channel
+of the pixel, we instead describe it over all channels simultaneously.}
+
+We follow the usual terminology used in describing blend modes:
+  $s$ or \textit{source} are the pixels being drawn
+  while $d$ or \textit{destination} are the pixels being draw on.
+Under \texttt{SrcOver}, the source pixel is placed over the destination pixel
+  with the destination contribution reduced according to the source's opacity.
+When the source pixels are opaque,
+  the results is effectively like drawing the source pixels ``over'' the
+  destination pixels.
+In the following example,
+  we blend one square over another using \texttt{SrcOver} blending.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+      Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+Draw(Rect(64, 64, 256, 256),
+      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing6.pdf}}
+\end{minipage}
+\end{center}
+
+Another blend mode commonly used is \texttt{DstIn}.
+
+\begin{equation*}
+\texttt{DstIn}(d,\; s) = d \times s.\texttt{alpha}
+\end{equation*}
+
+If the fill of the source geometry is opaque,
+  the source acts like a ``mask''.
+The pixels of dst that
+  are not under the opaque pixels of source
+  are masked out.
+The following program is the \texttt{SrcOver} example,
+  but the second square has its blend mode changed to \texttt{DstIn}.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+      Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+Draw(Rect(64, 64, 256, 256),
+      Paint(Color((1, 0, 0, 1)), ..., DstIn))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing8.pdf}}
+\end{minipage}
+\end{center}
+
+While \texttt{DstIn} can be used to mask destination pixels in this way,
+  \surface{} provides a dedicated clipping command for expressing this
+  operation more directly.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Clip(Rect(64, 64, 256, 256), Intersect);
+Draw(Rect(0, 0, 192, 192),
+      Paint(Color((1, 1, 0, 0)), ..., SrcOver))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing9.pdf}}
+\end{minipage}
+\end{center}
+
+Now instead masking being a consequence of blending,
+  we mask by constraining the draw geometry
+  by intersecting it with a clip geometry.
+\texttt{Clip} commands modify the clip state for the current layer;
+  A clip will affect all consequent \texttt{Draw} commands,
+  as you can see with the following example.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Clip(Rect(64, 64, 192, 192), Intersect);
+Draw(Rect(0, 0, 128, 128),
+      Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+Draw(Rect(128, 128, 256, 256),
+      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing10.pdf}}
+\end{minipage}
+\end{center}
+
+If we only use \texttt{Clip} and \texttt{Draw} commands,
+  there is no way to reset the global clip state.
+In \surface{} this is accomplished with the compound
+  \texttt{Save(); ...; Restore()} commands
+  and by using a \textit{global clip stack} instead of a singular global clip
+  state.
+A \texttt{Save()} duplicates the current top clip state on the clip stack.
+All subsequent \texttt{Clip} commands will modify the new top clip state.
+A \texttt{Restore()} will then pop the clip state duplicated by \texttt{Save},
+  discarding all changes made to the that clip state.
+To understand this better, lets surround both the \texttt{Clip} and the first
+\texttt{Draw} command of the previous example with \texttt{Save(); ...;
+  Restore()}.
+The \texttt{Clip} will now only affects the first square and not the second one.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Save();
+  Clip(Rect(64, 64, 192, 192), Intersect);
+  Draw(Rect(0, 0, 128, 128),
+        Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+Restore();
+Draw(Rect(128, 128, 256, 256),
+      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\end{minipage}
+\end{center}
+
+
+It is useful to understand \texttt{Save(); ...; Restore()} commands
+ as a grouping operation;
+ the effects of \texttt{Clip}s within a \texttt{Save(); ...; Restore()} group
+ are limited to only to the \texttt{Draw}s within the group.
+But with the current set of commands, we do not have a way to ``group''
+  the consequences of layer state modifying commands.
+Consider the \fillin{\surface{} program 6}.
+What if we want to make the whole drawing translucent.
+As a first try we could decrease the opacity of each square.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+Draw(Rect(0, 0, 192, 192),
+      Paint(Color((0.5, 1, 0, 0)), ..., SrcOver));
+Draw(Rect(64, 64, 256, 256),
+      Paint(Color((0.5, 0, 0, 1)), ..., SrcOver))
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing12.pdf}}
+\end{minipage}
+\end{center}
+
+This is not what we intended to draw with this program.
+\texttt{SaveLayer($p$); ...; Restore()} commands help us group drawing effects
+  in a useful way.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+SaveLayer(Paint(Color(0.5, 0, 0, 0)), ..., SrcOver);
+  Draw(Rect(0, 0, 192, 192),
+        Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+  Draw(Rect(64, 64, 256, 256),
+        Paint(Color((1, 0, 0, 1)), ..., SrcOver));
+Restore()
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing13.pdf}}
+\end{minipage}
+\end{center}
+
+This is accomplised by extending the global layer state to a stack.
+All \texttt{Draw} operations occur on the current top layer state.
+A \texttt{SaveLayer},
+  like \texttt{Save},
+  duplicates the current clip on the stack.
+It also pushes a new layer on the layer stack.
+All operations after a \texttt{SaveLayer}
+  now modify the new top layer on the stack.
+Just like \texttt{Save},
+  a matching \texttt{Restore} will pop the clip state stack.
+It will also pop the the top layer of the layer stack,
+  and then ``draw'' it on layer below it.
+Just like \texttt{Draw},
+  \texttt{Paint} controls how the top layer
+  is combined with the bottom layer.
+Like in the example above,
+  \texttt{Fill} controls the overall opacity of the layer before combining.
+It is important to note that only the alpha channel of the fill is used,
+  all other channels are useless to \texttt{SaveLayer}.
+\footnote{If the \texttt{Fill} is a gradient, the alpha is assumed to be 1}
+\texttt{Style} is not used because \texttt{SaveLayer} has no geometry to draw.
+A \texttt{Filter} is applied to the entire Layer just like in \texttt{Draw}.
+Finally,
+  \texttt{BlendMode}s describe how the top layer
+  is combined on the bottom layer.
 \end{document}
