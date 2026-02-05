@@ -2,6 +2,77 @@
 \begin{document}
 \section{Semantics}
 
+\begin{figure}
+  \begin{tabular}{S M c l}
+    Image & i & : & \mathsf{Point} \to \mathsf{Color} \\[2pt]
+    Shape & g & : & \mathsf{Point} \to \mathsf{bool} \\[2pt]
+    Blend & b & : & \mathsf{Color} \times \mathsf{Color} \to \mathsf{Color}
+  \end{tabular}
+  \caption{
+    Our abstract model consists of
+    \textsf{Image}s and \textsf{Shape}s
+    over abstract types \textsf{Pixel}s and \textsf{Color}s,
+    which can be blended together
+    to form images.
+  }
+  \label{fig:model}
+\end{figure}
+
+Our semantics of Skia is built around
+  a simple abstract model of images and shapes,
+  shown in \Cref{fig:model}.
+- Abstract type of Pixels and Colors
+- Image is Pixel -> Color
+- Shape is Pixel -> Bool
+- Blend is Color -> Color -> Color
+Skia works by taking Shapes; filling them with primitive Images;
+Blending the results together in various orders
+
+\begin{figure}
+  \begin{tabular}{S M c T}
+    \core{} & s & ::= & $l$ \\
+    \addlinespace[1pt]
+    Layer & l & ::= & Empty() \\
+          &   & |   & Draw($l$, $g$: \textsf{Geometry}, $p$: \textsf{Paint})\\
+          &   & |   & SaveLayer($l$, $l$, $p$: \textsf{Paint})
+  \end{tabular}
+  \caption{}
+  \label{fig:layer}
+\end{figure}
+
+
+However, Skia does not permit
+  arbitrary drawing and blending operations;
+  instead, these always happen in a prescribed order.
+We thus introduce the Layer abstraction,
+  shown in \Cref{fig:layer},
+  which defines the core Draw and BlendLayer operations
+  in Skia.
+We focus on these two operations specifically
+  because they are the core target of the optimizing compiler
+  described in \Cref{sec:optimize}.
+The Layer constructors can be defined in terms of the abstract model,
+  as shown in \Cref{fig:denote}.
+- Rename SaveLayer to BlendLayers(l, l, p)
+- Define our 3 constructs in terms of primitive operations
+
+We can now move on to defining the grammar of Skia.
+% - Discuss grammar
+% - Talk about how it simplifies actual Skia
+% - Discuss limitations (Transforms, Alpha, Style, Blur, MaskFilter, ImageFilter)
+% - Say we've done some of the limitations in our Lean
+
+% Talk about semantics
+% - Define state: stacks of CanvasStates and a stack of Surfaces
+% - CanvasState is just clip shape; Surface is CoreSk term
+% - Define a couple of SurfaceSk operations
+%   - Draw just modifies the top Surface
+%   - Clip just modifies the top shape
+%   - Save duplicates the shape without touching the surface, then
+%   Restore drops
+%   - SaveLayer duplicates shape & pushes empty surface; Restore
+%   blends and drops
+
 As our main goal is to try and verify rewrites in Skia,
   it is hard to do so over \surface{}.
 This is mainly because of the hidden layer and clip state of \surface{}.
@@ -11,16 +82,6 @@ That is why we introduce a new language called \core{},
   and also make explicit the clip state at each draw command.
 This also has the consequence of completely removing \texttt{Save}s from
   \core{}.
-
-\begin{center}
-  \begin{tabular}{S M c T}
-    \core{} & s & ::= & $l$ \\
-    \addlinespace[1pt]
-    Layer & l & ::= & Empty() \\
-          &   & |   & Draw($l$, $g$: \textsf{Geometry}, $p$: \textsf{Paint})\\
-          &   & |   & SaveLayer($l$, $l$, $p$: \textsf{Paint})
-  \end{tabular}
-\end{center}
 
 \todo[inline]{We need to talk about how to convert \surface{} to \core{}. Not
   sure how to do that.}
