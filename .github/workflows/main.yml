@@ -1,0 +1,27 @@
+name: Build LaTeX PDF (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build PDF with pdflatex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          latexmk_use_pdflatex: true
+          latexmk_shell_escape: false
+          pre_compile: |
+            tlmgr update --self
+            tlmgr install \
+              amsmath \
+              amssymb \
+              geometry \
+              cleveref \
+              siunitx
