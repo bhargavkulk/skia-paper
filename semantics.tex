@@ -3,62 +3,132 @@
 \section{Semantics}
 
 \begin{figure}
-  \begin{tabular}{S M c l}
-    Image & i & : & \mathsf{Point} \to \mathsf{Color} \\[2pt]
-    Shape & g & : & \mathsf{Point} \to \mathsf{bool} \\[2pt]
-    Blend & b & : & \mathsf{Color} \times \mathsf{Color} \to \mathsf{Color}
-  \end{tabular}
-  \caption{
-    Our abstract model consists of
-    \textsf{Image}s and \textsf{Shape}s
-    over abstract types \textsf{Pixel}s and \textsf{Color}s,
-    which can be blended together
-    to form images.
-  }
-  \label{fig:model}
+  \centering
+  \begin{minipage}{0.40\linewidth}
+    \centering
+    \begin{tabular}{S S}
+      Image  & : \; Point $\to$ Pixel \\[2pt]
+      Shape  & : \; $\mathcal{P}(\mathsf{Point})$ \\[2pt]
+      Blend  & : \; Pixel $\to$ Pixel $\to$ Pixel \\[2pt]
+      Filter & : \; Pixel $\to$ Pixel
+    \end{tabular}
+    \caption{%
+      Our abstract model consists of
+      \textsf{Images} and \textsf{Shapes}
+      over abstract types \textsf{Pixels} and \textsf{Colors},
+      which can be blended together
+      to form images.
+    }
+    \label{fig:model}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.58\linewidth}
+    \centering
+    \begin{tabular}{S c T}
+      Layer & ::= & Empty() \\
+            & |   & Draw(l: \textsf{Layer}, s: \textsf{Shape},\\
+            &     & \hspace{4em}p: \textsf{Paint}, c: \textsf{Shape})\\
+            & |   & BlendLayer(l\textsubscript{bot}: \textsf{Layer},
+                    l\textsubscript{top}: \textsf{Layer},\\
+            &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
+      Paint & ::= & Paint(fill: Image, blend: Blend)
+    \end{tabular}
+    \caption{}
+    \label{fig:layer}
+  \end{minipage}
 \end{figure}
 
 Our semantics of Skia is built around
   a simple abstract model of images and shapes,
   shown in \Cref{fig:model}.
-- Abstract type of Pixels and Colors
-- Image is Pixel -> Color
-- Shape is Pixel -> Bool
-- Blend is Color -> Color -> Color
-Skia works by taking Shapes; filling them with primitive Images;
-Blending the results together in various orders
-
-\begin{figure}
-  \begin{tabular}{S M c T}
-    \core{} & s & ::= & $l$ \\
-    \addlinespace[1pt]
-    Layer & l & ::= & Empty() \\
-          &   & |   & Draw($l$, $g$: \textsf{Geometry}, $p$: \textsf{Paint})\\
-          &   & |   & SaveLayer($l$, $l$, $p$: \textsf{Paint})
-  \end{tabular}
-  \caption{}
-  \label{fig:layer}
-\end{figure}
-
+Under these semantics,
+  rendering occurs by taking \textsf{Shapes},
+  filling them with primitive \textsf{Images},
+  and then blending the results with a \textsf{Blend} together in various orders
+  to yield more complicated \textsf{Images}.
+Our semantics also introduces a field for \textsf{Paints} not seen in \Cref{sec:skia}
+  in Skia called \textsf{Filters},
+  which are basically transforms over \textsf{Pixel}.
 
 However, Skia does not permit
   arbitrary drawing and blending operations;
   instead, these always happen in a prescribed order.
-We thus introduce the Layer abstraction,
+We thus introduce the language of \textsf{Layers},
   shown in \Cref{fig:layer},
-  which defines the core Draw and BlendLayer operations
+  which defines the core \texttt{Draw} and \texttt{BlendLayer} operations
   in Skia.
 We focus on these two operations specifically
   because they are the core target of the optimizing compiler
   described in \Cref{sec:optimize}.
-The Layer constructors can be defined in terms of the abstract model,
+The \textsf{Layer} constructors can be defined in terms of the abstract model,
   as shown in \Cref{fig:denote}.
-- Rename SaveLayer to BlendLayers(l, l, p)
-- Define our 3 constructs in terms of primitive operations
 
-We can now move on to defining the grammar of Skia.
-% - Discuss grammar
-% - Talk about how it simplifies actual Skia
+\begin{figure}
+  \begin{align*}
+    \denote{\texttt{Empty()}}(\textsf{pt})
+    &= \mathsf{Transparent}\\[2pt]
+    \denote{\texttt{Draw(l, s, p, c)}}(\mathsf{pt})
+    &= \mathtt{blend_p}\left(\denote{\mathtt{l}(\mathsf{pt})},\;
+       \begin{cases}
+         \mathtt{fill_p}(\mathsf{pt}) & \mathsf{pt} \in \mathtt{s} \cap \mathtt{c} \\
+         \mathsf{Transparent} & \textsf{otherwise}
+       \end{cases}
+       \right)\\[2pt]
+    \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
+    p)}}(\mathsf{pt})
+    &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
+      \begin{cases}
+        \alpha_\mathsf{px}\cdot\denote{\mathtt{l_{top}}}(\mathsf{pt}) & \forall
+                                                                   \mathsf{pt},
+                                                                   \mathtt{fill_p}(\mathsf{pt})
+                                                                   = \mathsf{px}
+        \\
+        \denote{\mathtt{l_{bot}}}(\mathsf{pt}) & \textsf{otherwise}
+      \end{cases}
+      \right)
+  \end{align*}
+\end{figure}
+
+We now define a grammar for the Skia drawing API in the figure below.
+
+\begin{center}
+  \begin{tabular}{S M c T}
+    Command & c & ::= & Draw($g$, $p$) \\
+            &   & | & DrawText(string, $p$) \\
+            &   & | & Clip($cl$, Intersect | Difference) \\
+            &   & | & Save(); $c$; Restore() \\
+            &   & | & SaveLayer($p$); $c$; Restore() \\
+            &   & | & $c$; $c$ \\[1pt]
+    Geometry & g,\;cl & ::= & Rect($\ldots$) | RRect($\ldots$) | Path($\ldots$) \\[2pt]
+    Paint & p & ::= & Paint($f$, $st$, $c_f$, $b$) \\[2pt]
+    Fill & f & ::= & Color(Pixel) | LinearGradient($\ldots$) | $\ldots$ \\[2pt]
+    Filter & f & ::= & Id | Luma | $\ldots$ \\[2pt]
+    BlendMode & b & ::= & SrcOver | DstIn | Src | $\ldots$\\
+  \end{tabular}
+\end{center}
+
+\noindent Our grammar for Skia simplifies certain aspects of the actual Skia API:
+
+\begin{enumerate}
+    \item The Skia API has separate \texttt{Draw} and \texttt{Clip} commands for
+      each \textsf{Geometry},
+      and not the overloaded function we present in the grammar.
+    \item The Skia API does not have structured constructs for \texttt{Save} and
+      \texttt{SaveLayer}.
+    \item Many of the arguments of the constructor have been elided as they are uninmportant.
+\end{enumerate}
+
+More crucially, we have omitted certain effects and commands in Skia.
+The \texttt{Style} tells Skia whether to fill or stroke the shape.
+It can be considered as a function over \texttt{Geometry},
+  basically modifying it.
+Similiarly,
+  \texttt{MaskFilters} allow us to implement Gaussian blurs.
+This could also be understood as functions over \texttt{Geometry},
+  and omitting them does not affect our semantics at all.
+
+\todo[inline]{no clue how to explain transforms.}
+
 % - Discuss limitations (Transforms, Alpha, Style, Blur, MaskFilter, ImageFilter)
 % - Say we've done some of the limitations in our Lean
 
@@ -73,71 +143,92 @@ We can now move on to defining the grammar of Skia.
 %   - SaveLayer duplicates shape & pushes empty surface; Restore
 %   blends and drops
 
-As our main goal is to try and verify rewrites in Skia,
-  it is hard to do so over \surface{}.
-This is mainly because of the hidden layer and clip state of \surface{}.
-That is why we introduce a new language called \core{},
-  which is a declarative version of \surface{}.
-\core{} makes layers the main value type of the language,
-  and also make explicit the clip state at each draw command.
-This also has the consequence of completely removing \texttt{Save}s from
-  \core{}.
+\begin{align*}
+\Sigma&:\textsf{Layer} \times \textsf{Geometry} \times \Sigma\\
+\longmapsto&:\textsf{Command} \times \Sigma \to \Sigma
+\end{align*}
 
-\todo[inline]{We need to talk about how to convert \surface{} to \core{}. Not
-  sure how to do that.}
-
-To verify rewrites in \core{} we define semantics for it.
-We define a denotation function $\llbracket\;\cdot\;\rrbracket$ over \texttt{Layer}s.
-
-\begin{equation*}
-\llbracket \texttt{ Layer } \rrbracket : \mathsf{Point} \to \mathsf{Pixel}
-\end{equation*}
-
-That is,
-  A \texttt{Layer} is a map from \textsf{Point}s to \textsf{Pixel}s,
-  or more literally a buffer of pixels, indexed by points.
-We now define the denotation function over the 3 types of \texttt{Layer}s.
-First, the \texttt{Empty} layer.
-
-\begin{equation*}
-\llbracket \texttt{ Empty() } \rrbracket = \lambda pt . (0, 0, 0, 0)
-\end{equation*}
-
-Next, \texttt{Draw}.
-
-\begin{equation*}
-\llbracket \texttt{ Draw($l$, $g$, $p$, $c$) } \rrbracket =
-\end{equation*}
-
-\begin{BVerbatim}
-    let l_b := denote l_b
-    let (fill, blend_mode, style, filter) := paint
-    let drawPx := if (style geo) pt && (clip pt)
-                  then ((getFillFunc fill) pt)
-                  else Pixel.Transparent
-    blend_mode (l_b pt) (filter drawPx)
-\end{BVerbatim}
-
-\todo[inline]{idk how to typeset this man}
-
-Next, \texttt{Draw}.
-
-\begin{equation*}
-\llbracket \texttt{ SaveLayer($l_b$, $l_t$, $g$, $p$) } \rrbracket =
-\end{equation*}
-
-\begin{BVerbatim}
-    let l_b := denote l_b
-    let l_t := denote l_t
-    let blend_mode : BlendMode := paint.2.1
-    let filter     : Filter    := paint.2.2.2
-    let alpha      : Real      := getAlpha paint.1
-    blend_mode (l_b pt) (filter (applyAlpha alpha (l_t pt)))
-\end{BVerbatim}
-
-\todo[inline]{Argument symbols are all over the place. There is
-  \texttt{applyAlpha} here for som god forsaken reason. I am very sleepy.}
-
-
+\begin{mathpar}
+  \inferrule
+  { }
+  {
+    \langle
+    \texttt{Draw(g, p)},
+    \langle L, C, K \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    \texttt{Draw(L, g, p, C)},
+    C,
+    K
+    \rangle
+  } \and
+  \inferrule
+  { }
+  {
+    \langle
+    \texttt{Clip(C', Intersect)},
+    \langle L, C, K \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    L, C \cap C', K
+    \rangle
+  } \and
+  \inferrule
+  { }
+  {
+    \langle
+    \texttt{Clip(C', Difference)},
+    \langle L, C, K \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    L, C / C', K
+    \rangle
+  } \and
+    \inferrule
+  {
+    \langle
+    \texttt{c},
+    \langle L, C, \langle L, C, K \rangle \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    L', C', \langle L, C, K \rangle
+    \rangle
+  }
+  {
+    \langle
+    \texttt{Save(); c; Restore()},
+    \langle L, C, K \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    L', C, K
+    \rangle
+  } \and
+ \inferrule
+ {
+    \langle
+    \texttt{c},
+    \langle \texttt{Empty()}, C, \langle L, C, K \rangle \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    L', C', \langle L, C, K \rangle
+    \rangle
+  }
+  {
+    \langle
+    \texttt{SaveLayer(p); c; Restore()},
+    \langle L, C, K \rangle
+    \rangle
+    \;\longmapsto\;
+    \langle
+    \texttt{BlendLayer(L, L', p)}, C, K
+    \rangle
+  }
+\end{mathpar}
 
 \end{document}

@@ -71,7 +71,7 @@ You can also specify a blend mode for a \texttt{Paint},
   which governs how the geometry is drawn on to existing pixels of the canvas.
 For example,
   the blend mode \texttt{SrcOver} encodes the intuitive idea
-  of drawing one shape on top of the other.
+  of drawing one shape over another.
 In the following example,
   we blend a blue square over the red square we previously drew,
   using \texttt{SrcOver} blending.
@@ -89,7 +89,7 @@ Draw(Rect2,
 \end{minipage}
 \end{center}
 
-Another blend mode common blend mode is \texttt{DstIn}.
+Another common blend mode is \texttt{DstIn}.
   \texttt{DstIn}.
 If a geometry is blended with \texttt{DstIn},
   instead of being drawn on top the canvas,
@@ -111,7 +111,7 @@ Draw(Rect2,
 \end{minipage}
 \end{center}
 
-While \texttt{DstIn} can be used to mask drawings in this way,
+While \texttt{DstIn} can be used to mask drawings,
   Skia also provides a dedicated clipping command for expressing this
   operation more directly.
 
@@ -129,11 +129,11 @@ Draw(Rect1,
 \end{minipage}
 \end{center}
 
-Now instead masking being a consequence of blending,
+Now instead of masking being a consequence of blending,
   we mask by constraining the draw geometry
   by intersecting it with a clip.
 The current global clip state is maintained by the canvas,
-  and \texttt{Clip} commands modify the globla clip state.
+  and \texttt{Clip} commands modify the global clip state.
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -155,7 +155,7 @@ Skia does not maintain just one clip state,
   but rather a stack of them.
 The current canvas clip state is the clip on the top of the clip stack.
 \texttt{Clip} commands always modify the top of the clip stack,
-  and can not touch the states below it.
+  and cannot touch the states below it.
 Skia provides the \texttt{Save()} and \texttt{Restore()} commands
   to manipulate the clip state.
 \texttt{Save()} duplicates the top of the clip stack on to the stack,
@@ -181,31 +181,87 @@ Draw(Rect(128, 128, 256, 256),
 \end{minipage}
 \end{center}
 
-
-
-\end{document}
+While the canvas is main interface for drawing,
+  drawing does not actually happen ``on'' the canvas.
+All drawing happens on a ``layer'' which is maintained by the canvas,
+  just like the clip state.
+And like the clip state,
+  the canvas maintains a stack of layers.
+All \texttt{Draw} commands modify the top of the stack layer only.
+Skia provides the \texttt{SaveLayer()} and \texttt{Restore()} commands
+  to manipulate the layer state.
+\texttt{SaveLayer()} pushes a new empty layer on the layer stack,
+  while also duplicating the current clip state onto the clip stack.
+A matching \texttt{Restore()},
+  just like for \texttt{Save()},
+  pops the clip state.
+It also draws the layer pushed by the \texttt{SaveLayer}
+  on to the layer below it.
 
 \begin{center}
-  \begin{tabular}{S M c T}
-    \surface{} & s & ::= & $c$ \\
-    \addlinespace[1pt]
-    Command & c & ::= & Draw($g$, $p$) \\
-               &   & | & DrawText(string, $p$) \\
-               &   & | & Clip($cl$, Intersect | Difference) \\
-               &   & | & Save(); $c$; Restore() \\
-               &   & | & SaveLayer($p$); $c$; Restore() \\
-               &   & | & $c$; $c$ \\
-    \addlinespace[1pt]
-    Geometry & g,\;cl & ::= & Rect($\ldots$) | RRect($\ldots$) | Path($\ldots$) \\
-    \addlinespace[1pt]
-    Paint & p & ::= & Paint($f$, $st$, $c_f$, $b$) \\
-    \addlinespace[1pt]
-    Fill & f & ::= & Color(pixel) | LinearGradient($\ldots$) | $\ldots$ \\
-    \addlinespace[1pt]
-    Style & st & ::= & Solid | Stroke \\
-    \addlinespace[1pt]
-    Filter & f & ::= & Id | Luma | $\ldots$ \\
-    \addlinespace[1pt]
-    BlendMode & b & ::= & SrcOver | DstIn | Src | $\ldots$\\
-  \end{tabular}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+example of red rect before then savelayer blue rect on top
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\end{minipage}
 \end{center}
+
+Just like for \texttt{Draw} commands,
+  how the top layer is drawn on to the layer beneath it
+  is governed by the \texttt{Paint}.
+For example,
+  you could provide the \texttt{Paint} of a \texttt{SaveLayer}
+  a blend mode to control how exatcly the top layer
+  is drawn on the bottom layer.
+
+\begin{center}
+\begin{minipage}[c]{0.45\textwidth}
+\begin{BVerbatim}
+drawr1
+savelayer dstin
+drawr2
+restore
+\end{BVerbatim}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+\centering
+\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\end{minipage}
+\end{center}
+
+Several examples were introduced above;
+  in particular,
+  there were three distinct examples that draw the same image.
+
+\todo[inline]{dunno if we reference the 3 examples, or we reproduce them here.
+  the text after this is assuming we reproduced.}
+
+The first program allocates a fresh layer to \texttt{DstIn} mask the bottom
+  layer.
+The second program directly \texttt{DstIn} masks the layer with a rectangle.
+The third program instead of masking, clips the rectangle with a \texttt{Clip}
+  command.
+Clearly,
+  the first program is the slowest,
+  because it has to allocate a new layer just to mask.
+While the third program is the fastest,
+  because it forgoes merging pixels altogether for clipping.
+If we want to draw this specific image
+  in a performance critical environment
+  (like a browser)
+  we'd draw the image witht the last program.
+In short,
+  despite these performance differences,
+  all three programs are equivalent with respect to their rendered output.
+This motivates the need for a formal semantics for Skia programs:
+  one that allows us to reason about
+  when distinct Skia prograns render the same image,
+  and to justify output-preserving rewrites that improve performance.
+The next section introduces a semantics for Skia,
+  that allow us to do just that.
+
+\end{document}

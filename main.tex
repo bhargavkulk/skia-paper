@@ -10,6 +10,9 @@
 \usepackage{array}
 \usepackage{booktabs}
 \usepackage{float}
+\usepackage{cleveref}
+\usepackage{mathpartir}
+\usepackage{mathtools}
 
 % package conf
 \graphicspath{ {./images/} }
@@ -17,12 +20,12 @@
 % MACROS
 \newcommand{\fillin}[1]{{\color{red} #1}}
 \newcommand{\filled}[1]{{\color{blue} #1}}
+\newcommand{\italic}[1]{\textsf{\textit{#1}}}
 \newcommand{\name}{\textsc{EasterEgg}\xspace}
 \newcommand{\surface}{\ensuremath{\mathsf{Surface_{Skia}}}}
 \newcommand{\core}{\ensuremath{\mathsf{Core_{Skia}}}}
-\DeclareRobustCommand{\denote}[2]{%
-  \ensuremath{\llbracket #1 \rrbracket_{\textsf{#2}}}%
-}
+\DeclarePairedDelimiter{\denote}{\llbracket}{\rrbracket}
+
 
 \newcolumntype{S}{>{\sffamily}l}
 \newcolumntype{M}{>{$}l<{$}}
