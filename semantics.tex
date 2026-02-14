@@ -127,26 +127,46 @@ Similiarly,
 This could also be understood as functions over \texttt{Geometry},
   and omitting them does not affect our semantics at all.
 
-\todo[inline]{no clue how to explain transforms.}
+Skia also provides facilities to transform, rotate, and perform other affine
+  transformations.
+It is well known that these transformations can be done using
+  matrix multiplications.
+So Skia maintains a transform state along with the layer and clip state.
+The \texttt{Concat44} command multiplies a 4x4 matrix with the transform state,
+  and affect the drawing of all commands after.
+The transform state as a whole can be removed by multiplying
+  the transform state of a command into the geometry
+  and the clip, which is what we do.
 
-% - Discuss limitations (Transforms, Alpha, Style, Blur, MaskFilter, ImageFilter)
-% - Say we've done some of the limitations in our Lean
+Finally,
+  we also omit image filters from our discussion of semantics.
+Image filters are the final way to transform a layer prior to blending.
+When a paint has an image filter,
+  all drawing happens in a seperate pixel buffer,
+  and the effect defined by the filter is applied to the entire buffer
+  before its blended.
+Image filters seem similiar to color and mask filters,
+  but they allow more complicated effects,
+  as they can act on groupd of pixels instead of single pixels.
 
-% Talk about semantics
-% - Define state: stacks of CanvasStates and a stack of Surfaces
-% - CanvasState is just clip shape; Surface is CoreSk term
-% - Define a couple of SurfaceSk operations
-%   - Draw just modifies the top Surface
-%   - Clip just modifies the top shape
-%   - Save duplicates the shape without touching the surface, then
-%   Restore drops
-%   - SaveLayer duplicates shape & pushes empty surface; Restore
-%   blends and drops
+To wrap this section up,
+  we define an operational semantics for the Skia API.
+We first define a step relation $\longmapsto$:
 
 \begin{align*}
-\Sigma&:\textsf{Layer} \times \textsf{Geometry} \times \Sigma\\
 \longmapsto&:\textsf{Command} \times \Sigma \to \Sigma
 \end{align*}
+
+$\Sigma$ is the canvas state:
+
+\begin{align*}
+\Sigma&:\textsf{Layer} \times \textsf{Geometry} \times \Sigma
+\end{align*}
+
+The canvas state has a reference to another canvas state,
+  emulating a stack of layers and clips.
+
+The following rules, define $\longmapsto$ over each command on \textsf{Command}.
 
 \begin{mathpar}
   \inferrule
@@ -230,5 +250,18 @@ This could also be understood as functions over \texttt{Geometry},
     \rangle
   }
 \end{mathpar}
+
+\noindent
+$\longmapsto^*$ is the reflexive transtive closure of $\longmapsto$. We can then
+define a evaluation function for \textsf{Command} to \textsf{Layer}.
+
+\begin{gather*}
+\textsf{eval} : \textsf{Command} \to \textsf{Layer} \\
+\textsf{eval}(c) = L,\;\langle c,\; \langle \texttt{Empty()}, \mathcal{U}, \varnothing
+                   \rangle \rangle \longmapsto^* \langle L, C, \varnothing \rangle
+\end{gather*}
+
+denote(eval(c')) = denote(eval(c))
+
 
 \end{document}
