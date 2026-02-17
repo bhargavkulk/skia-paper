@@ -2,11 +2,34 @@
 \begin{document}
 \section{Skia}
 
-In this section,
-  we introduce the basics of the Skia's drawing API.
-The next example demonstrates the API by drawing a rectangle.
-All drawing happens into a canvas.\footnote{A canvas in Skia is represented by
-  an instance of a \texttt{SkCanvas}~\cite{skcanvas} object, which owns all the drawing state.}
+Skia's basic APIs
+  create drawable 2D ``surfaces'' and ``layers'',
+  draw shapes to those surfaces and layers,
+  blend surfaces together,
+  and apply effects.
+These APIs are accessed by calling methods
+  on a Skia \texttt{SkCanvas} object;
+  however, internally, these \texttt{SkCanvas} operations
+  just append commands to a command buffer,%
+\footnote{
+More specifically, the GPU backend does this;
+  there is a CPU backend that does execute commands eagerly.
+Since the GPU backend is the fastest and most widely used,
+  this paper won't distinguish between Skia and the GPU backend.
+}
+  which we can take to be a stand-alone program.
+The program is actually executed when the \texttt{flush} method is called.
+This section introduce the basics of the Skia's drawing API;
+  to emphasize the language aspect of Skia,
+  we hide the method-call syntax and present Skia API calls
+  as if they were a stand-alone program.
+  
+\subsection{Drawing and Painting}
+
+\todo{I think in this section we should stick closer to the actual
+  Skia command names, like \texttt{DrawRect}, and introduce our
+  simplified language later.}
+The \texttt{Draw} command is used to draw shapes:
 
 \begin{figure}[H]
 \begin{minipage}[c]{0.45\textwidth}
@@ -20,23 +43,24 @@ Draw(Rect1, DEFAULT_PAINT)
 \end{minipage}
 \end{figure}
 
-The example is shown in three parts:
-  the canvas before the draw call,
-  the draw command itself,
-  and the canvas after execution.
-The drawing before the \texttt{Draw} command
-  is an empty pixel buffer.
-The drawing after the \texttt{Draw} command
-  is a pixel buffer with a black square.
-\texttt{Draw} needs 2 arguments:
-  the geometry to be drawn,
-  and a \texttt{Paint}.\footnote{In the actual \texttt{SkCanvas} API,
-    \texttt{Draw} is not overloaded over all geometries, but instead there exist
-    specific \texttt{Draw*} methods for the geometries Skia supports.}
+\noindent
+Here the layout is meant to evoke
+  a Hoare triple:
+  the left square shows the (empty) state of the canvas
+  before the \texttt{Draw} command,
+  while the right square shows the state of the canvas afterwards.
+\texttt{Draw} takes 2 arguments:
+  the geometry to be drawn (here, a rectangle \texttt{Rect1}),
+  and a \texttt{Paint}, here the default.%
+\footnote{In the actual \texttt{SkCanvas} API,
+\texttt{Draw} is not overloaded over all geometries, but instead there exist
+specific \texttt{Draw*} methods for the geometries Skia supports.}
+The result, shown on the right,
+  fills that rectangle with black,
+  but that is configurable by changing the \texttt{Paint} argument.
 
-A \texttt{Paint}~\cite{skpaint} controls how a geometry is drawn.
-For example,
-  you can specify a fill color in a \texttt{Paint}.
+The simplest kind of \texttt{Paint}~\cite{skpaint}
+  is a solid fill color:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -51,8 +75,9 @@ Draw(Rect1,
 \end{minipage}
 \end{center}
 
-A fill does not need to be a constant fill of the same pixel.
-More interesting fills can be implemented with gradients:
+\noindent
+It's also possible to specify a non-constant fill,
+  like a gradient:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -67,14 +92,16 @@ Draw(Rect1,
 \end{minipage}
 \end{center}
 
-You can also specify a blend mode for a \texttt{Paint},
-  which governs how the geometry is drawn on to existing pixels of the canvas.
-For example,
-  the blend mode \texttt{SrcOver} encodes the intuitive idea
-  of drawing one shape over another.
-In the following example,
-  we blend a blue square over the red square we previously drew,
-  using \texttt{SrcOver} blending.
+\noindent
+More complex fills like image fills or shaders are also possible.
+Formally, filling is one stage of Skia's drawing pipeline,
+  which assigns a color to every point in the shape.
+
+\subsection{Blending}
+
+Things get a little more interesting
+  once there is more than one shape being drawn.
+Suppose we draw a second, overlapping, blue square:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -89,14 +116,33 @@ Draw(Rect2,
 \end{minipage}
 \end{center}
 
-Another common blend mode is \texttt{DstIn}.
-  \texttt{DstIn}.
-If a geometry is blended with \texttt{DstIn},
-  instead of being drawn on top the canvas,
-  like in \texttt{SrcOver},
-  it is instead used as mask over the canvas.
-Consider the previous example,
-  drawn using \texttt{DstIn} instead of \texttt{SrcOver}.
+In Skia, the process of drawing a second shape
+  involves two conceptual stages.
+First, as before, every pixel in \texttt{Rect2}
+  is assigned a fill color, here a solid blue.
+Second, this assigned fill color is \emph{blended}
+  with the existing color for that pixel.
+The default \emph{blend mode}, \texttt{SrcOver},
+  written explicitly in the example above,
+  just chooses the new color,%
+\footnote{In reality, the blending is more complicated
+  and depends on the opacity or \emph{alpha}
+  of the new color,
+  which can matter for anti-aliasing,
+  but in our examples all the colors are opaque
+  and we ignore anti-aliasing as a simplification.}
+  but other blend modes can be used instead.
+
+\todo{I wonder if it would help to introduce a non-weird blend mode
+  like multiply or darken, before we go to the important but weird
+  case of DstIn.}
+
+One strange but important blend mode is \texttt{DstIn}.
+With \texttt{DstIn}, the shape being drawn
+  is treated as a \emph{mask},
+  and existing pixels outside the shape are made transparent.
+For example, if the blue rectangle were drawn with \texttt{DstIn},
+  the result would be:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -111,9 +157,27 @@ Draw(Rect2,
 \end{minipage}
 \end{center}
 
-While \texttt{DstIn} can be used to mask drawings,
-  Skia also provides a dedicated clipping command for expressing this
-  operation more directly.
+\subsection{Clipping}
+
+\texttt{DstIn} is powerful because it allows
+  the full power of Skia to be used to create the mask.
+That said, for simple rectangle masks, it is overkill;
+  Skia provides a dedicated \texttt{Clip} command
+  to clip shapes to rectangles.
+\todo{I think we can skip the \texttt{Intersect} argument here, again
+  sticking more closely to the actual Skia API.}
+Clipping is yet another stage of the Skia drawing pipeline;
+  clipping happens before filling
+  and modifies the shape being drawn.
+It is therefore more efficient than \texttt{DstIn} blending---%
+  it allows Skia to skip the filling and blending step
+  for the clipped-out pixels---%
+  but also limited to specific shapes.%
+\footnote{
+Technically, Skia allows clipping with arbitrary shapes,
+  but the GPU back-end has fast paths for just a few shapes.
+}
+One uses \texttt{Clip} like this:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -129,12 +193,16 @@ Draw(Rect1,
 \end{minipage}
 \end{center}
 
-Now instead of masking being a consequence of blending,
-  we mask by constraining the draw geometry
-  by intersecting it with a clip.
-The current global clip state is maintained by the canvas,
-  and \texttt{Clip} commands modify the global clip state.
+Note the unusual order of operations here.
+The \texttt{Clip} command is run first;
+  it does not modify the image at all,
+  but it modifies \emph{clip state}, stored in the canvas object,
+  that affects all later drawing commands.
+Here, for example, a single \texttt{Clip} operation
+  affects the next two \texttt{Draw} operations.
 
+\todo{I really don't like that this image re-uses red and blue colors
+  for different rectangles.}
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
@@ -151,17 +219,19 @@ Draw(Rect(128, 128, 256, 256),
 \end{minipage}
 \end{center}
 
-Skia does not maintain just one clip state,
-  but rather a stack of them.
-The current canvas clip state is the clip on the top of the clip stack.
-\texttt{Clip} commands always modify the top of the clip stack,
-  and cannot touch the states below it.
-Skia provides the \texttt{Save()} and \texttt{Restore()} commands
-  to manipulate the clip state.
-\texttt{Save()} duplicates the top of the clip stack on to the stack,
-  and a matching \texttt{Restore()} pops the top of the stack.
-\texttt{Save()} and \texttt{Restore()} allow us to restrict
-  the effects of \texttt{Clip} commands to a group of commands.
+Naturally, one might want a clip to apply
+  to only one command, not all later commands.
+Luckily, Skia allows the user to maintain
+  a \emph{stack} of clip states;
+  \texttt{Clip} modifies the top of the stack,
+  which is used for drawing commands,
+  while the \texttt{Save} and \texttt{Restore} commands
+  push and pop from the stack.
+This allows the user to restrict the effects of \texttt{Clip}
+  to a bracketed group of commands.
+Here, for example, the clip applies
+  to the first (red) \texttt{Draw} command
+  but not to the next (blue) one:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -181,22 +251,24 @@ Draw(Rect(128, 128, 256, 256),
 \end{minipage}
 \end{center}
 
-While the canvas is main interface for drawing,
-  drawing does not actually happen ``on'' the canvas.
-All drawing happens on a ``layer'' which is maintained by the canvas,
-  just like the clip state.
-And like the clip state,
-  the canvas maintains a stack of layers.
-All \texttt{Draw} commands modify the top of the stack layer only.
-Skia provides the \texttt{SaveLayer()} and \texttt{Restore()} commands
-  to manipulate the layer state.
-\texttt{SaveLayer()} pushes a new empty layer on the layer stack,
-  while also duplicating the current clip state onto the clip stack.
-A matching \texttt{Restore()},
-  just like for \texttt{Save()},
-  pops the clip state.
-It also draws the layer pushed by the \texttt{SaveLayer}
-  on to the layer below it.
+\subsection{Layers}
+
+\todo{I thought this was the most abrupt and unmotivated transition.
+  Not the end of the world.}
+Much like \texttt{Save} and \texttt{Restore} can save clip state,
+  there is also a \texttt{SaveLayer} and \texttt{Restore} command
+  that saves and restores the drawing surface itself.
+Conceptually, \texttt{SaveLayer} allocates
+  a new, empty drawing surface,
+  and all drawing commands until the corresponding \texttt{Restore}
+  draw to this new surface.
+Then, when the \texttt{Restore} command it reached,
+  the whole resulting drawing surface is blended back into
+  the original drawing surface;
+  the blend mode can be passed as an argument to \texttt{SaveLayer}.
+For example, in the following sequence,
+  the blue rectangle is first drawn to a blank surface
+  and then the result is blended into the surface below.
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -210,13 +282,23 @@ example of red rect before then savelayer blue rect on top
 \end{minipage}
 \end{center}
 
-Just like for \texttt{Draw} commands,
-  how the top layer is drawn on to the layer beneath it
-  is governed by the \texttt{Paint}.
-For example,
-  you could provide the \texttt{Paint} of a \texttt{SaveLayer}
-  a blend mode to control how exatcly the top layer
-  is drawn on the bottom layer.
+Semantically, you can think of \texttt{SaveLayer} commands
+  as re-associating the order of blend operations.
+In the \texttt{Save} example,
+  the order of operations is
+\[
+\textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
+\]
+  while in the \texttt{SaveLayer} example
+  the order of operations is
+\[
+\textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
+\]
+With \texttt{SrcOver} blending, which is associative,
+  this order of operations is not important,
+  but with other blend modes it becomes significant.
+
+\todo{We need an example where DstIn actually accomplishes something.}
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -233,35 +315,33 @@ restore
 \end{minipage}
 \end{center}
 
-Several examples were introduced above;
-  in particular,
-  there were three distinct examples that draw the same image.
+\subsection{Equivalences}
 
-\todo[inline]{dunno if we reference the 3 examples, or we reproduce them here.
-  the text after this is assuming we reproduced.}
-
-The first program allocates a fresh layer to \texttt{DstIn} mask the bottom
-  layer.
-The second program directly \texttt{DstIn} masks the layer with a rectangle.
-The third program instead of masking, clips the rectangle with a \texttt{Clip}
-  command.
-Clearly,
-  the first program is the slowest,
-  because it has to allocate a new layer just to mask.
-While the third program is the fastest,
-  because it forgoes merging pixels altogether for clipping.
-If we want to draw this specific image
-  in a performance critical environment
-  (like a browser)
-  we'd draw the image witht the last program.
-In short,
-  despite these performance differences,
-  all three programs are equivalent with respect to their rendered output.
-This motivates the need for a formal semantics for Skia programs:
-  one that allows us to reason about
-  when distinct Skia prograns render the same image,
-  and to justify output-preserving rewrites that improve performance.
-The next section introduces a semantics for Skia,
-  that allow us to do just that.
+The reader may have noticed that
+  a number of the Skia programs shown above
+  produced identical images
+  with different sequences of commands.
+For example, clipping can be accomplished
+  with clip state or with destination-in blending,
+  and different sequences of blends might lead to the same result.
+However, while the final images are the same,
+  the sequence of operations performed by Skia,
+  and thus the time taken to draw the image, will differ.
+For example, using \texttt{DstIn} blends for masking
+  requires filling pixels that will later be masked away;
+  using clip state for the same goal avoids that cost.
+Likewise, using \texttt{SaveLayer} requires
+  allocating GPU memory
+  and performing an extra blend upon \texttt{Restore}.
+The semantics developed in \Cref{sec:semantics}
+  allows proving that two Skia programs have identical results,
+  including verifying general-purpose rewrite rules.
+\Cref{sec:compiler} then uses these rewrites
+  to build a general-purpose Skia optimizer
+  that rewrites programs to reduce the use
+  of multiple layers and of \texttt{DstIn} blending.
+\Cref{sec:eval} then shows that this compiler
+  results in dramatically faster rendering
+  on a wide range of real-world Skia programs.
 
 \end{document}
