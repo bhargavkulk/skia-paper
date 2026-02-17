@@ -1,267 +1,211 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
+
 \section{Skia}
 
-In this section,
-  we introduce the basics of the Skia's drawing API.
+In this section, we introduce the basics of Skia's drawing API.
 The next example demonstrates the API by drawing a rectangle.
 All drawing happens into a canvas.\footnote{A canvas in Skia is represented by
-  an instance of a \texttt{SkCanvas}~\cite{skcanvas} object, which owns all the drawing state.}
+an instance of a \texttt{SkCanvas} object, which owns all the drawing state.}
 
+% ------------------------
 \begin{figure}[H]
-\begin{minipage}[c]{0.45\textwidth}
+\centering
+
+% Left: initial state
+\begin{minipage}{0.3\textwidth}
+\centering
+\fbox{\includegraphics[width=\linewidth]{drawing0.pdf}}
+\end{minipage}
+\hfill
+% Middle: draw command
+\begin{minipage}{0.3\textwidth}
 \begin{BVerbatim}
 Draw(Rect1, DEFAULT_PAINT)
 \end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing1.pdf}}
 \end{minipage}
+\hfill
+% Right: result
+\begin{minipage}{0.3\textwidth}
+\centering
+\fbox{\includegraphics[width=\linewidth]{drawing1.pdf}}
+\end{minipage}
+
 \end{figure}
 
-The example is shown in three parts:
-  the canvas before the draw call,
-  the draw command itself,
-  and the canvas after execution.
-The drawing before the \texttt{Draw} command
-  is an empty pixel buffer.
-The drawing after the \texttt{Draw} command
-  is a pixel buffer with a black square.
-\texttt{Draw} needs 2 arguments:
-  the geometry to be drawn,
-  and a \texttt{Paint}.\footnote{In the actual \texttt{SkCanvas} API,
-    \texttt{Draw} is not overloaded over all geometries, but instead there exist
-    specific \texttt{Draw*} methods for the geometries Skia supports.}
+% ------------------------
 
-A \texttt{Paint}~\cite{skpaint} controls how a geometry is drawn.
-For example,
-  you can specify a fill color in a \texttt{Paint}.
+The drawing before the \texttt{Draw} command is an empty pixel buffer.
+The drawing after the \texttt{Draw} command is a pixel buffer with a black square.
+\texttt{Draw} needs two arguments: the geometry to be drawn and a \texttt{Paint}.
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+A \texttt{Paint} controls how a geometry is drawn.
+For example, you can specify a fill color in a \texttt{Paint}.
+
+% ------------------------
+\begin{figure}[H]
+\centering
+
+% Left: initial state
+\begin{minipage}{0.3\textwidth}
+
+\fbox{\includegraphics[width=\linewidth]{drawing0.pdf}}
+\end{minipage}
+\hfill
+% Middle: draw command
+\begin{minipage}{0.3\textwidth}
 \begin{BVerbatim}
 Draw(Rect1,
       Paint(Color(Red), ...))
 \end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing2.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+% Right: result
+\begin{minipage}{0.3\textwidth}
+\centering
+\fbox{\includegraphics[width=\linewidth]{drawing2.pdf}}
+\end{minipage}
 
-A fill does not need to be a constant fill of the same pixel.
+\end{figure}
+
+% ------------------------
+
 More interesting fills can be implemented with gradients:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+% ------------------------
+\begin{figure}[H]
+\centering
+% Left: initial state
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing0.pdf}}
+\end{minipage}
+\hfill
+% code
+\begin{minipage}{0.3\textwidth}
+\footnotesize
 \begin{BVerbatim}
 Draw(Rect1,
       Paint(LinearGradient(...), ...))
 \end{BVerbatim}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing3.pdf}}
+% result
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing3.pdf}}
 \end{minipage}
-\end{center}
+\end{figure}
+% ------------------------
 
-You can also specify a blend mode for a \texttt{Paint},
-  which governs how the geometry is drawn on to existing pixels of the canvas.
-For example,
-  the blend mode \texttt{SrcOver} encodes the intuitive idea
-  of drawing one shape over another.
-In the following example,
-  we blend a blue square over the red square we previously drew,
-  using \texttt{SrcOver} blending.
+You can also specify a blend mode for a \texttt{Paint}.
+For example, the blend mode \texttt{SrcOver} draws one shape over another.
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+% ------------------------
+\begin{figure}[htbp]
+\centering
+
+% initial state
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing2.pdf}}
+\end{minipage}
+\hfill
+% command 
+\begin{minipage}{0.3\textwidth}
+\scriptsize
 \begin{BVerbatim}
 Draw(Rect2,
       Paint(Color(Blue), ..., SrcOver))
 \end{BVerbatim}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing6.pdf}}
+%result
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing6.pdf}}
 \end{minipage}
-\end{center}
+\end{figure}
+% ------------------------
 
-Another common blend mode is \texttt{DstIn}.
-  \texttt{DstIn}.
-If a geometry is blended with \texttt{DstIn},
-  instead of being drawn on top the canvas,
-  like in \texttt{SrcOver},
-  it is instead used as mask over the canvas.
-Consider the previous example,
-  drawn using \texttt{DstIn} instead of \texttt{SrcOver}.
+Another common blend mode is \texttt{DstIn}, which masks the canvas. %could be more descriptive here, i.e. "This removes any part of the first shape which does not overlap with the second."
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+% ------------------------
+\begin{figure}[H]
+\centering
+% initial state
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing2.pdf}}
+\end{minipage}
+\hfill
+% command
+\begin{minipage}{0.3\textwidth}
+\footnotesize
 \begin{BVerbatim}
 Draw(Rect2,
       Paint(Color(Blue), ..., DstIn))
 \end{BVerbatim}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing8.pdf}}
+% result
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing8.pdf}}
 \end{minipage}
-\end{center}
+\end{figure}
+% ------------------------
 
-While \texttt{DstIn} can be used to mask drawings,
-  Skia also provides a dedicated clipping command for expressing this
-  operation more directly.
+Skia also provides a dedicated clipping command:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+% ------------------------
+\begin{figure}[H]
+\centering
+% Initial state
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing2.pdf}}
+\end{minipage}
+\hfill
+% command
+\begin{minipage}{0.3\textwidth}
+\footnotesize
 \begin{BVerbatim}
 Clip(Rect2, Intersect);
 Draw(Rect1,
-      Paint(Color(Red), ..., SrcOver))
+     Paint(Color(Red), ..., SrcOver))
 \end{BVerbatim}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing9.pdf}}
+% end result
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing9.pdf}}
 \end{minipage}
-\end{center}
+\end{figure}
+% ------------------------
 
-Now instead of masking being a consequence of blending,
-  we mask by constraining the draw geometry
-  by intersecting it with a clip.
-The current global clip state is maintained by the canvas,
-  and \texttt{Clip} commands modify the global clip state.
+Clipping can be scoped using \texttt{Save()} and \texttt{Restore()}.
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-Clip(Rect(64, 64, 192, 192), Intersect);
-Draw(Rect(0, 0, 128, 128),
-      Paint(Color((1, 1, 0, 0)), ..., SrcOver));
-Draw(Rect(128, 128, 256, 256),
-      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+% ------------------------
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing10.pdf}}
+% initial state
+\begin{minipage}{0.3\textwidth}
+\centering
+\fbox{\includegraphics[width=\linewidth]{drawing0.pdf}}
 \end{minipage}
-\end{center}
-
-Skia does not maintain just one clip state,
-  but rather a stack of them.
-The current canvas clip state is the clip on the top of the clip stack.
-\texttt{Clip} commands always modify the top of the clip stack,
-  and cannot touch the states below it.
-Skia provides the \texttt{Save()} and \texttt{Restore()} commands
-  to manipulate the clip state.
-\texttt{Save()} duplicates the top of the clip stack on to the stack,
-  and a matching \texttt{Restore()} pops the top of the stack.
-\texttt{Save()} and \texttt{Restore()} allow us to restrict
-  the effects of \texttt{Clip} commands to a group of commands.
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
+\hfill
+% command
+\begin{minipage}{0.3\textwidth}
+\scriptsize
 \begin{BVerbatim}
 Save();
-  Clip(Rect(64, 64, 192, 192), Intersect);
-  Draw(Rect(0, 0, 128, 128),
-        Paint(Color((1, 1, 0, 0)), ..., SrcOver));
+  Clip(Rect(64,64,192,192), Intersect);
+  Draw(Rect(0,0,128,128),
+       Paint(Color((1,1,0,0)), ..., SrcOver));
 Restore();
-Draw(Rect(128, 128, 256, 256),
-      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+Draw(Rect(128,128,256,256),
+     Paint(Color((1,0,0,1)), ..., SrcOver))
 \end{BVerbatim}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+% result
+\begin{minipage}{0.3\textwidth}
+\fbox{\includegraphics[width=\linewidth]{drawing11.pdf}}
 \end{minipage}
-\end{center}
+\end{figure}
+% ------------------------
 
-While the canvas is main interface for drawing,
-  drawing does not actually happen ``on'' the canvas.
-All drawing happens on a ``layer'' which is maintained by the canvas,
-  just like the clip state.
-And like the clip state,
-  the canvas maintains a stack of layers.
-All \texttt{Draw} commands modify the top of the stack layer only.
-Skia provides the \texttt{SaveLayer()} and \texttt{Restore()} commands
-  to manipulate the layer state.
-\texttt{SaveLayer()} pushes a new empty layer on the layer stack,
-  while also duplicating the current clip state onto the clip stack.
-A matching \texttt{Restore()},
-  just like for \texttt{Save()},
-  pops the clip state.
-It also draws the layer pushed by the \texttt{SaveLayer}
-  on to the layer below it.
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-example of red rect before then savelayer blue rect on top
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
-\end{minipage}
-\end{center}
-
-Just like for \texttt{Draw} commands,
-  how the top layer is drawn on to the layer beneath it
-  is governed by the \texttt{Paint}.
-For example,
-  you could provide the \texttt{Paint} of a \texttt{SaveLayer}
-  a blend mode to control how exatcly the top layer
-  is drawn on the bottom layer.
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawr1
-savelayer dstin
-drawr2
-restore
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
-\centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
-\end{minipage}
-\end{center}
-
-Several examples were introduced above;
-  in particular,
-  there were three distinct examples that draw the same image.
-
-\todo[inline]{dunno if we reference the 3 examples, or we reproduce them here.
-  the text after this is assuming we reproduced.}
-
-The first program allocates a fresh layer to \texttt{DstIn} mask the bottom
-  layer.
-The second program directly \texttt{DstIn} masks the layer with a rectangle.
-The third program instead of masking, clips the rectangle with a \texttt{Clip}
-  command.
-Clearly,
-  the first program is the slowest,
-  because it has to allocate a new layer just to mask.
-While the third program is the fastest,
-  because it forgoes merging pixels altogether for clipping.
-If we want to draw this specific image
-  in a performance critical environment
-  (like a browser)
-  we'd draw the image witht the last program.
-In short,
-  despite these performance differences,
-  all three programs are equivalent with respect to their rendered output.
-This motivates the need for a formal semantics for Skia programs:
-  one that allows us to reason about
-  when distinct Skia prograns render the same image,
-  and to justify output-preserving rewrites that improve performance.
-The next section introduces a semantics for Skia,
-  that allow us to do just that.
+Similarly, \texttt{SaveLayer()} pushes a new layer onto the stack.
+Upon \texttt{Restore()}, the layer is drawn onto the layer below it,
+according to the provided \texttt{Paint}.
 
 \end{document}
