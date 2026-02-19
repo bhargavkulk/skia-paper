@@ -1,6 +1,7 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
 \section{Semantics}
+\label{sec:semantics}
 
 \begin{figure}
   \centering
@@ -41,14 +42,26 @@
 Our semantics of Skia is built around
   a simple abstract model of images and shapes,
   shown in \Cref{fig:model}.
+An image is a mapping from \textsf{Point} to \textsf{Pixel},
+  while a shape is a collection of \textsf{Points}.
+We also describe in this abstract model the operations of a \texttt{Paint}.
+A \textsf{Blend} is a binary operator over \textsf{Pixel}.
+We also introduce a new field for \texttt{Paints} not seen in \Cref{sec:skia}
+  in Skia called \textsf{Filters},
+  which are basically transforms over \textsf{Pixel}.
+
 Under these semantics,
-  rendering occurs by taking \textsf{Shapes},
+  a Skia program is rendered to an \textsf{Image}.
+Rendering occurs by taking \textsf{Shapes},
   filling them with primitive \textsf{Images},
   and then blending the results with a \textsf{Blend} together in various orders
   to yield more complicated \textsf{Images}.
-Our semantics also introduces a field for \textsf{Paints} not seen in \Cref{sec:skia}
-  in Skia called \textsf{Filters},
-  which are basically transforms over \textsf{Pixel}.
+
+Our abstract model is abstracted over \textsf{Point} and \textsf{Pixel}.
+Concretely for Skia,
+  \textsf{Point} is $\mathbb{R}^2$ and \textsf{Pixel} is $[0,1]^4$.
+
+\subsection{Skia as Layers}
 
 However, Skia does not permit
   arbitrary drawing and blending operations;
@@ -77,16 +90,10 @@ The \textsf{Layer} constructors can be defined in terms of the abstract model,
     \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
     p)}}(\mathsf{pt})
     &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
-      \begin{cases}
-        \alpha_\mathsf{px}\cdot\denote{\mathtt{l_{top}}}(\mathsf{pt}) & \forall
-                                                                   \mathsf{pt},
-                                                                   \mathtt{fill_p}(\mathsf{pt})
-                                                                   = \mathsf{px}
-        \\
-        \denote{\mathtt{l_{bot}}}(\mathsf{pt}) & \textsf{otherwise}
-      \end{cases}
+        \denote{\mathtt{l_{bot}}}(\mathsf{pt})
       \right)
   \end{align*}
+  \label{fig:denote}
 \end{figure}
 
 We now define a grammar for the Skia drawing API in the figure below.
@@ -149,6 +156,8 @@ Image filters seem similiar to color and mask filters,
   but they allow more complicated effects,
   as they can act on groupd of pixels instead of single pixels.
 
+\subsection{Operational Semantics for Skia}
+
 To wrap this section up,
   we define an operational semantics for the Skia API.
 We first define a step relation $\longmapsto$:
@@ -157,16 +166,21 @@ We first define a step relation $\longmapsto$:
 \longmapsto&:\textsf{Command} \times \Sigma \to \Sigma
 \end{align*}
 
-$\Sigma$ is the canvas state:
+\noindent$\Sigma$ is the canvas state:
 
 \begin{align*}
 \Sigma&:\textsf{Layer} \times \textsf{Geometry} \times \Sigma
 \end{align*}
 
+\noindent
 The canvas state has a reference to another canvas state,
   emulating a stack of layers and clips.
-
 The following rules, define $\longmapsto$ over each command on \textsf{Command}.
+
+\todo[inline]{%
+have separate layer and clip stacks, the top of the savelayer rule should be
+$\longmapsto^*$ and the inside of the SaveLayer should be $c^*$
+}
 
 \begin{mathpar}
   \inferrule
@@ -261,7 +275,33 @@ define a evaluation function for \textsf{Command} to \textsf{Layer}.
                    \rangle \rangle \longmapsto^* \langle L, C, \varnothing \rangle
 \end{gather*}
 
-denote(eval(c')) = denote(eval(c))
+\todo[inline]{need to show that states never get stuck, if we start with a sane
+  start state}
+
+Finally we state that two Skia programs are equal
+  when they denote to the same \textsf{Image}.
+
+\begin{equation*}
+\denote{\textsf{eval}(c)} = \denote{\textsf{eval}(c')}
+\end{equation*}
 
 
 \end{document}
+
+# head section
+just describe the abstract model, talk about how its abstracted over a Points
+and Color
+
+## Layer
+abstract model describes a bunch of invalid skia programs, we need some way to
+constrain it.
+
+describe the denotational semantics here
+
+## \mu Skia
+syntax,
+operational semantics,
+limitations
+
+## proving equivalences
+figure of rewrite rules, and talk through them.

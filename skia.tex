@@ -1,6 +1,9 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
 \section{Skia}
+\label{sec:skia}
+
+\todo[inline]{make sure we dont reference colors}
 
 Skia's basic APIs
   create drawable 2D ``surfaces'' and ``layers'',
@@ -23,10 +26,10 @@ This section introduce the basics of the Skia's drawing API;
   to emphasize the language aspect of Skia,
   we hide the method-call syntax and present Skia API calls
   as if they were a stand-alone program.
-  
+
 \subsection{Drawing and Painting}
 
-\todo{I think in this section we should stick closer to the actual
+\todo[inline]{I think in this section we should stick closer to the actual
   Skia command names, like \texttt{DrawRect}, and introduce our
   simplified language later.}
 The \texttt{Draw} command is used to draw shapes:
@@ -133,9 +136,13 @@ The default \emph{blend mode}, \texttt{SrcOver},
   and we ignore anti-aliasing as a simplification.}
   but other blend modes can be used instead.
 
-\todo{I wonder if it would help to introduce a non-weird blend mode
+% darken/multiply
+
+\todo[inline]{I wonder if it would help to introduce a non-weird blend mode
   like multiply or darken, before we go to the important but weird
   case of DstIn.}
+
+\todo[inline]{move to after dstin}
 
 One strange but important blend mode is \texttt{DstIn}.
 With \texttt{DstIn}, the shape being drawn
@@ -164,7 +171,7 @@ Draw(Rect2,
 That said, for simple rectangle masks, it is overkill;
   Skia provides a dedicated \texttt{Clip} command
   to clip shapes to rectangles.
-\todo{I think we can skip the \texttt{Intersect} argument here, again
+\todo[inline]{I think we can skip the \texttt{Intersect} argument here, again
   sticking more closely to the actual Skia API.}
 Clipping is yet another stage of the Skia drawing pipeline;
   clipping happens before filling
@@ -201,7 +208,7 @@ The \texttt{Clip} command is run first;
 Here, for example, a single \texttt{Clip} operation
   affects the next two \texttt{Draw} operations.
 
-\todo{I really don't like that this image re-uses red and blue colors
+\todo[inline]{I really don't like that this image re-uses red and blue colors
   for different rectangles.}
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -253,7 +260,7 @@ Draw(Rect(128, 128, 256, 256),
 
 \subsection{Layers}
 
-\todo{I thought this was the most abrupt and unmotivated transition.
+\todo[inline]{I thought this was the most abrupt and unmotivated transition.
   Not the end of the world.}
 Much like \texttt{Save} and \texttt{Restore} can save clip state,
   there is also a \texttt{SaveLayer} and \texttt{Restore} command
@@ -298,7 +305,7 @@ With \texttt{SrcOver} blending, which is associative,
   this order of operations is not important,
   but with other blend modes it becomes significant.
 
-\todo{We need an example where DstIn actually accomplishes something.}
+\todo[inline]{We need an example where DstIn actually accomplishes something.}
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
@@ -315,7 +322,12 @@ restore
 \end{minipage}
 \end{center}
 
+\subsection{Masking}
+
 \subsection{Equivalences}
+
+Obv dstin is great if you have complex mask, but you can use it for simple mask
+too, but its stupid to do so. and so on
 
 The reader may have noticed that
   a number of the Skia programs shown above
