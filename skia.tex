@@ -5,10 +5,11 @@
 
 \todo[inline]{make sure we dont reference colors}
 
+Skia is a popular library for 2D graphics.
 Skia's basic APIs
   create drawable 2D ``surfaces'' and ``layers'',
   draw shapes to those surfaces and layers,
-  blend surfaces together,
+  blend them together,
   and apply effects.
 These APIs are accessed by calling methods
   on a Skia \texttt{SkCanvas} object;
@@ -17,27 +18,27 @@ These APIs are accessed by calling methods
 \footnote{
 More specifically, the GPU backend does this;
   there is a CPU backend that does execute commands eagerly.
-Since the GPU backend is the fastest and most widely used,
-  this paper won't distinguish between Skia and the GPU backend.
+The GPU backend is the fastest and most widely used,
+  and the focus of this paper.
 }
   which we can take to be a stand-alone program.
-The program is actually executed when the \texttt{flush} method is called.
-This section introduce the basics of the Skia's drawing API.
+The program is executed when Skia's \texttt{flush} method is called.
+This section introduces the language's basic operations.
 
 \subsection{Drawing and Painting}
 
-The \texttt{drawRect} command is used to draw shapes:%
+The \texttt{drawRect} command is used to draw rectangles:%
 \footnote{
-\texttt{drawRect} and other commands we discuss in this section
-  are methods of the \texttt{SkCanvas} object you draw on.
-We forgoe the method-call syntax in the examples in this section
-  to make them terse.
+All code snippets in this section elide the \texttt{SkCanvas} object
+  and method-call syntax to maintain focus on
+  the Skia command language itself.
+We likewise drop the \texttt{Sk} prefix on most types.
 }
 
 \begin{figure}[H]
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Draw(Rect1, DEFAULT_PAINT)
+drawRect(rect1)
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -52,21 +53,15 @@ Here the layout is meant to evoke
   the left square shows the (empty) state of the canvas
   before the \texttt{drawRect} command,
   while the right square shows the state of the canvas afterwards.
-\texttt{drawRect} also needs
-  the geometry to be drawn (here, a rectangle \texttt{Rect1}).
-The result, shown on the right,
-  fills that rectangle with black.
 
-To fill the rectangle with other colors
-  we can pass \texttt{drawRect} a \texttt{Paint}~\cite{skpaint}.
-The simplest kind of fill you can give a \texttt{Paint}
-  is a solid fill color:
+By default, the rectangle is drawn in black,
+  but \texttt{drawRect} also takes a \texttt{Paint}~\cite{skpaint} argument
+  which can specify a different \emph{fill} color:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Draw(Rect1,
-      Paint(Color(Red), ...))
+drawRect(rect1, new Paint(COLOR_RED))
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -82,8 +77,7 @@ It's also possible to specify a non-constant fill,
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Draw(Rect1,
-      Paint(LinearGradient(...), ...))
+drawRect(rect1, new Paint(new LinearGradient(...)))
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -93,9 +87,9 @@ Draw(Rect1,
 \end{center}
 
 \noindent
-More complex fills like image fills or shaders are also possible.
-Formally, filling is one stage of Skia's drawing pipeline,
-  which assigns a color to every point in the shape.
+Skia also supports complex fills like images and shaders.
+Formally, filling is a stage of Skia's drawing pipeline
+  that assigns a color to every point in the shape.
 
 \subsection{Blending}
 
@@ -108,8 +102,7 @@ something to tell Henry}
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Draw(Rect2,
-      Paint(Color(Blue), ..., SrcOver))
+drawRect(Rect2, new Paint(COLOR_BLUE))
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -118,14 +111,13 @@ Draw(Rect2,
 \end{minipage}
 \end{center}
 
-In Skia, the process of drawing a second shape
-  involves two conceptual stages.
+In Skia, the process of drawing this second shape
+  involves, conceptually, two stages.
 First, as before, every pixel in \texttt{Rect2}
   is assigned a fill color, here a solid blue.
 Second, this assigned fill color is \emph{blended}
   with the existing color for that pixel.
-The default \emph{blend mode}, \texttt{SrcOver},
-  written explicitly in the example above,
+The default \emph{blend mode}, called \texttt{SrcOver},
   just chooses the new color,%
 \footnote{In reality, the blending is more complicated
   and depends on the opacity or \emph{alpha}
@@ -133,40 +125,40 @@ The default \emph{blend mode}, \texttt{SrcOver},
   which can matter for anti-aliasing,
   but in our examples all the colors are opaque
   and we ignore anti-aliasing as a simplification.}
-  but other blend modes can be used instead.
+  but a program can select a different blend modes instead.
+For example, the \texttt{Difference} blend mode
+  combines both colors being blended:
 
-For example,
-  we could blend the lower rectangle on to the upper rectangle
-  with the \fillin{\texttt{Difference}} blend mode instead.
-Now instead of the lower rectangle being drawn on top of the upper rectangle,
-  the intersection of the rectangles is now
-  \fillin{purple}.~\footnote{\fillin{explanation of the blend mode we are epxlaining}}
-
+\todo[inline]{Blended purple picture}
+ 
+Now, in the intersection of the two rectangles,
+  the initial red color is blended with the newly-drawn blue fill,
+  which in the \texttt{Difference} blend mode results in purple.
+Formally, blending is another stage in the Skia drawing pipeline,
+  which comes after filling and combines
+  the fill color assigned to each pixel
+  with the pre-existing color of that pixel.
 
 \subsection{Clipping}
 
-\texttt{drawRect} has no restrictions on where it can draw
-  except for the bounds of the canvas.
+So far, \texttt{drawRect} has been applying the fill
+  to the entirety of the shape being drawn.
 But, sometimes,
-  we need more granual control over the drawing bounds.
+  we need more granual control over the drawing bounds;
+  this is especially important for more complex shapes like text.
 Skia provides a dedicated \tetxtt{clipRect} command
-  to restrict or \textit{clip} shapes to rectangles.
-Clipping is yet another stage of the Skia drawing pipeline;
-  clipping happens before filling
-  and modifies the shape being drawn.%
+  to restrict or \textit{clip} the region to be filled.%
 \footnote{
 Skia allows clipping with arbitrary shapes,
   but the GPU back-end has fast paths for rectangles
   and rounded-rectangles, reducing them to scissor tests}
-
 One uses \texttt{clipRect} like this:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Clip(Rect2, Intersect);
-Draw(Rect1,
-      Paint(Color(Red), ..., SrcOver))
+clipRect(Rect2);
+drawRect(rect1, new Paint(COLOR_RED))
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -175,13 +167,19 @@ Draw(Rect1,
 \end{minipage}
 \end{center}
 
+\noindent
 Note the unusual order of operations here.
-The \texttt{clipRect} command is run first;
-  it does not modify the image at all,
-  but it modifies the \emph{clip state}, stored in the canvas object,
-  that affects all later drawing commands.
-Here, for example, a single \texttt{Clip} operation
-  affects the next two \texttt{Draw} operations.
+The \texttt{clipRect} command is run first,
+  and it not modify the image at all.
+Instead, it modifies the shape drawn
+  by \emph{later} draw operations.
+Formally, clipping is yet another stage of the Skia drawing pipeline;
+  it comes before filling and modifies the shape being drawn.
+
+Semantically, \texttt{clipRect} modifies the \emph{clip state},
+  which stored in the canvas object and affects drawing commands.
+This means that a single \texttt{clipRect} operation
+  can affect multiple \texttt{drawRect} operations:
 
 \todo[inline]{I really don't like that this image re-uses red and blue colors
   for different rectangles.}
@@ -189,11 +187,9 @@ Here, for example, a single \texttt{Clip} operation
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Clip(Rect(64, 64, 192, 192), Intersect);
-Draw(Rect(0, 0, 128, 128),
-      Paint(Color((1, 1, 0, 0)), ..., SrcOver));
-Draw(Rect(128, 128, 256, 256),
-      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+clipRect(rect3);
+drawRect(rect1, new Paint(COLOR_RED));
+drawRect(rect2, new Paint(COLOR_BLUE));
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -202,30 +198,24 @@ Draw(Rect(128, 128, 256, 256),
 \end{minipage}
 \end{center}
 
-Naturally, one might want a clip to apply
-  to only one command, not all later commands.
-Luckily, Skia allows the user to maintain
-  a \emph{stack} of clip states;
-  \texttt{clipRect} modifies the top of the stack,
-  which is used for drawing commands,
-  while the \texttt{save} and \texttt{restore} commands
+Naturally, one might want to clip
+  only a subset of drawing commands.
+Luckily, Skia maintains a \emph{stack} of clip states;
+  \texttt{clipRect} affects the top of the stack,
+  which is used by drawing commands,
+  while \texttt{save} and \texttt{restore} commands
   push and pop from the stack.
-This allows the user to restrict the effects of \texttt{clip}
-  to a bracketed group of commands.
-Here, for example, the clip applies
-  to the first rectangle
-  but not to the next one:
+\texttt{save} and \texttt{restore} act like brackets,
+  restricting the effect of \texttt{clip} to the enclosed commands:
 
 \begin{center}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
-Save();
-  Clip(Rect(64, 64, 192, 192), Intersect);
-  Draw(Rect(0, 0, 128, 128),
-        Paint(Color((1, 1, 0, 0)), ..., SrcOver));
-Restore();
-Draw(Rect(128, 128, 256, 256),
-      Paint(Color((1, 0, 0, 1)), ..., SrcOver))
+save();
+  clipRect(rect3);
+  drawRect(rect1, new Paint(COLOR_RED))
+restore();
+drawRect(rect2, new Paint(COLOR_BLUE));
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
@@ -233,6 +223,10 @@ Draw(Rect(128, 128, 256, 256),
 \frame{\includegraphics[scale=0.3]{drawing11.pdf}}
 \end{minipage}
 \end{center}
+
+Note that the indentation in the example code is merely suggestive,
+  since in reality these commands exist in a linear command buffer
+  and not as source code.
 
 \subsection{Layers}
 
