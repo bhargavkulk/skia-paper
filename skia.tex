@@ -149,7 +149,7 @@ Now instead of the lower rectangle being drawn on top of the upper rectangle,
   except for the bounds of the canvas.
 But, sometimes,
   we need more granual control over the drawing bounds.
-Skia provides a dedicated \tetxtt{clipRect} command
+Skia provides a dedicated \texttt{clipRect} command
   to restrict or \textit{clip} shapes to rectangles.
 Clipping is yet another stage of the Skia drawing pipeline;
   clipping happens before filling
@@ -344,8 +344,12 @@ Here,
 put mandrill rectangle example here
 \end{verbatim*}
 
-The semantics developed in \Cref{sec:semantics}
-  allows proving that two Skia programs have identical results,
+Therefore it should be possible to replace a skia program
+  with a faster one,
+  given they have indentical results.
+In \Cref{sec:semantics}
+  we develop a semantics,
+  which allows proving that two Skia programs have identical results,
   including verifying general-purpose rewrite rules.
 \Cref{sec:compiler} then uses these rewrites
   to build a general-purpose Skia optimizer

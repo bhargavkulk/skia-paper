@@ -39,6 +39,12 @@
   \end{minipage}
 \end{figure}
 
+The goal of this section is to develop a semantics for Skia
+  through which we can show that two different Skia programs
+  render to the same image.
+To encode this, we will use the relation $=_{\textit{Image}}$,
+  and we will define this relation in this section.
+
 Our semantics of Skia is built around
   a simple abstract model of images and shapes,
   shown in \Cref{fig:model}.
@@ -63,7 +69,7 @@ Concretely for Skia,
 
 \subsection{Skia as Layers}
 
-However, Skia does not permit
+Skia does not permit
   arbitrary drawing and blending operations;
   instead, these always happen in a prescribed order.
 We thus introduce the language of \textsf{Layers},
@@ -96,9 +102,11 @@ The \textsf{Layer} constructors can be defined in terms of the abstract model,
   \label{fig:denote}
 \end{figure}
 
-We now define a grammar for the Skia drawing API in the figure below.
+\subsection{\muskia}
 
-\begin{center}
+We now define \muskia which is our representation of the Skia API.
+
+\begin{figure}
   \begin{tabular}{S M c T}
     Command & c & ::= & Draw($g$, $p$) \\
             &   & | & DrawText(string, $p$) \\
@@ -112,24 +120,21 @@ We now define a grammar for the Skia drawing API in the figure below.
     Filter & f & ::= & Id | Luma | $\ldots$ \\[2pt]
     BlendMode & b & ::= & SrcOver | DstIn | Src | $\ldots$\\
   \end{tabular}
-\end{center}
+  \label{fig:muskia}
+\end{figure}
 
-\noindent Our grammar for Skia simplifies certain aspects of the actual Skia API:
+\noindent \muskia simplifies certain aspects of the actual Skia API:
+The Skia API has separate \texttt{Draw} and \texttt{Clip} commands for each
+  \textsf{Geometry},
+  and not the overloaded function we present in the grammar.
+The Skia API does not have structured constructs for \texttt{Save} and \texttt{SaveLayer}.
 
-\begin{enumerate}
-    \item The Skia API has separate \texttt{Draw} and \texttt{Clip} commands for
-      each \textsf{Geometry},
-      and not the overloaded function we present in the grammar.
-    \item The Skia API does not have structured constructs for \texttt{Save} and
-      \texttt{SaveLayer}.
-    \item Many of the arguments of the constructor have been elided as they are uninmportant.
-\end{enumerate}
-
-More crucially, we have omitted certain effects and commands in Skia.
+More crucially, we have omitted certain effects and commands from \muskia that
+  are in Skia.
 The \texttt{Style} tells Skia whether to fill or stroke the shape.
 It can be considered as a function over \texttt{Geometry},
   basically modifying it.
-Similiarly,
+Similarly,
   \texttt{MaskFilters} allow us to implement Gaussian blurs.
 This could also be understood as functions over \texttt{Geometry},
   and omitting them does not affect our semantics at all.
@@ -154,12 +159,13 @@ When a paint has an image filter,
   before its blended.
 Image filters seem similiar to color and mask filters,
   but they allow more complicated effects,
-  as they can act on groupd of pixels instead of single pixels.
+  as they can act on groups of pixels instead of single pixels.
 
 \subsection{Operational Semantics for Skia}
 
-To wrap this section up,
-  we define an operational semantics for the Skia API.
+We now define an operational semantics for the Skia API.
+These semantics will allows us to convert terms in \muskia
+  to terms in \textsf{Layer}.
 We first define a step relation $\longmapsto$:
 
 \begin{align*}
@@ -169,7 +175,7 @@ We first define a step relation $\longmapsto$:
 \noindent$\Sigma$ is the canvas state:
 
 \begin{align*}
-\Sigma&:\textsf{Layer} \times \textsf{Geometry} \times \Sigma
+\Sigma&:\textsf{List[Layer]} \times \textsf{List[Geometry]}
 \end{align*}
 
 \noindent
@@ -177,113 +183,134 @@ The canvas state has a reference to another canvas state,
   emulating a stack of layers and clips.
 The following rules, define $\longmapsto$ over each command on \textsf{Command}.
 
-\todo[inline]{%
-have separate layer and clip stacks, the top of the savelayer rule should be
-$\longmapsto^*$ and the inside of the SaveLayer should be $c^*$
-}
-
 \begin{mathpar}
   \inferrule
   { }
   {
     \langle
     \texttt{Draw(g, p)},
-    \langle L, C, K \rangle
+    \langle l :: L, c :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle
-    \texttt{Draw(L, g, p, C)},
-    C,
-    K
-    \rangle
+    \langle \texttt{Draw(l, g, p, c)} :: L, c :: C \rangle
   } \and
   \inferrule
   { }
   {
     \langle
-    \texttt{Clip(C', Intersect)},
-    \langle L, C, K \rangle
+    \texttt{Clip(c', Intersect)},
+    \langle L, c :: C\rangle
     \rangle
     \;\longmapsto\;
-    \langle
-    L, C \cap C', K
-    \rangle
+    \langle L, c \cap c' :: C \rangle
   } \and
   \inferrule
   { }
   {
     \langle
-    \texttt{Clip(C', Difference)},
-    \langle L, C, K \rangle
+    \texttt{Clip(c', Difference)},
+    \langle L, c :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle
-    L, C / C', K
-    \rangle
+    \langle L, c / c' :: C \rangle
   } \and
-    \inferrule
+  \inferrule
   {
     \langle
-    \texttt{c},
-    \langle L, C, \langle L, C, K \rangle \rangle
+    \texttt{cmd},
+    \langle L, c :: c :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle
-    L', C', \langle L, C, K \rangle
-    \rangle
+    \langle L', c' :: c :: C \rangle
   }
   {
     \langle
-    \texttt{Save(); c; Restore()},
-    \langle L, C, K \rangle
+    \texttt{Save(); cmd; Restore()},
+    \langle L, c :: C\rangle
     \rangle
     \;\longmapsto\;
-    \langle
-    L', C, K
-    \rangle
+    \langle L', c :: C \rangle
   } \and
- \inferrule
- {
+  \inferrule
+  {
     \langle
-    \texttt{c},
-    \langle \texttt{Empty()}, C, \langle L, C, K \rangle \rangle
-    \rangle
+    \texttt{cmd},
+    \langle \texttt{Empty()} :: l :: L, c :: c :: C \rangle \rangle
     \;\longmapsto\;
-    \langle
-    L', C', \langle L, C, K \rangle
-    \rangle
+    \langle l' :: l :: L, c' :: c :: C \rangle
   }
   {
     \langle
-    \texttt{SaveLayer(p); c; Restore()},
-    \langle L, C, K \rangle
+    \texttt{SaveLayer(p); cmd; Restore()},
+    \langle l :: L, c :: C\rangle
     \rangle
     \;\longmapsto\;
+    \langle \texttt{BlendLayer(l, l', p)} :: L, c :: C \rangle
+  } \and
+  \inferrule
+  {
     \langle
-    \texttt{BlendLayer(L, L', p)}, C, K
+    \texttt{cmd},
+    \langle l :: L, c :: C \rangle \rangle
+    \;\longmapsto\;
+    \langle l' :: L, c' :: C \rangle \\
+    \langle
+    \texttt{cmd'},
+    \langle l' :: L, c' :: C \rangle \rangle
+    \;\longmapsto\;
+    \langle l'' :: L, c'' :: C \rangle
+  }
+  {
+    \langle
+    \texttt{cmd; cmd'},
+    \langle l :: L, c :: C \rangle
     \rangle
+    \;\longmapsto\;
+    \langle l^{\prime} :: L, c'' :: C \rangle
   }
 \end{mathpar}
 
 \noindent
-$\longmapsto^*$ is the reflexive transtive closure of $\longmapsto$. We can then
-define a evaluation function for \textsf{Command} to \textsf{Layer}.
+$\longmapsto^*$ is the reflexive transitive closure of $\longmapsto$.
+It can be proven that given the initial state $\langle [\texttt{Empty()}],
+  [\mathcal{U}] \rangle$, $\longmapsto^*$ will never get stuck i.e.
 
-\begin{gather*}
-\textsf{eval} : \textsf{Command} \to \textsf{Layer} \\
-\textsf{eval}(c) = L,\;\langle c,\; \langle \texttt{Empty()}, \mathcal{U}, \varnothing
-                   \rangle \rangle \longmapsto^* \langle L, C, \varnothing \rangle
-\end{gather*}
-
-\todo[inline]{need to show that states never get stuck, if we start with a sane
-  start state}
-
-Finally we state that two Skia programs are equal
-  when they denote to the same \textsf{Image}.
 
 \begin{equation*}
-\denote{\textsf{eval}(c)} = \denote{\textsf{eval}(c')}
+\forall\,\texttt{cmd}\,\exists\,l,\, c\;\text{s.t.}\;\langle \texttt{cmd}, \langle
+[\texttt{Empty()}], [\mathcal{U}] \rangle \rangle \longmapsto^* \langle [l], [c] \rangle
 \end{equation*}
+
+\noindent
+Given this fact,
+  we can write down an evaluation function for terms in \muskia to
+  \textsf{Image}.
+
+\begin{gather*}
+\textsf{eval} : \textsf{Command} \to \textsf{Image} \\
+\textsf{eval}(c) = \llbracket l \rrbracket \;\textsf{where}\;\langle c, \langle [\texttt{Empty()}], [\mathcal{U}]
+\rangle \rangle \longmapsto^* \langle [l], [C] \rangle
+\end{gather*}
+
+\noindent
+We now have all the pieces to define \eqimg.
+
+\begin{gather*}
+\eqimg : \textsf{Command} \to \textsf{Command} \to \textsf{Command} \\
+l \eqimg l' := \textit{eval}(l) = \textit{eval}(l')
+\end{gather*}
+
+\subsection{Rewrites in \muskia}
+
+In this section we will discuss we will write down and prove some rewrites over
+  Skia programs.
+The goal of these rewrites is reduce the number of new layers created by
+  \texttt{saveLayer()}.
+We came up with these rewrites by carefully reading the Skia program dumps from
+  the top 100 websites visited in the world.
+
+\subsubsection{Opaque \texttt{saveLayer}}
+
 
 
 \end{document}
