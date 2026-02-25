@@ -6,6 +6,7 @@
 \begin{figure}
   \centering
   \begin{minipage}{0.40\linewidth}
+    \todo[inline]{I think we require a special \textsf{Transparent} color.}
     \centering
     \begin{tabular}{S S}
       Image  & : \; Point $\to$ Color \\[2pt]
@@ -22,6 +23,14 @@
   \end{minipage}
   \hfill
   \begin{minipage}{0.58\linewidth}
+    \todo[inline]{I don't like that this image has to line-break.
+      I suspect that a long-term fix is to make fig:model
+      horizontally adjacent to a new figure showing
+      the specific instantiation of the abstract model
+      used in our actual Lean formalization.}
+    \todo[inline]{What if we define \textsf{Paint} abstractly,
+      with \textsf{fill} and \textsf{blend} accessors?
+      Then it's easy to extend directly to add opacity.}
     \centering
     \begin{tabular}{S c T}
       Layer & ::= & Empty() \\
@@ -138,38 +147,58 @@ This extension does not require any changes to the abstract model,
 
 \subsection{Skia as Layers}
 
-Skia does not permit
-  arbitrary drawing and blending operations;
-  instead, these always happen in a prescribed order.
-We thus introduce the language of \textsf{Layers},
-  shown in \Cref{fig:layer},
-  which defines the core \texttt{Draw} and \texttt{BlendLayer} operations
-  in Skia.
-We focus on these two operations specifically
-  because they are the core target of the optimizing compiler
-  described in \Cref{sec:optimize}.
-The \textsf{Layer} constructors can be defined in terms of the abstract model,
-  as shown in \Cref{fig:denote}.
-
 \begin{figure}
   \begin{align*}
     \denote{\texttt{Empty()}}(\textsf{pt})
     &= \mathsf{Transparent}\\[2pt]
+    \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
+    p)}}(\mathsf{pt})
+    &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
+        \denote{\mathtt{l_{top}}}(\mathsf{pt})
+      \right) \\[2pt]
     \denote{\texttt{Draw(l, s, p, c)}}(\mathsf{pt})
     &= \mathtt{blend_p}\left(\denote{\mathtt{l}(\mathsf{pt})},\;
        \begin{cases}
          \mathtt{fill_p}(\mathsf{pt}) & \mathsf{pt} \in \mathtt{s} \cap \mathtt{c} \\
          \mathsf{Transparent} & \textsf{otherwise}
        \end{cases}
-       \right)\\[2pt]
-    \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
-    p)}}(\mathsf{pt})
-    &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
-        \denote{\mathtt{l_{bot}}}(\mathsf{pt})
-      \right)
+       \right)\\
   \end{align*}
+  \caption{}
   \label{fig:denote}
 \end{figure}
+
+Skia has two core operations:
+  drawing a shape onto an image,
+  and blending two images (representing two layers) into one.
+Each operation is parameterized by a \textsf{Paint} object,
+  which indicates the current blend mode,
+  the fill type, and so on;
+  drawing also requires the clip region from the canvas state.
+The signatures for each operation are defined
+  in \Cref{fig:layer} as constructors of
+  a \textsf{Layer} type.
+Equivalence of two \textsf{Layer} terms
+  is defined by equivalence of their denotations to \textsf{Image}s.
+
+The operations can be denoted to the abstract model,
+  as shown in \Cref{fig:denote}.
+\textsf{Empty} has a straightforward denotation
+  to an all-\textsf{Transparent} image.
+\textsf{BlendLayer} is likewise straightforward,
+  applying a blend operator, determined by the paint $p$,
+  point-wise on the two layers being blended.
+\textsf{Draw} is most complex.
+Conceptually, it first performs clipping,
+  constructing the intersection $s \cap c$
+  of the drawn shape and the clip state;
+  then it performs filling,
+  computing the fill color for each point in the shape;
+  and finally it performs blending
+  on the original color and computed fill for each point.
+Note that the blend is performed
+  even for points outside $s \cap c$;
+  this is critical for, for example, \textsf{DstIn} blending.
 
 \subsection{\muskia}
 
