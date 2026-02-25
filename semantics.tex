@@ -8,17 +8,15 @@
   \begin{minipage}{0.40\linewidth}
     \centering
     \begin{tabular}{S S}
-      Image  & : \; Point $\to$ Pixel \\[2pt]
-      Shape  & : \; $\mathcal{P}(\mathsf{Point})$ \\[2pt]
-      Blend  & : \; Pixel $\to$ Pixel $\to$ Pixel \\[2pt]
-      Filter & : \; Pixel $\to$ Pixel
+      Image  & : \; Point $\to$ Color \\[2pt]
+      Shape  & : \; Point $\to$ Bool \\[2pt]
+      Blend  & : \; Color $\times$ Color $\to$ Color \\[2pt]
+      Filter & : \; Color $\to$ Color
     \end{tabular}
     \caption{%
-      Our abstract model consists of
-      \textsf{Images} and \textsf{Shapes}
-      over abstract types \textsf{Pixels} and \textsf{Colors},
-      which can be blended together
-      to form images.
+      Our abstract model of \textsf{Image}s
+      and \textsf{Shapes} is built from
+      abstract types \textsf{Pixels} and \textsf{Colors}.
     }
     \label{fig:model}
   \end{minipage}
@@ -34,20 +32,35 @@
             &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
       Paint & ::= & Paint(fill: Image, blend: Blend)
     \end{tabular}
-    \caption{}
+    \caption{%
+      \textsf{Layer} provides
+      a simple functional description of Skia images.
+    }
     \label{fig:layer}
   \end{minipage}
 \end{figure}
 
-The goal of this section is to develop a semantics for Skia
-  through which we can show that two different Skia programs
-  render to the same image.
-To encode this, we will use the relation $=_{\textit{Image}}$,
-  and we will define this relation in this section.
+This paper's semantics of Skia
+  consists of three layers~\Cref{fig:diagram}.
+The bottom-most layer is an abstract model of
+  images, shapes, blends, and filters defined in terms
+  of abstract types \textsf{Point} and \textsf{Color}.
+The middle layer is functional operations
+  \texttt{Draw} and \texttt{BlendLayer},
+  which denote to our abstract model.
+The top layer is an imperative language, \mu{}Skia,
+  whose operational semantics provides a model of Skia.
+This section describes all three layers
+  and then examines \todo{N} case studies
+  of rewrite rules proven valid using the semantics.
+
+\subsection{Abstract Model}
 
 Our semantics of Skia is built around
   a simple abstract model of images and shapes,
   shown in \Cref{fig:model}.
+The abstract model is based around two abstract types,
+  \textsf{Point} and \textsf{Color}.
 An image is a mapping from \textsf{Point} to \textsf{Pixel},
   while a shape is a collection of \textsf{Points}.
 We also describe in this abstract model the operations of a \texttt{Paint}.
