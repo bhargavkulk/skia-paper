@@ -56,29 +56,85 @@ This section describes all three layers
 
 \subsection{Abstract Model}
 
-Our semantics of Skia is built around
-  a simple abstract model of images and shapes,
-  shown in \Cref{fig:model}.
-The abstract model is based around two abstract types,
+Traditional programming language semantics
+  typically do not have to define their abstract model,
+  since it is typically based on commonly-known types
+  such as pairs, functions, and integers.
+In the graphics domain, the core types
+  are not so well established,
+  so the abstract model must be explicitly defined.
+The abstract model of our semantics
+  is shown in \Cref{fig:model};
+  it is based around two core abstract types,
   \textsf{Point} and \textsf{Color}.
-An image is a mapping from \textsf{Point} to \textsf{Pixel},
-  while a shape is a collection of \textsf{Points}.
-We also describe in this abstract model the operations of a \texttt{Paint}.
-A \textsf{Blend} is a binary operator over \textsf{Pixel}.
-We also introduce a new field for \texttt{Paints} not seen in \Cref{sec:skia}
-  in Skia called \textsf{Filters},
-  which are basically transforms over \textsf{Pixel}.
+The \textsf{Point} and \textsf{Color} types
+  are then used to define the key types in Skia.
+An \textsf{Image} is defined
+  as a \textsf{Color} for every \textsf{Point}
+  while \textsf{Shape}s are defined
+  as predicates on \textsf{Point}s.
+Equivalence of two \textsf{Image}s is defined
+  as assigning the same \textsf{Color} to each \textsf{Point}.
+Additionally, since a major focus of this semantics
+  is reasoning about color blending and filtration,
+  types for \textsf{Blend}s and \textsf{Filter}s are defined
+  as binary and unary operators on colors.
 
-Under these semantics,
-  a Skia program is rendered to an \textsf{Image}.
-Rendering occurs by taking \textsf{Shapes},
-  filling them with primitive \textsf{Images},
-  and then blending the results with a \textsf{Blend} together in various orders
-  to yield more complicated \textsf{Images}.
+This abstract model hides substantial complexity
+  in the actual implementation.%
+\footnote{
+In the same way that a traditional programming language semantics
+  might hide the complexity of actually storing closures on the heap.
+}
+The actual Skia implementation
+  defines \textsf{Point} to be a pair of 32-bit signed integers
+  and \textsf{Color} to be a 32-bit unsigned integer
+  interpreted as ARGB pre-multiplied byte-sized color,%
+\footnote{
+``ARGB'' gives the in-memory byte order
+  of the alpha, red, green, and blue components of a color.
+The interpretation of these bytes as an unsigned 32-bit integer
+  will depend on the endianness of the platform itself.
+The colors are premultiplied, meaning
+  that a color with an alpha value of $\alpha$
+  will have its red, green, and blue components
+  range from $0$ to $\alpha$;
+  this form makes for somewhat more efficient computation.
+}
+  and operations on points and colors
+  must thus be anti-aliased and rounded.
+The exact anti-aliasing and rounding behavior
+  is not guaranteed by Skia
+  and is also exceptionally complex,
+  including hardware dependence in some back-ends;
+  the abstract model allows our semantics
+  to ignore these details.
+The equivalences proved are thus
+  \emph{up to} anti-aliasing and rounding details
+  (and also assume away issues like coordinate overflow).
 
-Our abstract model is abstracted over \textsf{Point} and \textsf{Pixel}.
-Concretely for Skia,
-  \textsf{Point} is $\mathbb{R}^2$ and \textsf{Pixel} is $[0,1]^4$.
+Matching the abstract model to Skia
+  would require actually defining
+  the vast array of \textsf{Image}s
+  (solid color fills, gradients, image files),
+  \textsf{Shape}s (rectangles, paths, text outlines),
+  \textsf{Blend}s (roughly two dozen),
+  and \textsf{Filter}s (in fact, these can be defined
+  by shader programs in a custom SkSL shader language).
+Defining these objects and their equivalences
+  would be a complex undertaking,
+  especially given the pace of change in Skia itself.
+Luckily, the compiler described in \Cref{sec:compiler}
+  does rather superficial reasoning over these objects
+  and only special-cases a handful of them.
+Our Lean formalization only defines those special cases.
+The abstract model nonetheless allows for extensibility;
+  for example, this section does not discuss opacity,
+  but our Lean formalization does include it.
+This extension does not require any changes to the abstract model,
+  only the addition of specific color and blend operators,
+  and thus re-uses the denotational and operations semantics
+  defined in the remainder of this section.
 
 \subsection{Skia as Layers}
 
