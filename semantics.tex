@@ -50,18 +50,21 @@
 \end{figure}
 
 This paper's semantics of Skia
-  consists of three layers~\Cref{fig:diagram}.
+  consists of three components~\Cref{fig:diagram}.
 The bottom-most layer is an abstract model of
   images, shapes, blends, and filters defined in terms
-  of abstract types \textsf{Point} and \textsf{Color}.
+  of abstract types \textsf{Point} and \textsf{Color},
+  which can be instantiated to model
+  as much of the actual Skia API as necessary.
 The middle layer is functional operations
-  \texttt{Draw} and \texttt{BlendLayer},
+  \texttt{Draw} and \texttt{BlendLayer}
+  and an abstract type \textsf{Paint},
   which denote to our abstract model.
 The top layer is an imperative language, \muskia,
   whose operational semantics provides a model of Skia.
 This section describes all three layers
-  and then examines \todo{N} case studies
-  of rewrite rules proven valid using the semantics.
+  and then examines ???\todo{Count them} rewrite rules
+  proven valid using the semantics.
 
 \subsection{Abstract Model}
 
