@@ -68,6 +68,7 @@ Concretely for Skia,
   \textsf{Point} is $\mathbb{R}^2$ and \textsf{Pixel} is $[0,1]^4$.
 
 \subsection{Skia as Layers}
+\label{subsec:lay}
 
 Skia does not permit
   arbitrary drawing and blending operations;
@@ -103,6 +104,7 @@ The \textsf{Layer} constructors can be defined in terms of the abstract model,
 \end{figure}
 
 \subsection{\muskia}
+\label{subsec:mu}
 
 We now define \muskia which is our representation of the Skia API.
 
@@ -162,6 +164,7 @@ Image filters seem similiar to color and mask filters,
   as they can act on groups of pixels instead of single pixels.
 
 \subsection{Operational Semantics for Skia}
+\label{subsec:op}
 
 We now define an operational semantics for the Skia API.
 These semantics will allows us to convert terms in \muskia
@@ -301,6 +304,7 @@ l \eqimg l' := \textit{eval}(l) = \textit{eval}(l')
 \end{gather*}
 
 \subsection{Rewrites in \muskia}
+\label{subsec:rw}
 
 In this section we will discuss we will write down and prove some rewrites over
   Skia programs.
@@ -310,6 +314,7 @@ We came up with these rewrites by carefully reading the Skia program dumps from
   the top 100 websites visited in the world.
 
 \subsubsection{Opaque \texttt{saveLayer}}
+\label{subsubsec:opaque}
 
 
 

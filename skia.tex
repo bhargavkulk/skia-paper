@@ -26,6 +26,7 @@ The program is executed when Skia's \texttt{flush} method is called.
 This section introduces the language's basic operations.
 
 \subsection{Drawing and Painting}
+\label{subsec:draw}
 
 The \texttt{drawRect} command is used to draw rectangles:%
 \footnote{
@@ -36,6 +37,7 @@ We likewise drop the \texttt{Sk} prefix on most types.
 }
 
 \begin{figure}[H]
+\label{fig:draw}
 \begin{minipage}[c]{0.45\textwidth}
 \begin{BVerbatim}
 drawRect(rect1)
@@ -92,6 +94,7 @@ Formally, filling is a stage of Skia's drawing pipeline
   that assigns a color to every point in the shape.
 
 \subsection{Blending}
+\label{subsec:blend}
 
 Things get a little more interesting
   once there is more than one shape being drawn.
@@ -140,6 +143,7 @@ Formally, blending is another stage in the Skia drawing pipeline,
   with the pre-existing color of that pixel.
 
 \subsection{Clipping}
+\label{subsec:clip}
 
 So far, \texttt{drawRect} has been applying the fill
   to the entirety of the shape being drawn.
@@ -231,6 +235,7 @@ Note that the indentation in the example code is merely suggestive,
   and not as source code.
 
 \subsection{Layers}
+\label{subsec:layers}
 
 \todo[inline]{I thought this was the most abrupt and unmotivated transition.
   Not the end of the world.}
@@ -297,6 +302,7 @@ restore
 \end{center}
 
 \subsubsection{Masking}
+\label{subsubsec:mask}
 
 To further motivate the need for \texttt{saveLayers},
   consider masking again.
@@ -322,6 +328,7 @@ When we \texttt{DstIn} one pixel over another,
   and a transparent top pixel removes it.
 
 \subsection{Equivalences}
+\label{subsec:eq}
 
 In \Cref{subsubsec:balh} we saw how complex masks
   can be done with ease using a \texttt{saveLayer}
