@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <mask id="m">
+      <rect width="128" height="256" fill="black"/>
+      <rect x="128" width="128" height="256" fill="white"/>
+    </mask>
+  </defs>
+  <rect x="102" y="102" width="52" height="52" fill="blue" mask="url(#m)"/>
+</svg>

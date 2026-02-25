@@ -68,6 +68,7 @@ Concretely for Skia,
   \textsf{Point} is $\mathbb{R}^2$ and \textsf{Pixel} is $[0,1]^4$.
 
 \subsection{Skia as Layers}
+\label{subsec:sem-skia-as-layers}
 
 Skia does not permit
   arbitrary drawing and blending operations;
@@ -79,7 +80,7 @@ We thus introduce the language of \textsf{Layers},
 We focus on these two operations specifically
   because they are the core target of the optimizing compiler
   described in \Cref{sec:optimize}.
-The \textsf{Layer} constructors can be defined in terms of the abstract model,
+The \layer constructors can be defined in terms of the abstract model,
   as shown in \Cref{fig:denote}.
 
 \begin{figure}
@@ -103,6 +104,7 @@ The \textsf{Layer} constructors can be defined in terms of the abstract model,
 \end{figure}
 
 \subsection{\muskia}
+\label{subsec:sem-muskia}
 
 We now define \muskia which is our representation of the Skia API.
 
@@ -154,18 +156,19 @@ Finally,
   we also omit image filters from our discussion of semantics.
 Image filters are the final way to transform a layer prior to blending.
 When a paint has an image filter,
-  all drawing happens in a seperate pixel buffer,
+  all drawing happens in a separate pixel buffer,
   and the effect defined by the filter is applied to the entire buffer
   before its blended.
-Image filters seem similiar to color and mask filters,
+Image filters seem similar to color and mask filters,
   but they allow more complicated effects,
   as they can act on groups of pixels instead of single pixels.
 
 \subsection{Operational Semantics for Skia}
+\label{subsec:sem-operational}
 
 We now define an operational semantics for the Skia API.
 These semantics will allows us to convert terms in \muskia
-  to terms in \textsf{Layer}.
+  to terms in \layer.
 We first define a step relation $\longmapsto$:
 
 \begin{align*}
@@ -301,6 +304,7 @@ l \eqimg l' := \textit{eval}(l) = \textit{eval}(l')
 \end{gather*}
 
 \subsection{Rewrites in \muskia}
+\label{subsec:sem-rewrites}
 
 In this section we will discuss we will write down and prove some rewrites over
   Skia programs.
@@ -309,26 +313,168 @@ The goal of these rewrites is reduce the number of new layers created by
 We came up with these rewrites by carefully reading the Skia program dumps from
   the top 100 websites visited in the world.
 
-\subsubsection{Opaque \texttt{saveLayer}}
+\subsubsection{SrcOver \texttt{saveLayer}}
+\label{subsubsec:sem-srcover-savelayer}
+
+\begin{center}
+  \small
+  \begin{tabular}{T c T}
+    \begin{tabular}{@{}l@{}}
+      \dots \\
+      SaveLayer(Paint(, SrcOver)); \\
+      \quad \dots \\
+      \quad Draw(g, p(SrcOver)); \\
+      Restore()
+    \end{tabular}
+    & \eqimg &
+    \begin{tabular}{@{}l@{}}
+      \dots \\
+      Save(); \\
+      \quad \dots \\
+      \quad Draw(g, p(SrcOver)); \\
+      Restore()
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+A common pattern in Skia programs is grouping a bunch of \texttt{srcOver} draws
+  under a \texttt{SaveLayer} with a \texttt{srcOver} paint.
+Visually,
+  this is equivalent to simply performing all draws in the \texttt{SaveLayer}
+  instead on the leyer below.
+To prove this rewrite we split the rewrite
+  into two seperate rewrites over \texttt{Layer} terms.
+
+\begin{center}
+  \small
+  \begin{tabular}{T c T}
+    \begin{tabular}{@{}l@{}}
+      \dots \\
+      SaveLayer(Paint(, SrcOver)); \\
+      \quad \dots \\
+      \quad Draw(g, p(SrcOver)); \\
+      Restore()
+    \end{tabular}
+    & \eqimg &
+    \begin{tabular}{@{}l@{}}
+      \dots \\
+      Save(); \\
+      \quad \dots \\
+      \quad Draw(g, p(SrcOver)); \\
+      Restore()
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+
+
+We perform this
+  rewrite in 2 steps.
+
+\begin{center}
+  \small
+  \begin{tabular}{T c T}
+    \begin{tabular}{@{}l@{}}
+      BlendLayer( \\
+      \quad l\textsubscript{1} \\
+      \quad Draw(l\textsubscript{2}, g, (SrcOver), c), \\
+      \quad (srcover))
+    \end{tabular}
+    & \eqimg &
+    \begin{tabular}{@{}l@{}}
+      Draw( \\
+      \quad BlendLayer(l\textsubscript{1}, l\textsubscript{2} p), \\
+      \quad g, p, c)
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+Following denotational semantics of \layer terms,
+  the proof of this equality reduces to proving the following equality composition of blend
+  modes.
+
+\begin{equation*}
+  srcover(\denote{l1}(pt), srcover(\denote{l2}(pt), fill(pt))) =
+  srcover(srcover(\denote{l1}(pt), \denote{l2}(pt)), fill(pt))
+\end{equation*}
+
+Common blend modes are defined as algebric expressions over pixels.
+By substituting in this expression, we can prove the above statement,
+  in turn proving the rewrite rule.
+But this rewrite rule alone does not eliminate the \texttt{savelayer}.
+That said,
+  if we perform this rewrite enough times and peeled out
+  all the \texttt{Draw}s out,
+  we are left with an empty savelayer we can eliminate.
+
+\begin{center}
+  \small
+  \begin{tabular}{T c T}
+    \begin{tabular}{@{}l@{}}
+      BlendLayer(l, Empty(), (srcover))
+    \end{tabular}
+    & \eqimg &
+    \begin{tabular}{@{}l@{}}
+      l
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+This proof follows from the following provable fact about the \texttt{srcover}
+  blend mode.
+
+\begin{equation*}
+  srcover(\denote{l1}(pt), \textsf{Transparent}) = \denote{l1}(pt)
+\end{equation*}
+
+One aspect of the original rewrite that is lost in translation to \layer
+  terms, is the replacement of \texttt{SaveLayer} with \texttt{Save}.
+When we convert terms in \muskia to \layer,
+  we make the clip state for a \muskia command explicit in its \layer term.
+Which means while we do not need to worry about clips in \layer,
+  we cannot be as flippant with them in \muskia.
+If we look at the operational semantics of \muskia,
+  we can see that while \texttt{SaveLayer} creates a new layer,
+  both \texttt{SaveLayer} and \texttt{Save} duplicate the clip state.
+Which means as far as clip state goes,
+  \texttt{SaveLayer} and \texttt{Save} are equivalent.
+So in the \muskia rewrite,
+  we replace \texttt{SaveLayer} with \texttt{Save}.
+This is a trick we employ in later rewrites too.
+
+\subsubsection{Gradient Masks}
+\label{subsubsec:sem-gradient-masks}
+
+\subsubsection{Subsuming Filters}
+\label{subsubsec:sem-subsuming-filters}
+
+SVG are the primary way to draw graphics on the web.
+The SVG standard has drawing commands just like Skia.
+Consider the following SVG drawing and its rendered output.
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[t]{0.62\linewidth}
+\begin{BVerbatim}[fontsize=\scriptsize]
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <mask id="m">
+      <rect width="128" height="256" fill="black"/>
+      <rect x="128" width="128" height="256" fill="white"/>
+    </mask>
+  </defs>
+  <rect x="102" y="102" width="52" height="52" fill="blue" mask="url(#m)"/>
+</svg>
+\end{BVerbatim}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.34\linewidth}
+    \centering
+    \frame{\includegraphics[scale=0.5]{subsuming-filters-example.pdf}}
+  \end{minipage}
+  \caption{SVG snippet used in this subsection, shown alongside its rendered result.}
+  \label{fig:subsuming-filters-svg}
+\end{figure}
 
 
 
 \end{document}
-
-# head section
-just describe the abstract model, talk about how its abstracted over a Points
-and Color
-
-## Layer
-abstract model describes a bunch of invalid skia programs, we need some way to
-constrain it.
-
-describe the denotational semantics here
-
-## \mu Skia
-syntax,
-operational semantics,
-limitations
-
-## proving equivalences
-figure of rewrite rules, and talk through them.
