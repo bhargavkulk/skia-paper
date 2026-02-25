@@ -28,9 +28,9 @@
       horizontally adjacent to a new figure showing
       the specific instantiation of the abstract model
       used in our actual Lean formalization.}
-    \todo[inline]{What if we define \textsf{Paint} abstractly,
-      with \textsf{fill} and \textsf{blend} accessors?
-      Then it's easy to extend directly to add opacity.}
+    \todo[inline]{Annoying and bad that we define two \textsf{Paint}
+      objects, one here and one in \muskia.
+      Rename this one? Or pass fill and blend separately?}
     \centering
     \begin{tabular}{S c T}
       Layer & ::= & Empty() \\
