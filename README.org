@@ -1,0 +1,8 @@
+#+title: Skia Paper
+
+* TODOS [0/1]
+- [-] Eval [1/4]
+  - [X] Translation Validation
+  - [ ] Count number of matches for each rewrite
+  - [ ] Add Henry's rules
+  - [ ] Fix bugs in matcher (Naver)

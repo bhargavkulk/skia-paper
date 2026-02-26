@@ -2,5 +2,69 @@
 \begin{document}
 \section{Compiler}
 \label{sec:compiler}
-\label{sec:optimize}
+
+In this section we will discuss the implementation of the rewrite rules
+  we have proven in the previous section within Skia.
+Given that we have shown our rewrites over terms in \muskia,
+  we would like to perform these rewrites within Skia on a similiar
+  representation of commands.
+The canvas API within Skia does not perform drawing operations
+  when methods are called.
+The commands are instead stored in an in-memory buffer of commands
+  called \texttt{SkRecord}~\cite{skrecord} prior to any further drawing.
+We will perform our optimizations on this buffer.
+The \texttt{SkRecord} buffer is actually a dense array of commands.
+To perform our rewrites we need to be able to replace, clear, and insert
+  commands into the \texttt{SkRecord} buffer.
+Replacing commands in the buffer takes O(1) time.
+We implement clearing by simply replacing commands we want to clear with a
+  \texttt{NoOp} command,
+  so it also takes O(1) time.
+Insertion usually takes O(N) time in the worst case for an array.
+This would make it slow to perform multiple insertions into the array.
+Instead we perform our insertions via an InsertionSet~\cite{insertionset},
+  which amortizes the cost of many insertions,
+  effectively making insertion O(1).
+
+\subsection{Rewrite Matching}
+
+Our rewrite matcher is implemented as a pushdown-automaton,
+  which mirrors our layer/clip stack based operational semantics
+  discussed in \fillin{foo}.
+Instead of maintained a stack of layers or clips,
+  the matcher maintains a stack of states.
+The current top state of the stack is the current state of the matcher.
+Along with a stack of state,
+  the matchers also maintain a stack of metadata.
+For example,
+  for the Dstin to Mask rewrite,
+  once we have matched the entire pattern,
+  we need to know where to insert the clip* command,
+  as well as the location of the dstin savelayer
+  so it can be cleared.
+
+Considering that savelayers are the main commands we are tracking,
+  our state stack only changes when we see savelayers.
+We choose not to track saves as they would make the state stack far too long.
+Instead we track a savedepth,
+  and we use the savedepth to track wether a restore is for a savelayer or a
+  save.
+Because of ths decsision,
+  our state stack does not go a lot,
+  allowing us to keep all possible members of the state stack
+  on the program stack.
+Also, combining both the metadata and the state stack,
+  we never really need to backtrack our pattern amtching loop
+  to pefrom rewrites.
+We perform each rewrite seperately.
+We could certainly come up with a smarter rewriteing scheme,
+  by precalculating save/savelayer---restore pairs,
+  or preforming some sort of information sharing,
+  by combining rewrites that do not interact.
+In practice we did not need to perform any more optimizations,
+  as simply compiling the optimizer with compiler and link time optimizations
+  was enough to make the the optimizer fast enough
+  so that the rewrites pay for themeselves.
+We discuss this in more detail in the \fillin{eval}.
+
 \end{document}
