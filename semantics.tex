@@ -765,20 +765,36 @@ While the previous rewrite was a common one found across websites,
 We saw this pattern used specifically to draw the backdrops of image cards.
 The intent seems to be to mask in a very faint gradient
   onto the rectangle backing the image card.
-If we simplify this equation using our semantics for Skia,
-  the rewrite reduces to the following statement.
+Note that there are no commands before the first Draw.
+This is because the entire pattern resides inside a savelayer.
+As the type of the savelayer does not matter,
+  nor do we change it anyway,
+  because of the composibility of rewrites under denotation,
+  we elide it from the rule.
+This rewrite reduces to proving the following statement:
 
 \begin{equation*}
-dstin(..., fill(pt)) = fill(pt)
+dstin(srcover(Transparent, fill1(pt)), fill2(pt)) = srcover(Transparent, fill1(pt))
 \end{equation*}
 
-
+If we recall what dstin blending does,
+  wed remember that dstin blending an opaque pixel masks in,
+  while dstin blending a transparent pixel masks out.
+Therefore,
+  this statement is only true when fill2 is opaque for all points.
+When is a full fully opaque?
+This is easy to answer for solid fills,
+  we just check the opacity of the single color.
+For gradients,
+  we instead have to check if every color stop defining the gradient is opaque,
+  which is easy to do.%
 \footnote{For more complicated fills like images, we could pessimistically assume
   them to not be opaque. Skia could also help in gathering metadata for better
   answers to this question. For example, for the GIF image format, the GCE
   (Graphics Control Extension) block has a \texttt{Transparent Color Index}
   which marks whether transparent pixels are used in the image or not.}
-
+So,
+  we can refine our earlier statement to say:
 
 \begin{align*}
   &\forall pt,\, is\_opaque(fill(pt))\\
@@ -786,9 +802,24 @@ dstin(..., fill(pt)) = fill(pt)
   &dstin(..., fill(pt)) = fill(pt)
 \end{align*}
 
-Now that we know the fill is completely opaque,
-  we can prove this equality,
-  proving this rewrite.
+Which refines our original rewrite to,
+
+\begin{center}
+  \small
+  \begin{tabular}{T c T}
+    \multicolumn{3}{c}{all color stops in gradient are opaque}\\[0.4em]
+    \begin{tabular}{@{}l@{}}
+      Draw(solid fill, srcover);\\
+      SaveLayer(DstIn);\\
+      \quad Draw(Gradient(opaque));\\
+      Restore()
+    \end{tabular}
+    & \eqimg &
+    \begin{tabular}{@{}l@{}}
+      Draw(solid fill, srcover);
+    \end{tabular}
+  \end{tabular}
+\end{center}
 
 \subsubsection{Subsuming Filters}
 \label{subsubsec:subsume-filters}
