@@ -23,24 +23,12 @@
   \end{minipage}
   \hfill
   \begin{minipage}{0.58\linewidth}
-    \todo[inline]{I don't like that this image has to line-break.
-      I suspect that a long-term fix is to make fig:model
-      horizontally adjacent to a new figure showing
-      the specific instantiation of the abstract model
-      used in our actual Lean formalization.}
-    \todo[inline]{Annoying and bad that we define two \textsf{Paint}
-      objects, one here and one in \muskia.
-      Add color filters to this semantics, drop styles from the other,
-      and then they match and we only define it here.}
     \centering
-    \begin{tabular}{S c T}
-      Layer & ::= & Empty() \\
-            & |   & Draw(l: \textsf{Layer}, s: \textsf{Shape},\\
-            &     & \hspace{4em}p: \textsf{Paint}, c: \textsf{Shape})\\
-            & |   & BlendLayer(l\textsubscript{bot}: \textsf{Layer},
-                    l\textsubscript{top}: \textsf{Layer},\\
-            &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
-      Paint & ::= & Paint(fill: Image, blend: Blend)
+    \begin{tabular}{T c S}
+       Solid(Color) | LinearGradient(...) ... & : & Image \\
+      Rect(...) | RRect(...) | Path(...) | Text(...) & : & Shape \\
+      Id | Luma ... & : & Filter \\
+      SrcOut | DstIn | ... & : & BlendMode
     \end{tabular}
     \caption{%
       \textsf{Layer} provides
@@ -64,7 +52,7 @@ The middle layer is functional operations
 The top layer is an imperative language, \muskia,
   whose operational semantics provides a model of Skia.
 This section describes all three layers
-  and then examines ???\todo{Count them} rewrite rules
+  and then examines \fillin{??? Count them} rewrite rules
   proven valid using the semantics.
 
 \subsection{Abstract Model}
@@ -172,15 +160,16 @@ The \layer constructors can be defined in terms of the abstract model,
     \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
     p)}}(\mathsf{pt})
     &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
-        \denote{\mathtt{l_{top}}}(\mathsf{pt})
+        \texttt{filter\textsubscript{p}}\left(\denote{\mathtt{l_{top}}}(\mathsf{pt})\right)
       \right) \\[2pt]
     \denote{\texttt{Draw(l, s, p, c)}}(\mathsf{pt})
     &= \mathtt{blend_p}\left(\denote{\mathtt{l}(\mathsf{pt})},\;
+      \texttt{filter\textsubscript{p}}\left(
        \begin{cases}
          \mathtt{fill_p}(\mathsf{pt}) & \mathsf{pt} \in \mathtt{s} \cap \mathtt{c} \\
          \mathsf{Transparent} & \textsf{otherwise}
        \end{cases}
-       \right)\\
+       \right)\right)\\
   \end{align*}
   \caption{}
   \label{fig:denote}
@@ -232,20 +221,39 @@ The fact that denotations are composable means
 We now define \muskia which is our representation of the Skia API.
 
 \begin{figure}
-  \begin{tabular}{S M c T}
-    Command & c & ::= & Draw($g$, $p$) \\
-            &   & | & DrawText(string, $p$) \\
-            &   & | & Clip($cl$, Intersect | Difference) \\
-            &   & | & Save(); $c$; Restore() \\
-            &   & | & SaveLayer($p$); $c$; Restore() \\
-            &   & | & $c$; $c$ \\[1pt]
-    Geometry & g,\;cl & ::= & Rect($\ldots$) | RRect($\ldots$) | Path($\ldots$) \\[2pt]
-    Paint & p & ::= & Paint($f$, $st$, $c_f$, $b$) \\[2pt]
-    Fill & f & ::= & Color(Pixel) | LinearGradient($\ldots$) | $\ldots$ \\[2pt]
-    Filter & f & ::= & Id | Luma | $\ldots$ \\[2pt]
-    BlendMode & b & ::= & SrcOver | DstIn | Src | $\ldots$\\
-  \end{tabular}
-  \label{fig:muskia}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{minipage}{0.40\linewidth}
+    \begin{tabular}{S c T}
+      Layer & ::= & Empty() \\
+            & |   & Draw(l: \textsf{Layer}, s: \textsf{Shape},\\
+            &     & \hspace{4em}p: \textsf{Paint}, c: \textsf{Shape})\\
+            & |   & BlendLayer(l\textsubscript{bot}: \textsf{Layer},
+                    l\textsubscript{top}: \textsf{Layer},\\
+            &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
+      Paint & ::= & Paint(fill: Image, filter: Filter, blend: Blend)
+    \end{tabular}
+    \label{fig:muskia}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.58\linewidth}
+    \centering
+    \begin{tabular}{S M c T}
+      Command & c & ::= & Draw($g$: Shape, $p$: Paint) \\
+              &   & | & DrawText(string, $p$: Paint) \\
+              &   & | & Clip($cl$: Shape, Intersect | Difference) \\
+              &   & | & Save(); $c$; Restore() \\
+              &   & | & SaveLayer($p$: Paint); $c$; Restore() \\
+              &   & | & $c$; $c$ \\[1pt]
+    \end{tabular}
+    \caption{%
+      \textsf{Layer} provides
+      a simple functional description of Skia images.
+    }
+    \label{fig:layer}
+  \end{minipage}
 \end{figure}
 
 \noindent \muskia simplifies certain aspects of the actual Skia API:
@@ -832,25 +840,167 @@ Consider the following SVG drawing and its rendered output.
   \centering
   \begin{minipage}[c]{0.62\linewidth}
 \begin{BVerbatim}[fontsize=\scriptsize]
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<svg xmlns="http://www.w3.org/i2000/svg" width="80" height="30" viewBox="0 0 80 30">
   <defs>
-    <mask id="m">
-      <rect width="128" height="256" fill="black"/>
-      <rect x="128" width="128" height="256" fill="white"/>
-    </mask>
+    <radialGradient id="b" ...>...</radialGradient>
+    ...
+    <pattern id="x" ...>
+      <rect width="100" height="100" fill="#7D2AE7"/>
+      ...
+    </pattern>
   </defs>
-  <rect x="102" y="102" width="52" height="52" fill="blue" mask="url(#m)"/>
+  <mask id="a" ...>
+    <path fill="#fff" d="M79.444 18.096 ... 69.192 21.888z"/>
+  </mask>
+  <rect mask="url(#a)" width="100" height="100" fill="url(#x)"/>
 </svg>
 \end{BVerbatim}
   \end{minipage}\hfill
   \begin{minipage}[c]{0.34\linewidth}
     \centering
-    \frame{\includegraphics[scale=0.5]{subsuming-filters-example.pdf}}
+    \frame{\includegraphics[width=\linewidth]{canva.pdf}}
   \end{minipage}
   \caption{SVG snippet used in this subsection, shown alongside its rendered result.}
   \label{fig:subsume-svg}
 \end{figure}
 
+This SVG program,
+  in short,
+  fills a rectangle with a complicated gradient.
+It then masks in the Canva logo onto the gradient.
+This is a pattern we have seen before in \Cref{sec:skia}.
+Specifically,
+  the mask is implemented using a savelayer with a dstin blend,
+  when the svg is lowered to Skia commands.
+But,
+  the conversion is not that straightforward.
+The default masking method for SVG drawings is luminance masking.
+That is, white pixels(the brightest color) masks in and black pixels(the darkest
+  color) masks out.
+If we recall dstin blending, dstin blending is opacity based.
+So we need to convert white pixels into opaque pixels,
+  and black pixels to transparent pixels.
+Skia does this using a luminance filter.
+
+\begin{center}
+  \begin{tabular}{T c T}
+    {\small
+    \begin{tabular}{@{}l@{}}
+      ... \\
+      draw \\
+      savelayer dstin \\
+      savelayer lumafilter \\
+      draw mask white \\
+      restore \\
+      restore
+    \end{tabular}}
+    & \eqimg
+    & {\small
+      \begin{tabular}{@{}l@{}}
+        ... \\
+        draw \\
+        savelayer dstin \\
+        draw mask opaque \\
+        restore
+      \end{tabular}}
+  \end{tabular}
+\end{center}
+
+Now if the mask is simple i.e. we only mask one shape and not complex
+  intersection of many shapes,
+  we should be able to push in filter into the color of the mask.
+Which is why our rewrite removes the savelayer filter,
+  while also chaing the color of the mask.
+We can reduce our \muskia rewrite into a layer rewrite,
+  and we have to prove this statement.
+
+\begin{equation*}
+srcover(l1, luma(srcover(Transparent, fill))) = srcover(l1, srcover(Transparent,
+luma(fill)))
+\end{equation*}
+
+We can prove this equality correct,
+  because we can prove that srcovering a pixel over the transparent pixel
+  is equivalent to just drawing the pixel.
+One thing we elide, is the case when we are out of the shape we are trying to
+  draw.
+Then our equation looks kind of like this
+
+\begin{equation*}
+srcover(l1, luma(srcover(Transparent, Transparent))) = srcover(l1, srcover(Transparent,
+luma(Transparent)))
+\end{equation*}
+
+So it is important to note that we can only move filters which have the
+  Transparent pixel as the identity pixel.
+This is true for the luminance filter that Skia emits.
+
+\subsubsection{Dstin to Mask}
+
+After performing the above rewrite we are left with
+
+\begin{center}
+\small
+\begin{tabular}{@{}l@{}}
+      ... \\
+      draw \\
+      savelayer dstin \\
+      draw mask opaque \\
+      restore
+    \end{tabular}}
+\end{center}
+
+We have already seen this rewrite before in \Cref{sec:skia}.
+
+\begin{center}
+  \begin{tabular}{T c T}
+    {\small
+    \begin{tabular}{@{}l@{}}
+        ... \\
+        draw \\
+        savelayer dstin \\
+        draw mask opaque \\
+        restore
+    \end{tabular}}
+    & \eqimg
+    & {\small
+      \begin{tabular}{@{}l@{}}
+        ... \\
+        clip mask \\
+        draw
+      \end{tabular}}
+  \end{tabular}
+\end{center}
+
+While we only asserted its correctness in \Cref{sec:skia},
+  we can actually prove it with the semantics now.
+Remember how clipping effects all subsequent commands.
+To make it easier to reason about the effect of clips,
+  we continue proving this rewrite in Layer terms.
+
+\begin{center}
+  \begin{tabular}{T c T}
+    {\small
+    \begin{tabular}{@{}l@{}}
+      blendlayer( \\
+      \quad draw(l), \\
+      \quad draw mask opaque, \\
+      \quad dstin \\
+      )
+    \end{tabular}}
+    & \eqimg
+    & {\small
+      \begin{tabular}{@{}l@{}}
+        clipAll(draw(l), mask)
+      \end{tabular}}
+  \end{tabular}
+\end{center}
+
+clipAll is a recursive function over
+
 
 
 \end{document}
+
+% does applying this rewrite produce speedup
+% do rewrites generalize

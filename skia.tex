@@ -219,9 +219,11 @@ Luckily, Skia maintains a \emph{stack} of clip states;
 \begin{BVerbatim}
 save();
   clipRect(rect3);
-  drawRect(rect1, new Paint(COLOR_RED))
+  drawRect(rect1,
+           new Paint(COLOR_RED));
 restore();
-drawRect(rect2, new Paint(COLOR_BLUE));
+drawRect(rect2,
+         new Paint(COLOR_BLUE));
 \end{BVerbatim}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.45\textwidth}
