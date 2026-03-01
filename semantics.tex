@@ -218,8 +218,6 @@ The fact that denotations are composable means
 \subsection{\muskia}
 \label{subsec:muskia}
 
-We now define \muskia which is our representation of the Skia API.
-
 \begin{figure}
 \end{figure}
 
@@ -235,7 +233,7 @@ We now define \muskia which is our representation of the Skia API.
             &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
       Paint & ::= & Paint(fill: Image, filter: Filter, blend: Blend)
     \end{tabular}
-    \label{fig:muskia}
+    \label{fig:layer}
   \end{minipage}
   \hfill
   \begin{minipage}{0.58\linewidth}
@@ -243,7 +241,7 @@ We now define \muskia which is our representation of the Skia API.
     \begin{tabular}{S M c T}
       Command & c & ::= & Draw($g$: Shape, $p$: Paint) \\
               &   & | & DrawText(string, $p$: Paint) \\
-              &   & | & Clip($cl$: Shape, Intersect | Difference) \\
+              &   & | & Clip($cl$: Shape) \\
               &   & | & Save(); $c$; Restore() \\
               &   & | & SaveLayer($p$: Paint); $c$; Restore() \\
               &   & | & $c$; $c$ \\[1pt]
@@ -252,71 +250,64 @@ We now define \muskia which is our representation of the Skia API.
       \textsf{Layer} provides
       a simple functional description of Skia images.
     }
-    \label{fig:layer}
+    \label{fig:muskia}
   \end{minipage}
 \end{figure}
 
-\noindent \muskia simplifies certain aspects of the actual Skia API:
-The Skia API has separate \texttt{Draw} and \texttt{Clip} commands for each
-  \textsf{Geometry},
-  and not the overloaded function we present in the grammar.
-The Skia API does not have structured constructs for \texttt{Save} and \texttt{SaveLayer}.
 
-More crucially, we have omitted certain effects and commands from \muskia that
-  are in Skia.
-The \texttt{Style} tells Skia whether to fill or stroke the shape.
-It can be considered as a function over \texttt{Geometry},
-  basically modifying it.
-Similarly,
-  \texttt{MaskFilters} allow us to implement Gaussian blurs.
-This could also be understood as functions over \texttt{Geometry},
-  and omitting them does not affect our semantics at all.
+\muskia is a simplified version of the Skia API.
+A \muskia program consists
+  of a sequence of commands
+  whose syntax is defined in \Cref{fig:muskia}.
+\muskia includes the critical features
+  described in \Cref{sec:skia},
+  such as the \textsf{Draw} command for drawing,
+  the \textsf{Clip} command for manipulating the clip state,
+  and the \textsf{Save}, \textsf{SaveLayer}, and \textsf{Restore}
+  stack manipulation commands,
+\muskia diverges from the full Skia API
+  in two main ways.
+First, the syntax definition is more regular
+  to eliminate unimportant special cases:
+  \textsf{Save}, \textsf{SaveLayer}, and \textsf{Restore}
+  must be properly bracketed,
+  and the \texttt{Draw} and \texttt{Clip} commands
+  take arbitrary \textsf{Geometry}s,
+Second, only a small fraction of the API is modeled.
+Nonetheless,
+  extending \muskia to cover more of the API is straightforward,
+  and our Lean formalization includes additional features
+  such as opacity, styles, and transforms.
 
-Skia also provides facilities to transform, rotate, and perform other affine
-  transformations.
-It is well known that these transformations can be done using
-  matrix multiplications.
-So Skia maintains a transform state along with the layer and clip state.
-The \texttt{Concat44} command multiplies a 4x4 matrix with the transform state,
-  and affect the drawing of all commands after.
-The transform state as a whole can be removed by multiplying
-  the transform state of a command into the geometry
-  and the clip, which is what we do.
-
-Finally,
-  we also omit image filters from our discussion of semantics.
-Image filters are the final way to transform a layer prior to blending.
-When a paint has an image filter,
-  all drawing happens in a separate pixel buffer,
-  and the effect defined by the filter is applied to the entire buffer
-  before its blended.
-Image filters seem similar to color and mask filters,
-  but they allow more complicated effects,
-  as they can act on groups of pixels instead of single pixels.
-
-\subsection{Operational Semantics for Skia}
-\label{subsec:op-sem}
-
-We now define an operational semantics for the Skia API.
-These semantics will allows us to convert terms in \muskia
-  to terms in \layer.
-We first define a step relation $\longmapsto$:
-
-\begin{align*}
-\longmapsto&:\textsf{Command} \times \Sigma \to \Sigma
-\end{align*}
-
-\noindent$\Sigma$ is the canvas state:
-
-\begin{align*}
-\Sigma&:\textsf{List[Layer]} \times \textsf{List[Geometry]}
-\end{align*}
-
-\noindent
-The canvas state has a reference to another canvas state,
-  emulating a stack of layers and clips.
-The following rules, define $\longmapsto$ over each command on \textsf{Command}.
-
+\muskia programs manipulate a state $\Sigma$:
+\[
+\Sigma:\textsf{List[Layer]} \times \textsf{List[Geometry]}
+\]
+The first list in $\Sigma$ is the stack of layers
+  manipulated by \textsf{SaveLayer},
+  while the second list is the stack of canvas states
+  manipulated by \textsf{Save}.
+In this paper, the canvas state is a single \textsf{Geometry}
+  because the only canvas operation is \textsf{Clip},
+  but in our Lean formalization the canvas state
+  includes additional fields.
+As is standard, we treat the head of the list
+  as the top of the stack.
+The initial state is
+  $\langle [ \texttt{Empty()} ], [ \mathcal{U} ] \rangle$,
+  an empty layer and the full clip state,
+  each as single-element stacks.
+A \muskia program then performs
+  a sequence of steps  $(c, \Sigma) \longmapsto \Sigma'$,
+  after which the final state
+  consists of a single layer $L$,
+  which is the output image,
+  and some clip state, which is discarded.
+  
+We now describe the core steps
+  in the operational semantics.
+The simplest is the \textsf{Draw} command,
+  which modifies the top \textsf{Layer}:
 \begin{mathpar}
   \inferrule
   { }
@@ -327,27 +318,42 @@ The following rules, define $\longmapsto$ over each command on \textsf{Command}.
     \rangle
     \;\longmapsto\;
     \langle \texttt{Draw(l, g, p, c)} :: L, c :: C \rangle
-  } \and
+  }
+\end{mathpar}
+\noindent
+Note that the \textsf{Draw} operation on the top \textsf{Layer}
+  includes both the \textsf{Geometry} and \textsf{Paint}
+  from the \textsf{Draw} command
+  as well as the current clip from the canvas state:
+
+The \textsf{Clip} command likewise modifies
+  the top canvas state, intersecting it
+  with the new clip geometry:
+\begin{mathpar}
   \inferrule
   { }
   {
     \langle
-    \texttt{Clip(c', Intersect)},
+    \texttt{Clip(c')},
     \langle L, c :: C\rangle
     \rangle
     \;\longmapsto\;
     \langle L, c \cap c' :: C \rangle
-  } \and
-  \inferrule
-  { }
-  {
-    \langle
-    \texttt{Clip(c', Difference)},
-    \langle L, c :: C \rangle
-    \rangle
-    \;\longmapsto\;
-    \langle L, c / c' :: C \rangle
-  } \and
+  }
+\end{mathpar}
+\noindent
+Note that the full Skia API includes a
+  \texttt{SkClipOp} parameter
+  that allows instead taking the difference
+  between the current and new clip;
+  this paper does not show that (straightforward) extension
+  but our Lean formalization does include it.
+
+The \textsf{Save} command
+  duplicates the top canvas state.
+Then, when its matching \textsf{Restore} is reached,
+  that top canvas state is discarded:
+\begin{mathpar}
   \inferrule
   {
     \langle
@@ -364,7 +370,18 @@ The following rules, define $\longmapsto$ over each command on \textsf{Command}.
     \rangle
     \;\longmapsto\;
     \langle L', c :: C \rangle
-  } \and
+  }
+\end{mathpar}
+\noindent
+Note that it does not make
+  any changes to the layer state.
+
+The \textsf{SaveLayer} command, meanwhile,
+  allocates a new, empty layer
+  for the top of the layer stack and,
+  when the \textsf{Restore} command is reached,
+  blends that new layer with the one below:
+\begin{mathpar}
   \inferrule
   {
     \langle
@@ -380,59 +397,21 @@ The following rules, define $\longmapsto$ over each command on \textsf{Command}.
     \rangle
     \;\longmapsto\;
     \langle \texttt{BlendLayer(l, l', p)} :: L, c :: C \rangle
-  } \and
-  \inferrule
-  {
-    \langle
-    \texttt{cmd},
-    \langle l :: L, c :: C \rangle \rangle
-    \;\longmapsto\;
-    \langle l' :: L, c' :: C \rangle \\
-    \langle
-    \texttt{cmd'},
-    \langle l' :: L, c' :: C \rangle \rangle
-    \;\longmapsto\;
-    \langle l'' :: L, c'' :: C \rangle
-  }
-  {
-    \langle
-    \texttt{cmd; cmd'},
-    \langle l :: L, c :: C \rangle
-    \rangle
-    \;\longmapsto\;
-    \langle l^{\prime} :: L, c'' :: C \rangle
   }
 \end{mathpar}
-
 \noindent
-$\longmapsto^*$ is the reflexive transitive closure of $\longmapsto$.
-It can be proven that given the initial state $\langle [\texttt{Empty()}],
-  [\mathcal{U}] \rangle$, $\longmapsto^*$ will never get stuck i.e.
+The inference rule for sequential composition is straightforward
+  and, along with various extensions to \muskia,
+  is given in our Lean formalization,
+  which we intend to submit as an artifact.
 
-
-\begin{equation*}
-\forall\,\texttt{cmd}\,\exists\,l,\, c\;\text{s.t.}\;\langle \texttt{cmd}, \langle
-[\texttt{Empty()}], [\mathcal{U}] \rangle \rangle \longmapsto^* \langle [l], [c] \rangle
-\end{equation*}
-
-\noindent
-Given this fact,
-  we can write down an evaluation function for terms in \muskia to
-  \textsf{Image}.
-
-\begin{gather*}
-\textsf{eval} : \textsf{Command} \to \textsf{Image} \\
-\textsf{eval}(c) = \llbracket l \rrbracket \;\textsf{where}\;\langle c, \langle [\texttt{Empty()}], [\mathcal{U}]
-\rangle \rangle \longmapsto^* \langle [l], [C] \rangle
-\end{gather*}
-
-\noindent
-We now have all the pieces to define \eqimg.
-
-\begin{gather*}
-\eqimg : \textsf{Command} \to \textsf{Command} \to \textsf{Command} \\
-l \eqimg l' := \textit{eval}(l) = \textit{eval}(l')
-\end{gather*}
+The \muskia semantics is deterministic,
+  and programs never get stuck.
+Equivalence of \muskia programs
+  is defined as equivalence of their final images.
+This equivalence relation is \emph{not}
+  closed under composition or substitution in general,
+  but it is closed under substitution under \textsf{SaveLayer} commands.
 
 \subsection{Rewrites in \muskia}
 \label{subsec:rewrites}
