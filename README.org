@@ -37,3 +37,50 @@ void draw(SkCanvas* canvas) {
 #+begin_src c++
 
 #+end_src
+
+* Notes
+- Hoare-style braces around an image (LaTeX snippet):
+#+begin_src latex
+$\left\{\vcenter{\hbox{\frame{\includegraphics[scale=0.28]{drawing0.pdf}}}}\right\}$
+#+end_src
+
+- Hoare triple helper macros with list-based image states:
+#+begin_src latex
+\ExplSyntaxOn
+
+% Render one state from a comma-list of image filenames.
+% Example: \hoarestatefromlist{drawing0.pdf,drawing2.pdf}
+\NewDocumentCommand{\hoarestatefromlist}{m}
+ {
+  \begin{tabular}{c}
+    \clist_set:Nn \l_tmpa_clist { #1 }
+    \int_zero:N \l_tmpa_int
+    \clist_map_inline:Nn \l_tmpa_clist
+     {
+      \int_incr:N \l_tmpa_int
+      \frame{\includegraphics[scale=0.28]{##1}}
+      \int_compare:nNnT { \l_tmpa_int } < { \clist_count:N \l_tmpa_clist }
+       { \\[0.6em] }
+     }
+  \end{tabular}
+ }
+
+\NewDocumentCommand{\hoarecode}{m}
+ {
+  \begin{tabular}{T}
+  #1
+  \end{tabular}
+ }
+
+\NewDocumentCommand{\hoaretriplelist}{m m m}
+ {
+  \begin{figure}[H]
+  \centering
+  \hoarestatefromlist{#1}\quad
+  \hoarecode{#2}\quad
+  \hoarestatefromlist{#3}
+  \end{figure}
+ }
+
+\ExplSyntaxOff
+#+end_src

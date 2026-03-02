@@ -38,22 +38,18 @@ We likewise drop the \texttt{Sk} prefix on most types.
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-SkPaint p;
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+SkPaint p;\\
 canvas->drawRect(rect1, p);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing1.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing1.pdf}}
+\end{tabular}
 \end{figure}
 
 % paint.setColor(SK_ColorRED);
@@ -72,23 +68,19 @@ By default, the rectangle is drawn in black,
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-SkPaint p;
-p.setColor(SK_ColorRED);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+SkPaint p;\\
+p.setColor(SK\_ColorRED);\\
 canvas->drawRect(rect1, p);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
 \end{figure}
 
 \noindent
@@ -97,25 +89,21 @@ It's also possible to specify a non-constant fill,
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-SkPaint p;
-p.setShader(
-  SkShaders::LinearGradient(...)
-);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+SkPaint p;\\
+p.setShader(\\
+\quad SkShaders::LinearGradient(...)\\
+);\\
 canvas->drawRect(rect1, p);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing3.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing3.pdf}}
+\end{tabular}
 \end{figure}
 
 \noindent
@@ -159,22 +147,18 @@ something to tell Henry}
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-p.setColor(SK_ColorBLUE);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+p.setColor(SK\_ColorBLUE);\\
 canvas->drawRect(rect2, p);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing4.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+\end{tabular}
 \end{figure}
 
 % paint.setColor(SK_ColorBLUE);
@@ -200,25 +184,21 @@ For example, the \texttt{Difference} blend mode
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-p.setColor(SK_ColorBLUE);
-p.setBlendMode(
-  SkBlendMode::kMultiply
-);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+p.setColor(SK\_ColorBLUE);\\
+p.setBlendMode(\\
+\quad SkBlendMode::kMultiply\\
+);\\
 canvas->drawRect(rect2, p);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing5.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+\end{tabular}
 \end{figure}
 
 Now, in the intersection of the two rectangles,
@@ -250,22 +230,18 @@ One uses \texttt{clipRect} like this:
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-canvas->clipRect(c_rect);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+canvas->clipRect(c\_rect);\\
 canvas->drawRect(rect1, redPaint);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing6.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing6.pdf}}
+\end{tabular}
 \end{figure}
 
 \noindent
@@ -284,23 +260,19 @@ This means that a single \texttt{clipRect} operation
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-canvas->clipRect(c_rect);
-canvas->drawRect(rect1, redPaint);
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+canvas->clipRect(c\_rect);\\
+canvas->drawRect(rect1, redPaint);\\
 canvas->drawRect(rect2, bluePaint);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing7.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing7.pdf}}
+\end{tabular}
 \end{figure}
 
 Naturally, one might want to clip
@@ -315,25 +287,21 @@ Luckily, Skia maintains a \emph{stack} of clip states;
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
-canvas->save();
-canvas->clipRect(c_rect);
-canvas->drawRect(rect1, redPaint);
-canvas->restore();
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+canvas->save();\\
+canvas->clipRect(c\_rect);\\
+canvas->drawRect(rect1, redPaint);\\
+canvas->restore();\\
 canvas->drawRect(rect2, bluePaint);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing8.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing8.pdf}}
+\end{tabular}
 \end{figure}
 
 \subsection{Layers}
@@ -347,25 +315,20 @@ Much like \texttt{save} and \texttt{restore} can save clip state,
 Conceptually, \texttt{saveLayer} allocates
   a new, empty drawing surface,
 
-
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
 canvas->saveLayer();
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
 \end{figure}
 
 All drawing commands until the corresponding \texttt{restore}
@@ -373,23 +336,19 @@ All drawing commands until the corresponding \texttt{restore}
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
 canvas->drawRect(rect2, bluePaint);
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
 \end{figure}
 
 Then, when the \texttt{restore} command it reached,
@@ -398,22 +357,18 @@ Then, when the \texttt{restore} command it reached,
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
 restore();
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
-\frame{\includegraphics[scale=0.28]{drawing4.pdf}}
-\end{minipage}
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+\end{tabular}
 \end{figure}
 
 Semantically, you can think of \texttt{SaveLayer} commands
@@ -441,22 +396,18 @@ For example,
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[c]{0.28\textwidth}
-\centering
+\begin{tabular}{c}
 \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
 \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.36\textwidth}
-\begin{BVerbatim}
+\end{tabular}
+\quad
+\begin{tabular}{T}
 restore(); // multiply blending
-\end{BVerbatim}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.28\textwidth}
-\centering
+\end{tabular}
+\quad
+\begin{tabular}{c}
 \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
-\end{minipage}
+\end{tabular}
 \end{figure}
 
 \subsubsection{Masking}
@@ -469,26 +420,65 @@ In \Cref{subsec:blah} we saw how we can use
   \texttt{clipRect} to mask images.
 This works when we only need to mask by a rectangle.
 But masking with complicated shapes is hard with just clipping.
-Instead,
-  we can use \texttt{saveLayer}
-  along with the \texttt{DstIn} blend mode.
-Instead of tyring to clip directly with a complicated shape,
-  we can instead draw the clip shape in stages
-  and mask that shape on to it.
+Instead of trying to clip directly with a complicated shape,
+  we can instead draw the clip shape in stages on a seperate layer
+  and mask using that shape.
 
+\begin{figure}[H]
+\centering
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+canvas->saveLayer();
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+\end{tabular}
+\end{figure}
 
-\begin{verbatim*}
-mandrill example goes here.
-\end{verbatim*}
+We now draw the mask shape on the new layer.
 
-Here we draw the mask shape
-  onto the new layer pushed by \texttt{saveLayer}
-  and the \texttt{DstIn} blend in that layer onto
-  what we want to mask.
+\begin{figure}[H]
+\centering
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+canvas->drawRect(rect2, bluePaint);
+\end{tabular}
+\quad
+\begin{tabular}{c}
+  \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
+  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+\end{tabular}
+\end{figure}
+
 \texttt{DstIn} emulates masking through blending;
 When we \texttt{DstIn} one pixel over another,
   an opaque top pixel keeps the bottom pixel,
   and a transparent top pixel removes it.
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{c}
+\frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+\end{tabular}
+\quad
+\begin{tabular}{T}
+restore(); // multiply blending
+\end{tabular}
+\quad
+\begin{tabular}{c}
+\frame{\includegraphics[scale=0.28]{mask.pdf}}
+\end{tabular}
+\end{figure}
 
 \subsection{Equivalences}
 \label{subsec:equivalences}
