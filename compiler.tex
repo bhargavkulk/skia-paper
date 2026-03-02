@@ -67,4 +67,30 @@ In practice we did not need to perform any more optimizations,
   so that the rewrites pay for themeselves.
 We discuss this in more detail in the \fillin{eval}.
 
-\end{document}
+\subsection{Translation Validation}
+
+As our optimizer lies outside of our mechanized semantics,
+  we cannot straighforwardly claim that our optimizer
+  implements the rewrites proved in Lean within Skia.
+That is why we have implemented a small Translation Validation
+  engine using our Lean semantics.
+As it was tricky to prove the compositionality of our rules in Lean,
+  we instead decide to prove each optimization in isolation to the other.
+We do this by dumping the intermeddiate skia program after performing each
+  rewrite.
+We then have 5 programs,
+  each one rewritten with one rewrite rule.
+We then prove each transformation seperately in Lean.
+The proofs are mosty push button.
+We rely on Lean's powerful \texttt{grind} tactic to smartly apply the rewrites
+  we have already proven in rewrite form.
+To help \texttt{grind} solve these proofs,
+  we increase \texttt{grind}'s internal timeout mechanism.
+We make all definitions of our mechanized smenatics opaque,
+  except for the rewrite theorems itself.
+This way \texttt{grind} only applies the rewrite theorems,
+  and does not waste time expanding, for example,
+  our denotational semantics.
+
+\todo[inline]{hard to know what the actual eval claim is here}
+ \end{document}
