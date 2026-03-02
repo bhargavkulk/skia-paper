@@ -37,16 +37,27 @@ We likewise drop the \texttt{Sk} prefix on most types.
 }
 
 \begin{figure}[H]
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawRect(rect1)
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
 \centering
-\frame{\includegraphics[scale=0.3]{drawing1.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+SkPaint p;
+canvas->drawRect(rect1, p);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing1.pdf}}
 \end{minipage}
 \end{figure}
+
+% paint.setColor(SK_ColorRED);
+% canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
 
 \noindent
 Here the layout is meant to evoke
@@ -59,33 +70,53 @@ By default, the rectangle is drawn in black,
   but \texttt{drawRect} also takes a \texttt{Paint}~\cite{skpaint} argument
   which can specify a different \emph{fill} color:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawRect(rect1, new Paint(COLOR_RED))
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing2.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+SkPaint p;
+p.setColor(SK_ColorRED);
+canvas->drawRect(rect1, p);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\end{figure}
 
 \noindent
 It's also possible to specify a non-constant fill,
   like a gradient:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawRect(rect1, new Paint(new LinearGradient(...)))
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing3.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+SkPaint p;
+p.setShader(
+  SkShaders::LinearGradient(...)
+);
+canvas->drawRect(rect1, p);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing3.pdf}}
+\end{minipage}
+\end{figure}
 
 \noindent
 Skia also supports complex fills like images and shaders.
@@ -101,17 +132,53 @@ Suppose we draw a second, overlapping, blue square:
 \todo[inline]{Maybe we don't show SrcOver here? as we later say its the default.
 something to tell Henry}
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawRect(Rect2, new Paint(COLOR_BLUE))
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+% void draw(SkCanvas* canvas) {
+%     canvas->clear(SK_ColorWHITE);
+
+%     SkPaint paint;
+
+%     SkPoint pts[] = { {0, 0}, {180, 180} };
+
+%     SkColor4f colors[] = {
+%         SkColors::kBlue,
+%         SkColors::kRed
+%     };
+
+%     SkScalar positions[] = { 0.0f, 1.0f };  // REQUIRED in your build
+
+%     auto shader = SkShaders::LinearGradient(
+%         pts,
+%         { {colors, positions, SkTileMode::kClamp}, {} },
+%         nullptr
+%     );
+
+%     paint.setShader(shader);
+
+%     canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
+% }
+
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing6.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+p.setColor(SK_ColorBLUE);
+canvas->drawRect(rect2, p);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+\end{minipage}
+\end{figure}
+
+% paint.setColor(SK_ColorBLUE);
+% canvas->drawRect(SkRect::MakeXYWH(120, 120, 136, 136), paint);
 
 In Skia, the process of drawing this second shape
   involves, conceptually, two stages.
@@ -131,11 +198,32 @@ The default \emph{blend mode}, called \texttt{SrcOver},
 For example, the \texttt{Difference} blend mode
   combines both colors being blended:
 
-\todo[inline]{Blended purple picture}
+\begin{figure}[H]
+\centering
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+p.setColor(SK_ColorBLUE);
+p.setBlendMode(
+  SkBlendMode::kMultiply
+);
+canvas->drawRect(rect2, p);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+\end{minipage}
+\end{figure}
 
 Now, in the intersection of the two rectangles,
   the initial red color is blended with the newly-drawn blue fill,
-  which in the \texttt{Difference} blend mode results in purple.
+  which in the \texttt{Multiply} blend mode results in black.
 Formally, blending is another stage in the Skia drawing pipeline,
   which comes after filling and combines
   the fill color assigned to each pixel
@@ -160,18 +248,25 @@ Skia allows clipping with arbitrary shapes,
   and rounded-rectangles, reducing them to scissor tests}
 One uses \texttt{clipRect} like this:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-clipRect(Rect2);
-drawRect(rect1, new Paint(COLOR_RED))
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing9.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+canvas->clipRect(c_rect);
+canvas->drawRect(rect1, redPaint);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing6.pdf}}
+\end{minipage}
+\end{figure}
 
 \noindent
 Note the unusual order of operations here.
@@ -187,22 +282,26 @@ Semantically, \texttt{clipRect} modifies the \emph{clip state},
 This means that a single \texttt{clipRect} operation
   can affect multiple \texttt{drawRect} operations:
 
-\todo[inline]{I really don't like that this image re-uses red and blue colors
-  for different rectangles.}
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-clipRect(rect3);
-drawRect(rect1, new Paint(COLOR_RED));
-drawRect(rect2, new Paint(COLOR_BLUE));
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing10.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+canvas->clipRect(c_rect);
+canvas->drawRect(rect1, redPaint);
+canvas->drawRect(rect2, bluePaint);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing7.pdf}}
+\end{minipage}
+\end{figure}
 
 Naturally, one might want to clip
   only a subset of drawing commands.
@@ -214,27 +313,28 @@ Luckily, Skia maintains a \emph{stack} of clip states;
 \texttt{save} and \texttt{restore} act like brackets,
   restricting the effect of \texttt{clip} to the enclosed commands:
 
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-save();
-  clipRect(rect3);
-  drawRect(rect1,
-           new Paint(COLOR_RED));
-restore();
-drawRect(rect2,
-         new Paint(COLOR_BLUE));
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}
 \end{minipage}
-\end{center}
-
-Note that the indentation in the example code is merely suggestive,
-  since in reality these commands exist in a linear command buffer
-  and not as source code.
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+canvas->save();
+canvas->clipRect(c_rect);
+canvas->drawRect(rect1, redPaint);
+canvas->restore();
+canvas->drawRect(rect2, bluePaint);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing8.pdf}}
+\end{minipage}
+\end{figure}
 
 \subsection{Layers}
 \label{subsec:layers}
@@ -246,62 +346,118 @@ Much like \texttt{save} and \texttt{restore} can save clip state,
   that saves and restores the drawing surface itself.
 Conceptually, \texttt{saveLayer} allocates
   a new, empty drawing surface,
-  and all drawing commands until the corresponding \texttt{restore}
+
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+canvas->saveLayer();
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\end{figure}
+
+All drawing commands until the corresponding \texttt{restore}
   draw to this new surface.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+canvas->drawRect(rect2, bluePaint);
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+\end{minipage}
+\end{figure}
+
 Then, when the \texttt{restore} command it reached,
   the whole resulting drawing surface is blended back into
-  the original drawing surface;
-  the blend mode can be passed as an argument to \texttt{savelayer}.
-For example, in the following sequence,
-  the blue rectangle is first drawn to a blank surface
-  and then the result is blended into the surface below.
+  the original drawing surface.
 
-\todo[inline]{the complicated sequence of things @Henry}
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-example of red rect before then savelayer blue rect on top
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+restore();
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+\end{minipage}
+\end{figure}
 
 Semantically, you can think of \texttt{SaveLayer} commands
   as re-associating the order of blend operations.
 In the \texttt{Save} example,
   the order of operations is
-\[
+
+\begin{equation*}
 \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
-\]
-  while in the \texttt{SaveLayer} example
+\end{equation*}
+
+While in the \texttt{SaveLayer} example
   the order of operations is
-\[
+
+\begin{equation*}
 \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
-\]
+\end{equation*}
+
 With \texttt{SrcOver} blending, which is associative,
   this order of operations is not important,
   but with other blend modes it becomes significant.
+For example,
+  we reepat the previous snippet,
+  but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
 
-\todo[inline]{We need an example where DstIn actually accomplishes something.}
-
-\begin{center}
-\begin{minipage}[c]{0.45\textwidth}
-\begin{BVerbatim}
-drawr1
-savelayer dstin
-drawr2
-restore
-\end{BVerbatim}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.45\textwidth}
+\begin{figure}[H]
 \centering
-\frame{\includegraphics[scale=0.3]{drawing11.pdf}}
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
 \end{minipage}
-\end{center}
+\hfill
+\begin{minipage}[c]{0.36\textwidth}
+\begin{BVerbatim}
+restore(); // multiply blending
+\end{BVerbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.28\textwidth}
+\centering
+\frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+\end{minipage}
+\end{figure}
 
 \subsubsection{Masking}
 \label{subsubsec:masking}
@@ -315,7 +471,11 @@ This works when we only need to mask by a rectangle.
 But masking with complicated shapes is hard with just clipping.
 Instead,
   we can use \texttt{saveLayer}
-  along with the \texttt{DstIn} blend mode
+  along with the \texttt{DstIn} blend mode.
+Instead of tyring to clip directly with a complicated shape,
+  we can instead draw the clip shape in stages
+  and mask that shape on to it.
+
 
 \begin{verbatim*}
 mandrill example goes here.

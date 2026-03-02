@@ -1,8 +1,39 @@
 #+title: Skia Paper
 
 * TODOS [0/1]
-- [-] Eval [1/4]
+- [-] Eval [1/5]
   - [X] Translation Validation
   - [ ] Count number of matches for each rewrite
   - [ ] Add Henry's rules
   - [ ] Fix bugs in matcher (Naver)
+
+* Skia Examples
+
+#+begin_src c++
+void draw(SkCanvas* canvas) {
+    canvas->clear(SK_ColorWHITE);
+
+    SkPaint redPaint;
+    // redPaint.setColor(SK_ColorRED);
+
+    SkRect redRect = SkRect::MakeXYWH(0, 0, 180, 180);
+    canvas->drawRect(redRect, redPaint);
+}
+#+end_src
+
+
+#+begin_src c++
+  void draw(SkCanvas* canvas) {
+      canvas->clear(SK_ColorWHITE);
+
+      SkPaint redPaint;
+      redPaint.setColor(SK_ColorRED);
+
+      SkRect redRect = SkRect::MakeXYWH(0, 0, 180, 180);
+      canvas->drawRect(redRect, redPaint);
+  }
+#+end_src
+
+#+begin_src c++
+
+#+end_src
