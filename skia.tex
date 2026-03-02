@@ -7,21 +7,21 @@
 
 Skia is a popular library for 2D graphics.
 Skia's basic APIs
-  create drawable 2D ``surfaces'' and ``layers'',
-  draw shapes to those surfaces and layers,
-  blend them together,
-  and apply effects.
+create drawable 2D ``surfaces'' and ``layers'',
+draw shapes to those surfaces and layers,
+blend them together,
+and apply effects.
 These APIs are accessed by calling methods
-  on a Skia \texttt{SkCanvas} object;
-  however, internally, these \texttt{SkCanvas} operations
-  just append commands to a command buffer,%
+on a Skia \texttt{SkCanvas} object;
+however, internally, these \texttt{SkCanvas} operations
+just append commands to a command buffer,%
 \footnote{
-More specifically, the GPU backend does this;
+  More specifically, the GPU backend does this;
   there is a CPU backend that does execute commands eagerly.
-The GPU backend is the fastest and most widely used,
+  The GPU backend is the fastest and most widely used,
   and the focus of this paper.
 }
-  which we can take to be a stand-alone program.
+which we can take to be a stand-alone program.
 The program is executed when Skia's \texttt{flush} method is called.
 This section introduces the language's basic operations.
 
@@ -30,26 +30,26 @@ This section introduces the language's basic operations.
 
 The \texttt{drawRect} command is used to draw rectangles:%
 \footnote{
-All code snippets in this section elide the \texttt{SkCanvas} object
+  All code snippets in this section elide the \texttt{SkCanvas} object
   and method-call syntax to maintain focus on
   the Skia command language itself.
-We likewise drop the \texttt{Sk} prefix on most types.
+  We likewise drop the \texttt{Sk} prefix on most types.
 }
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-SkPaint p;\\
-canvas->drawRect(rect1, p);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing1.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    SkPaint p;\\
+    canvas->drawRect(rect1, p);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing1.pdf}}
+  \end{tabular}
 \end{figure}
 
 % paint.setColor(SK_ColorRED);
@@ -57,251 +57,251 @@ canvas->drawRect(rect1, p);
 
 \noindent
 Here the layout is meant to evoke
-  a Hoare triple:
-  the left square shows the (empty) state of the canvas
-  before the \texttt{drawRect} command,
-  while the right square shows the state of the canvas afterwards.
+a Hoare triple:
+the left square shows the (empty) state of the canvas
+before the \texttt{drawRect} command,
+while the right square shows the state of the canvas afterwards.
 
 By default, the rectangle is drawn in black,
-  but \texttt{drawRect} also takes a \texttt{Paint}~\cite{skpaint} argument
-  which can specify a different \emph{fill} color:
+but \texttt{drawRect} also takes a \texttt{Paint}~\cite{skpaint} argument
+which can specify a different \emph{fill} color:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-SkPaint p;\\
-p.setColor(SK\_ColorRED);\\
-canvas->drawRect(rect1, p);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    SkPaint p;\\
+    p.setColor(SK\_ColorRED);\\
+    canvas->drawRect(rect1, p);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
 \end{figure}
 
 \noindent
 It's also possible to specify a non-constant fill,
-  like a gradient:
+like a gradient:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-SkPaint p;\\
-p.setShader(\\
-\quad SkShaders::LinearGradient(...)\\
-);\\
-canvas->drawRect(rect1, p);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing3.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    SkPaint p;\\
+    p.setShader(\\
+    \quad SkShaders::LinearGradient(...)\\
+    );\\
+    canvas->drawRect(rect1, p);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing3.pdf}}
+  \end{tabular}
 \end{figure}
 
 \noindent
 Skia also supports complex fills like images and shaders.
 Formally, filling is a stage of Skia's drawing pipeline
-  that assigns a color to every point in the shape.
+that assigns a color to every point in the shape.
 
 \subsection{Blending}
 \label{subsec:blending}
 
 Things get a little more interesting
-  once there is more than one shape being drawn.
+once there is more than one shape being drawn.
 Suppose we draw a second, overlapping, blue square:
 \todo[inline]{Maybe we don't show SrcOver here? as we later say its the default.
-something to tell Henry}
+  something to tell Henry}
 
 % void draw(SkCanvas* canvas) {
-%     canvas->clear(SK_ColorWHITE);
+% canvas->clear(SK_ColorWHITE);
 
-%     SkPaint paint;
+% SkPaint paint;
 
-%     SkPoint pts[] = { {0, 0}, {180, 180} };
+% SkPoint pts[] = { {0, 0}, {180, 180} };
 
-%     SkColor4f colors[] = {
-%         SkColors::kBlue,
-%         SkColors::kRed
-%     };
+% SkColor4f colors[] = {
+% SkColors::kBlue,
+% SkColors::kRed
+% };
 
-%     SkScalar positions[] = { 0.0f, 1.0f };  // REQUIRED in your build
+%   SkScalar positions[] = { 0.0f, 1.0f };  // REQUIRED in your build
 
-%     auto shader = SkShaders::LinearGradient(
-%         pts,
-%         { {colors, positions, SkTileMode::kClamp}, {} },
-%         nullptr
-%     );
+%   auto shader = SkShaders::LinearGradient(
+%   pts,
+%   { {colors, positions, SkTileMode::kClamp}, {} },
+%   nullptr
+%   );
 
-%     paint.setShader(shader);
+%   paint.setShader(shader);
 
-%     canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
+%   canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
 % }
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-p.setColor(SK\_ColorBLUE);\\
-canvas->drawRect(rect2, p);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    p.setColor(SK\_ColorBLUE);\\
+    canvas->drawRect(rect2, p);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+  \end{tabular}
 \end{figure}
 
 % paint.setColor(SK_ColorBLUE);
 % canvas->drawRect(SkRect::MakeXYWH(120, 120, 136, 136), paint);
 
 In Skia, the process of drawing this second shape
-  involves, conceptually, two stages.
+involves, conceptually, two stages.
 First, as before, every pixel in \texttt{Rect2}
-  is assigned a fill color, here a solid blue.
+is assigned a fill color, here a solid blue.
 Second, this assigned fill color is \emph{blended}
-  with the existing color for that pixel.
+with the existing color for that pixel.
 The default \emph{blend mode}, called \texttt{SrcOver},
-  just chooses the new color,%
+just chooses the new color,%
 \footnote{In reality, the blending is more complicated
   and depends on the opacity or \emph{alpha}
   of the new color,
   which can matter for anti-aliasing,
   but in our examples all the colors are opaque
   and we ignore anti-aliasing as a simplification.}
-  but a program can select a different blend modes instead.
+but a program can select a different blend modes instead.
 For example, the \texttt{Difference} blend mode
-  combines both colors being blended:
+combines both colors being blended:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-p.setColor(SK\_ColorBLUE);\\
-p.setBlendMode(\\
-\quad SkBlendMode::kMultiply\\
-);\\
-canvas->drawRect(rect2, p);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    p.setColor(SK\_ColorBLUE);\\
+    p.setBlendMode(\\
+    \quad SkBlendMode::kMultiply\\
+    );\\
+    canvas->drawRect(rect2, p);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+  \end{tabular}
 \end{figure}
 
 Now, in the intersection of the two rectangles,
-  the initial red color is blended with the newly-drawn blue fill,
-  which in the \texttt{Multiply} blend mode results in black.
+the initial red color is blended with the newly-drawn blue fill,
+which in the \texttt{Multiply} blend mode results in black.
 Formally, blending is another stage in the Skia drawing pipeline,
-  which comes after filling and combines
-  the fill color assigned to each pixel
-  with the pre-existing color of that pixel.
+which comes after filling and combines
+the fill color assigned to each pixel
+with the pre-existing color of that pixel.
 
 \subsection{Clipping}
 \label{subsec:clipping}
 \label{subsec:blah}
 
 So far, \texttt{drawRect} has been applying the fill
-  to the entirety of the shape being drawn.
+to the entirety of the shape being drawn.
 But, sometimes,
-  we need more granual control over the drawing bounds.
+we need more granual control over the drawing bounds.
 Skia provides a dedicated \texttt{clipRect} command
-  to restrict or \textit{clip} shapes to rectangles.
+to restrict or \textit{clip} shapes to rectangles.
 Clipping is yet another stage of the Skia drawing pipeline;
-  clipping happens before filling
-  and modifies the shape being drawn.%
+clipping happens before filling
+and modifies the shape being drawn.%
 \footnote{
-Skia allows clipping with arbitrary shapes,
+  Skia allows clipping with arbitrary shapes,
   but the GPU back-end has fast paths for rectangles
   and rounded-rectangles, reducing them to scissor tests}
 One uses \texttt{clipRect} like this:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->clipRect(c\_rect);\\
-canvas->drawRect(rect1, redPaint);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing6.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->clipRect(c\_rect);\\
+    canvas->drawRect(rect1, redPaint);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing6.pdf}}
+  \end{tabular}
 \end{figure}
 
 \noindent
 Note the unusual order of operations here.
 The \texttt{clipRect} command is run first,
-  and it not modify the image at all.
+and it not modify the image at all.
 Instead, it modifies the shape drawn
-  by \emph{later} draw operations.
+by \emph{later} draw operations.
 Formally, clipping is yet another stage of the Skia drawing pipeline;
-  it comes before filling and modifies the shape being drawn.
+it comes before filling and modifies the shape being drawn.
 
 Semantically, \texttt{clipRect} modifies the \emph{clip state},
-  which stored in the canvas object and affects drawing commands.
+which stored in the canvas object and affects drawing commands.
 This means that a single \texttt{clipRect} operation
-  can affect multiple \texttt{drawRect} operations:
+can affect multiple \texttt{drawRect} operations:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->clipRect(c\_rect);\\
-canvas->drawRect(rect1, redPaint);\\
-canvas->drawRect(rect2, bluePaint);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing7.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->clipRect(c\_rect);\\
+    canvas->drawRect(rect1, redPaint);\\
+    canvas->drawRect(rect2, bluePaint);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing7.pdf}}
+  \end{tabular}
 \end{figure}
 
 Naturally, one might want to clip
-  only a subset of drawing commands.
+only a subset of drawing commands.
 Luckily, Skia maintains a \emph{stack} of clip states;
-  \texttt{clipRect} affects the top of the stack,
-  which is used by drawing commands,
-  while \texttt{save} and \texttt{restore} commands
-  push and pop from the stack.
+\texttt{clipRect} affects the top of the stack,
+which is used by drawing commands,
+while \texttt{save} and \texttt{restore} commands
+push and pop from the stack.
 \texttt{save} and \texttt{restore} act like brackets,
-  restricting the effect of \texttt{clip} to the enclosed commands:
+restricting the effect of \texttt{clip} to the enclosed commands:
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->save();\\
-canvas->clipRect(c\_rect);\\
-canvas->drawRect(rect1, redPaint);\\
-canvas->restore();\\
-canvas->drawRect(rect2, bluePaint);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing8.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->save();\\
+    canvas->clipRect(c\_rect);\\
+    canvas->drawRect(rect1, redPaint);\\
+    canvas->restore();\\
+    canvas->drawRect(rect2, bluePaint);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing8.pdf}}
+  \end{tabular}
 \end{figure}
 
 \subsection{Layers}
@@ -310,104 +310,104 @@ canvas->drawRect(rect2, bluePaint);
 \todo[inline]{I thought this was the most abrupt and unmotivated transition.
   Not the end of the world.}
 Much like \texttt{save} and \texttt{restore} can save clip state,
-  there is also a \texttt{saveLayer} and \texttt{restore} command
-  that saves and restores the drawing surface itself.
+there is also a \texttt{saveLayer} and \texttt{restore} command
+that saves and restores the drawing surface itself.
 Conceptually, \texttt{saveLayer} allocates
-  a new, empty drawing surface,
+a new, empty drawing surface,
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->saveLayer();
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->saveLayer();
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
 \end{figure}
 
 All drawing commands until the corresponding \texttt{restore}
-  draw to this new surface.
+draw to this new surface.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->drawRect(rect2, bluePaint);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->drawRect(rect2, bluePaint);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
 \end{figure}
 
 Then, when the \texttt{restore} command it reached,
-  the whole resulting drawing surface is blended back into
-  the original drawing surface.
+the whole resulting drawing surface is blended back into
+the original drawing surface.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-restore();
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    restore();
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+  \end{tabular}
 \end{figure}
 
 Semantically, you can think of \texttt{SaveLayer} commands
-  as re-associating the order of blend operations.
+as re-associating the order of blend operations.
 In the \texttt{Save} example,
-  the order of operations is
+the order of operations is
 
 \begin{equation*}
-\textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
+  \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
 \end{equation*}
 
 While in the \texttt{SaveLayer} example
-  the order of operations is
+the order of operations is
 
 \begin{equation*}
-\textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
+  \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
 \end{equation*}
 
 With \texttt{SrcOver} blending, which is associative,
-  this order of operations is not important,
-  but with other blend modes it becomes significant.
+this order of operations is not important,
+but with other blend modes it becomes significant.
 For example,
-  we reepat the previous snippet,
-  but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
+we reepat the previous snippet,
+but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-\frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{drawing2.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-restore(); // multiply blending
-\end{tabular}
-\quad
-\begin{tabular}{c}
-\frame{\includegraphics[scale=0.28]{drawing5.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    restore(); // multiply blending
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+  \end{tabular}
 \end{figure}
 
 \subsubsection{Masking}
@@ -415,104 +415,147 @@ restore(); // multiply blending
 \label{subsubsec:balh}
 
 To further motivate the need for \texttt{saveLayers},
-  consider masking again.
+consider masking again.
 In \Cref{subsec:blah} we saw how we can use
-  \texttt{clipRect} to mask images.
+\texttt{clipRect} to mask images.
 This works when we only need to mask by a rectangle.
 But masking with complicated shapes is hard with just clipping.
 Instead of trying to clip directly with a complicated shape,
-  we can instead draw the clip shape in stages on a seperate layer
-  and mask using that shape.
+we can instead draw the clip shape in stages on a seperate layer
+and mask using that shape.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->saveLayer();
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->saveLayer();
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
 \end{figure}
 
 We now draw the mask shape on the new layer.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-canvas->drawRect(rect2, bluePaint);
-\end{tabular}
-\quad
-\begin{tabular}{c}
-  \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
-  \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    canvas->drawRect(rect2, bluePaint);
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
 \end{figure}
 
 \texttt{DstIn} emulates masking through blending;
 When we \texttt{DstIn} one pixel over another,
-  an opaque top pixel keeps the bottom pixel,
-  and a transparent top pixel removes it.
+an opaque top pixel keeps the bottom pixel,
+and a transparent top pixel removes it.
 
 \begin{figure}[H]
-\centering
-\begin{tabular}{c}
-\frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
-\frame{\includegraphics[scale=0.28]{mandrill.pdf}}
-\end{tabular}
-\quad
-\begin{tabular}{T}
-restore(); // multiply blending
-\end{tabular}
-\quad
-\begin{tabular}{c}
-\frame{\includegraphics[scale=0.28]{mask.pdf}}
-\end{tabular}
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    restore(); // multiply blending
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{masked_mandrill.pdf}}
+  \end{tabular}
 \end{figure}
+
+\texttt{DstIn} blending is also far more powerful than just clipping,
+because it also allows masking with gradients,
+allowing ust to create more complicated images
+that just clipping would not allow us to.
+For example,
+here is the previous image,
+now masked with a radial gradient.
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{grad_mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{T}
+    restore(); // multiply blending
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{grad_mandrill.pdf}}
+  \end{tabular}
+\end{figure}
+
+
+
 
 \subsection{Equivalences}
 \label{subsec:equivalences}
 
 In \Cref{subsubsec:balh} we saw how complex masks
-  can be done with ease using a \texttt{saveLayer}
-  with \texttt{DstIn} blending.
+can be done with ease using a \texttt{saveLayer}
+with \texttt{DstIn} blending.
 But what if just a rectangle mask is needed?
 Our \texttt{saveLayer} and \texttt{DstIn} program would still work.
 But,
-  it is clearly less performant than just doing a clip;
+it is clearly less performant than just doing a clip;
 We have to allocate a whole new layer,
-  just to do something Skia alreayd has a fast path for!
+just to do something Skia alreayd has a fast path for!
 Here,
-  we have two different skia programs that produce the same image,
-  but one us clearly a better choice than the other.
+we have two different skia programs that produce the same image,
+but one us clearly a better choice than the other.
 
-\begin{verbatim*}
-put mandrill rectangle example here
-\end{verbatim*}
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \begin{tabular}{T}
+      restore(); // multiply blending
+    \end{tabular}\\[0.8em]
+    \begin{tabular}{T}
+      restore(); // second program
+    \end{tabular}
+  \end{tabular}
+  \quad
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.28]{simple_mandrill.pdf}}
+  \end{tabular}
+\end{figure}
 
 Therefore it should be possible to replace a skia program
-  with a faster one,
-  given they have indentical results.
+with a faster one,
+given they have indentical results.
 In \Cref{sec:semantics}
-  we develop a semantics,
-  which allows proving that two Skia programs have identical results,
-  including verifying general-purpose rewrite rules.
+we develop a semantics,
+which allows proving that two Skia programs have identical results,
+including verifying general-purpose rewrite rules.
 \Cref{sec:compiler} then uses these rewrites
-  to build a general-purpose Skia optimizer
-  that rewrites programs to reduce the use
-  of multiple layers and of \texttt{DstIn} blending.
+to build a general-purpose Skia optimizer
+that rewrites programs to reduce the use
+of multiple layers and of \texttt{DstIn} blending.
 \Cref{sec:eval} then shows that this compiler
-  results in dramatically faster rendering
-  on a wide range of real-world Skia programs.
+results in dramatically faster rendering
+on a wide range of real-world Skia programs.
 
 \end{document}

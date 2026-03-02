@@ -84,3 +84,56 @@ $\left\{\vcenter{\hbox{\frame{\includegraphics[scale=0.28]{drawing0.pdf}}}}\righ
 
 \ExplSyntaxOff
 #+end_src
+
+#+begin_src c++
+void draw(SkCanvas* canvas) {
+   SkPaint paint;
+
+SkPoint center = {128.0f, 128.0f};
+SkScalar radius = 128.0f;
+
+SkColor4f colors[] = {
+    SkColors::kBlack,                  // opaque black
+    SkColors::kBlack.withAlpha(0.0f)   // transparent black
+};
+
+SkScalar positions[] = {0.0f, 1.0f};
+
+auto shader = SkShaders::RadialGradient(
+    center,
+    radius,
+    { {colors, positions, SkTileMode::kClamp}, {} },
+    nullptr
+);
+
+paint.setShader(shader);
+
+  	SkPaint savePaint;
+  	savePaint.setBlendMode(
+		SkBlendMode::kDstIn
+	);
+    SkSamplingOptions sampling;
+    canvas->drawImageRect(image, SkRect::MakeXYWH(0, 0, 256, 256), sampling);
+
+  	canvas->saveLayer(nullptr, &savePaint);
+  	canvas->drawRect(SkRect::MakeXYWH(0, 0, 256, 256), paint);
+  	canvas->restore();
+}
+#+end_src
+
+#+begin_src c++
+void draw(SkCanvas* canvas) {
+	SkPaint paint;
+  	SkPaint savePaint;
+  	savePaint.setBlendMode(
+		SkBlendMode::kDstIn
+	);
+    SkSamplingOptions sampling;
+    canvas->drawImageRect(image, SkRect::MakeXYWH(0, 0, 256, 256), sampling);
+
+  	canvas->saveLayer(nullptr, &savePaint);
+  	canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
+  	canvas->drawRect(SkRect::MakeXYWH(120, 120, 136, 136), paint);
+  	canvas->restore();
+}
+#+end_src
