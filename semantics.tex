@@ -6,7 +6,7 @@
 \begin{figure}
   \centering
   \begin{minipage}{0.40\linewidth}
-    \todo[inline]{I think we require a special \textsf{Transparent} color.}
+    \pavel{I think we require a special \textsf{Transparent} color.}
     \centering
     \begin{tabular}{S S}
       Image  & : \; Point $\to$ Color \\[2pt]
@@ -488,7 +488,8 @@ This equivalence is proven by induction
   over commands in $\ell_2$.
 It is convenient to assume
   that sequential composition is left-associated
-  (we do this in our Lean formalization)\todo{Do we?};
+  (we do this in our Lean formalization)
+\pavel{Do we?};
   this means the induction effectively proceeds by
   ``pealing off'' the last drawing command in $\ell_2$.
 After expanding out the \muskia semantics,
@@ -566,7 +567,7 @@ All three of these sites seem to use a common web framework
       Restore();
     \end{tabular}
   \end{tabular}
-  \todo{What is with this example, why is all the syntax fake??}
+  \pavel{What is with this example, why is all the syntax fake??}
 \end{center}
 \noindent
 On the left hand side,
@@ -582,7 +583,7 @@ It is not clear to use why this pattern is used;
 No induction is needed in this example,
   since only a fixed number of \textsf{Command}s are present.
 Using the \muskia examples, this rewrite unfolds to:
-\todo[inline]{Show the Layer formula}
+\pavel{Show the Layer formula}
 
 This reduces to the following equation in the abstract model:
 \[
@@ -748,31 +749,133 @@ We have already seen this rewrite before in \Cref{sec:skia}.
 
 While we only asserted its correctness in \Cref{sec:skia},
   we can actually prove it with the semantics now.
-Remember how clipping effects all subsequent commands.
-To make it easier to reason about the effect of clips,
-  we continue proving this rewrite in Layer terms.
+Let us first reduce this rewrite to \muskia terms.
 
 \begin{center}
   \begin{tabular}{T c T}
     {\small
     \begin{tabular}{@{}l@{}}
       blendlayer( \\
-      \quad draw(l), \\
-      \quad draw mask opaque, \\
+      \quad l, \\
+      \quad draw(Empty, g, p, c), \\
       \quad dstin \\
       )
     \end{tabular}}
     & \eqimg
     & {\small
       \begin{tabular}{@{}l@{}}
-        clipAll(draw(l), mask)
+        clipAll(l, g $\cap$ c)
       \end{tabular}}
   \end{tabular}
 \end{center}
 
-clipAll is a recursive function over
+\texttt{clipAll} is a recursive function over layers,
+  which propogates a clip across a sequence of \texttt{draws}.
+Note that we will be referring to \texttt{g $\cap$ c} as \texttt{mask}
+  going forward.
+We define it as such;
 
+\begin{center}
+\begin{tabular}{T T}
+  clipAll(Empty, m) &= Empty \\
+  clipAll(Draw(l, g, p, c), m) &= Draw(clipAll(l, m), g, p, c $\cap$ m)
+\end{tabular}
+\end{center}
 
+The proof of the rewrite now follows through induction over the layer
+  \texttt{l}.
+For the base case,
+  where \texttt{l} is \texttt{Empty},
+  the rewrite reduces to
+
+\begin{equation*}
+dstin(\denote{Empty}, \denote{Draw(...)}) = \denote{clipAll(Empty, mask)}
+\end{equation*}
+
+If we recall how dstin blending works,
+  dstin blending in a opaque pixel masks in,
+  while a transparent pixel masks out.
+Now if the pixel we are blending on is Transprent
+  -- which \denote{Empty} is --
+  the result remains transparent.
+The other side of the equality also reduces to Transparent
+  by definition of clipAll.
+
+Now for the base case,
+  l = Draw(l', g', p, c').
+Which means we need to prove:
+
+\begin{gather*}
+dstin(\denote{Draw(l', g', p, c')}, \denote{Draw(...)}) \\
+  = \denote{clipAll(Draw(l', g', p, c'), mask)}
+\end{gather*}
+
+We now perform case analysis on the location of point to be drawn%
+  (remember that layer equalities are quantified over points).
+When the point to be drawn is outside the mask,
+  we get
+
+\begin{gather*}
+dstin(\denote{Draw(l', g', p, c')}, Transparent) \\
+  = \denote{clipAll(Draw(l', g', p, c'), mask)}
+\end{gather*}
+
+As dstin masks out Transparent pixels, and following the defintion of clipAll:
+
+\begin{gather*}
+Transparent \\
+  = \denote{Draw(clipAll(l'), g', p, c' $/cap$ mask))}
+\end{gather*}
+
+As the point inside is outside the mask,
+  it is outside the clip,
+  hence proving the equality.
+
+Now we turn to the case where the point to be drawn is outside the mask.
+Looking at the inductive hypothesis.
+
+\begin{align*}
+dstin(\denote{l}, Draw(...)) = \denote{clipAll(l, mask)}
+\end{align*}
+
+We know that we are masking with a oapque pixel,
+ meaning
+
+\begin{align*}
+\denote{l} = \denote{clipAll(l, mask)}
+\end{align*}
+
+We have to prove:
+
+\begin{align*}
+dstin(\denote{Draw(l', g', p, c')}, \denote{Draw(...)}) \\
+  = \denote{clipAll(Draw(l', g', p, c'), mask)}
+\end{align*}
+
+Again we are masking with an opaque pixel,
+  so this reduces to
+
+\begin{align*}
+\denote{Draw(l', g', p, c')} \\
+  = \denote{clipAll(Draw(l', g', p, c'), mask)}
+\end{align*}
+
+By the definition of clipAll we get
+
+\begin{align*}
+\denote{Draw(l', g', p, c')} \\
+  = \denote{Draw(clipAll(l', mask), g', p, c' $/cap$ mask)}
+\end{align*}
+
+Using the inductive hypothesis and the compositionality of our denotations:
+
+\begin{align*}
+\denote{Draw(l', g', p, c')} \\
+  = \denote{Draw(l, g', p, c' $\cap$ mask)}
+\end{align*}
+
+as we know that pt is inside the mask,
+  so $c' \cap mask = c'$ finishing the proof.
 
 \end{document}
 

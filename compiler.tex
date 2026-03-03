@@ -113,44 +113,35 @@ Our optimizer reads a \texttt{skp} file and optimizes it by rewriting it using
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}[
+    x=1cm,
+    y=1cm,
     >=Latex,
-    font=\scriptsize,
-    lhs/.style={draw, rounded corners, fill=blue!6, minimum width=4.0cm,
-      minimum height=0.75cm, align=left, inner sep=4pt},
-    rhs/.style={draw, rounded corners, fill=green!6, minimum width=7.6cm,
-      minimum height=0.75cm, align=left, inner sep=4pt}
+    box/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=blue!5},
+    ibox/.style={draw, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=orange!8},
+    mbox/.style={draw, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=green!8},
+    note/.style={font=\scriptsize, align=left}
   ]
-    \node[font=\small\bfseries, anchor=west] at (-0.2,3.25) {Command class};
-    \node[font=\small\bfseries, anchor=west] at (4.8,3.25) {Action on \texttt{state\_stack}/\texttt{index\_stack}};
+    \node[box] (scan) at (0,0) {Linear scan\\\texttt{for i in [0, count)}};
+    \node[box] (dispatch) at (4.0,0) {Typed dispatch\\\texttt{Is<SaveLayer>/Is<Draw>/...}};
+    \node[ibox] (state) at (8.1,0) {Per-rule matcher state\\\texttt{state\_stack + saveCount + indices}};
+    \node[mbox] (mutate) at (12.3,0) {Mutation\\\texttt{replace<NoOp>/replace<Save>/insert<...>}};
 
-    \node[lhs, anchor=west] (c0) at (0,2.65) {\texttt{SaveLayer} with plain paint};
-    \node[rhs, anchor=west] (a0) at (4.8,2.65) {if stack non-empty: set top $\leftarrow I$;\\push $(M, i)$};
+    \draw[->] (scan) -- (dispatch);
+    \draw[->] (dispatch) -- (state);
+    \draw[->] (state) -- (mutate);
 
-    \node[lhs, anchor=west] (c1) at (0,1.80) {\texttt{SaveLayer} with non-plain paint};
-    \node[rhs, anchor=west] (a1) at (4.8,1.80) {if stack non-empty: set top $\leftarrow I$;\\push $(I, i)$};
+    \node[note, anchor=north west] at (-1.6,-1.2) {
+      Invariant: each stack entry records candidate-match context at one nesting level.\\
+      \texttt{saveCount} separates normal \texttt{Save}/\texttt{Restore} balancing from\\
+      \texttt{SaveLayer} pattern depth, so unrelated nesting does not cause false matches.
+    };
 
-    \node[lhs, anchor=west] (c2) at (0,0.95) {\texttt{Save}};
-    \node[rhs, anchor=west] (a2) at (4.8,0.95) {push $(I, i)$};
-
-    \node[lhs, anchor=west] (c3) at (0,0.10) {\texttt{Draw} with non-plain paint};
-    \node[rhs, anchor=west] (a3) at (4.8,0.10) {if top is $M$: set top $\leftarrow I$};
-
-    \node[lhs, anchor=west] (c4) at (0,-0.75) {\texttt{Restore}};
-    \node[rhs, anchor=west] (a4) at (4.8,-0.75) {if stack empty: continue; else pop $(state,index)$.\\if $state=M$: \texttt{replace<Save>(index)} and increment \texttt{match\_count}};
-
-    \draw[->] (c0.east) -- (a0.west);
-    \draw[->] (c1.east) -- (a1.west);
-    \draw[->] (c2.east) -- (a2.west);
-    \draw[->] (c3.east) -- (a3.west);
-    \draw[->] (c4.east) -- (a4.west);
+    \draw[->, dashed] (state.south) .. controls +(0,-1.0) and +(0,-1.0) .. (dispatch.south);
+    \node[note, anchor=north] at (6.0,-2.2) {Continue scanning with updated top-of-stack state};
   \end{tikzpicture}
-  \caption{Implementation-shaped view of \texttt{RemoveOpaqueSaveLayers}.
-  The matcher is easiest to read as command dispatch plus stack effects,
-  rather than as a classic PDA state graph.}
-  \label{fig:opaque-savelayer-matcher}
+  \caption{Implementation-level shape of rewrite matching in \texttt{easteregg.cpp}: command dispatch drives a stack matcher, which emits local mutations once a candidate closes at \texttt{Restore}.}
+  \label{fig:rewrite-matching-architecture}
 \end{figure}
-
-
 
 \subsubsection{Mutating \texttt{SkRecord}}
 
@@ -182,7 +173,16 @@ This technique has been given the name ``InsertionSet''
   and is employed in the B3 JIT -- which also uses a dense array as its IR
   memory representation -- powering the WebKit browser engine.
 We have implemented ``InsertionSet'' in \texttt{SkRecord}
-  to facilitate easy insertion.
+  to facilitate easy insertion of \texttt{SkRecords} objects.
+
+\subsection{Rewrite Matching}
+
+The rewrite we have discussed before in \fillin{foo} are implemented as
+  single-pass matchers over the \texttt{SkRecord} command buffer.
+Each matcher iterates through the command buffer,
+  maintaining the current state of the matcher on a stack.
+
+
 
 % \subsection{Rewrite Matching}
 
