@@ -52,7 +52,7 @@ The middle layer is functional operations
 The top layer is an imperative language, \muskia,
   whose operational semantics provides a model of Skia.
 This section describes all three layers
-  and then examines \fillin{??? Count them} rewrite rules
+  and then examines \fillin{4} rewrite rules
   proven valid using the semantics.
 
 \subsection{Abstract Model}
@@ -303,7 +303,7 @@ A \muskia program then performs
   consists of a single layer $L$,
   which is the output image,
   and some clip state, which is discarded.
-  
+
 We now describe the core steps
   in the operational semantics.
 The simplest is the \textsf{Draw} command,
@@ -424,7 +424,7 @@ It demonstrates that the \muskia semantics
   are sufficiently powerful to define and prove
   valuable optimizations on real-world Skia programs.
 Specifically, we collected the Skia programs
-  used by Google Chrome ???\todo{give version number}
+  used by Google Chrome \fillin{\chromever}
   to render the Alexa Top 100 websites
   and examined them to find common, suboptimal patterns.
 In general, the suboptimality comes from
