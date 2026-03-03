@@ -3,27 +3,24 @@
 \section{Skia}
 \label{sec:skia}
 
-\todo[inline]{make sure we dont reference colors}
+\pavel{make sure we dont reference colors}
 
 Skia is a popular library for 2D graphics.
 Skia's basic APIs
-create drawable 2D ``surfaces'' and ``layers'',
-draw shapes to those surfaces and layers,
-blend them together,
-and apply effects.
+  create drawable 2D ``surfaces'' and ``layers'',
+  draw shapes to those surfaces and layers,
+  blend them together,
+  and apply effects.
 These APIs are accessed by calling methods
-on a Skia \texttt{SkCanvas} object;
-however, internally, these \texttt{SkCanvas} operations
-just append commands to a command buffer,%
-\footnote{
-  More specifically, the GPU backend does this;
-  there is a CPU backend that does execute commands eagerly.
-  The GPU backend is the fastest and most widely used,
-  and the focus of this paper.
-}
-which we can take to be a stand-alone program.
+  on a Skia \texttt{SkCanvas} object;
+  however, internally, these \texttt{SkCanvas} operations
+  just append commands to a command buffer,
+  which we can take to be a stand-alone program.
 The program is executed when Skia's \texttt{flush} method is called.
 This section introduces the language's basic operations.
+
+\bhargav{I need to get codex to read the skia source to make sure this is how it
+works}
 
 \subsection{Drawing and Painting}
 \label{subsec:drawing-painting}
@@ -57,14 +54,18 @@ The \texttt{drawRect} command is used to draw rectangles:%
 
 \noindent
 Here the layout is meant to evoke
-a Hoare triple:
+  a Hoare triple:
 the left square shows the (empty) state of the canvas
-before the \texttt{drawRect} command,
-while the right square shows the state of the canvas afterwards.
-
-By default, the rectangle is drawn in black,
-but \texttt{drawRect} also takes a \texttt{Paint}~\cite{skpaint} argument
-which can specify a different \emph{fill} color:
+  before the \texttt{drawRect} command,
+  while the right square shows the state of the canvas afterwards.
+The \texttt{drawRect} command needs the bounds of the rectangle
+  that needs to be drawn.
+\texttt{drawRect} also takes a \texttt{SkPaint}
+  as an argument.
+A \texttt{SkPaint} describes \emph{how} a geometry is drawn,
+  for example how to \emph{fill} the geometry.
+The default fill for a \texttt{SkPaint} is the color black,
+  but we can also change it to another color.
 
 \begin{figure}[H]
   \centering
@@ -85,7 +86,7 @@ which can specify a different \emph{fill} color:
 
 \noindent
 It's also possible to specify a non-constant fill,
-like a gradient:
+  like a gradient:
 
 \begin{figure}[H]
   \centering
@@ -108,17 +109,15 @@ like a gradient:
 
 \noindent
 Skia also supports complex fills like images and shaders.
-Formally, filling is a stage of Skia's drawing pipeline
-that assigns a color to every point in the shape.
+  Formally, filling is a stage of Skia's drawing pipeline
+  that assigns a color to every point in the shape.
 
 \subsection{Blending}
 \label{subsec:blending}
 
 Things get a little more interesting
-once there is more than one shape being drawn.
+  once there is more than one shape being drawn.
 Suppose we draw a second, overlapping, blue square:
-\todo[inline]{Maybe we don't show SrcOver here? as we later say its the default.
-  something to tell Henry}
 
 % void draw(SkCanvas* canvas) {
 % canvas->clear(SK_ColorWHITE);
@@ -165,22 +164,22 @@ Suppose we draw a second, overlapping, blue square:
 % canvas->drawRect(SkRect::MakeXYWH(120, 120, 136, 136), paint);
 
 In Skia, the process of drawing this second shape
-involves, conceptually, two stages.
+  involves, conceptually, two stages.
 First, as before, every pixel in \texttt{Rect2}
-is assigned a fill color, here a solid blue.
+  is assigned a fill color, here a solid blue.
 Second, this assigned fill color is \emph{blended}
-with the existing color for that pixel.
+  with the existing color for that pixel.
 The default \emph{blend mode}, called \texttt{SrcOver},
-just chooses the new color,%
+  just chooses the new color,%
 \footnote{In reality, the blending is more complicated
   and depends on the opacity or \emph{alpha}
   of the new color,
   which can matter for anti-aliasing,
   but in our examples all the colors are opaque
   and we ignore anti-aliasing as a simplification.}
-but a program can select a different blend modes instead.
-For example, the \texttt{Difference} blend mode
-combines both colors being blended:
+  but a program can select a different blend modes instead.
+For example, the \texttt{Multiply} blend mode
+  combines both colors being blended:
 
 \begin{figure}[H]
   \centering
@@ -202,26 +201,22 @@ combines both colors being blended:
 \end{figure}
 
 Now, in the intersection of the two rectangles,
-the initial red color is blended with the newly-drawn blue fill,
-which in the \texttt{Multiply} blend mode results in black.
+  the initial red color is blended with the newly-drawn blue fill,
+  which in the \texttt{Multiply} blend mode results in black.
 Formally, blending is another stage in the Skia drawing pipeline,
-which comes after filling and combines
-the fill color assigned to each pixel
-with the pre-existing color of that pixel.
+  which comes after filling and combines
+  the fill color assigned to each pixel
+  with the pre-existing color of that pixel.
 
 \subsection{Clipping}
 \label{subsec:clipping}
-\label{subsec:blah}
 
 So far, \texttt{drawRect} has been applying the fill
-to the entirety of the shape being drawn.
+  to the entirety of the shape being drawn.
 But, sometimes,
-we need more granual control over the drawing bounds.
+  we need more granual control over the drawing bounds.
 Skia provides a dedicated \texttt{clipRect} command
-to restrict or \textit{clip} shapes to rectangles.
-Clipping is yet another stage of the Skia drawing pipeline;
-clipping happens before filling
-and modifies the shape being drawn.%
+  to restrict or \emph{clip} shapes to rectangles.%
 \footnote{
   Skia allows clipping with arbitrary shapes,
   but the GPU back-end has fast paths for rectangles
@@ -247,16 +242,16 @@ One uses \texttt{clipRect} like this:
 \noindent
 Note the unusual order of operations here.
 The \texttt{clipRect} command is run first,
-and it not modify the image at all.
+  and it does not modify the image at all.
 Instead, it modifies the shape drawn
-by \emph{later} draw operations.
+  by \emph{later} draw operations.
 Formally, clipping is yet another stage of the Skia drawing pipeline;
-it comes before filling and modifies the shape being drawn.
+  it comes before filling and modifies the shape being drawn.
 
 Semantically, \texttt{clipRect} modifies the \emph{clip state},
-which stored in the canvas object and affects drawing commands.
+  which stored in the canvas object and affects drawing commands.
 This means that a single \texttt{clipRect} operation
-can affect multiple \texttt{drawRect} operations:
+  can affect multiple \texttt{drawRect} operations:
 
 \begin{figure}[H]
   \centering
@@ -276,14 +271,14 @@ can affect multiple \texttt{drawRect} operations:
 \end{figure}
 
 Naturally, one might want to clip
-only a subset of drawing commands.
+  only a subset of drawing commands.
 Luckily, Skia maintains a \emph{stack} of clip states;
-\texttt{clipRect} affects the top of the stack,
-which is used by drawing commands,
-while \texttt{save} and \texttt{restore} commands
-push and pop from the stack.
-\texttt{save} and \texttt{restore} act like brackets,
-restricting the effect of \texttt{clip} to the enclosed commands:
+  \texttt{clipRect} affects the top of the stack,
+  which is used by drawing commands,
+  while \texttt{save} and \texttt{restore} commands
+  push and pop from the stack.
+  \texttt{save} and \texttt{restore} act like brackets,
+  restricting the effect of \texttt{clip} to the enclosed commands:
 
 \begin{figure}[H]
   \centering
@@ -307,13 +302,13 @@ restricting the effect of \texttt{clip} to the enclosed commands:
 \subsection{Layers}
 \label{subsec:layers}
 
-\todo[inline]{I thought this was the most abrupt and unmotivated transition.
+\pavel{I thought this was the most abrupt and unmotivated transition.
   Not the end of the world.}
 Much like \texttt{save} and \texttt{restore} can save clip state,
-there is also a \texttt{saveLayer} and \texttt{restore} command
-that saves and restores the drawing surface itself.
+  there is also a \texttt{saveLayer} and \texttt{restore} command
+  that saves and restores the drawing surface itself.
 Conceptually, \texttt{saveLayer} allocates
-a new, empty drawing surface,
+  a new, empty drawing surface.
 
 \begin{figure}[H]
   \centering
@@ -332,7 +327,7 @@ a new, empty drawing surface,
 \end{figure}
 
 All drawing commands until the corresponding \texttt{restore}
-draw to this new surface.
+  draw to this new surface.
 
 \begin{figure}[H]
   \centering
@@ -352,8 +347,8 @@ draw to this new surface.
 \end{figure}
 
 Then, when the \texttt{restore} command it reached,
-the whole resulting drawing surface is blended back into
-the original drawing surface.
+  the whole resulting drawing surface is blended back into
+  the original drawing surface.
 
 \begin{figure}[H]
   \centering
@@ -372,27 +367,27 @@ the original drawing surface.
 \end{figure}
 
 Semantically, you can think of \texttt{SaveLayer} commands
-as re-associating the order of blend operations.
+  as re-associating the order of blend operations.
 In the \texttt{Save} example,
-the order of operations is
+  the order of operations is
 
 \begin{equation*}
   \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
 \end{equation*}
 
 While in the \texttt{SaveLayer} example
-the order of operations is
+  the order of operations is
 
 \begin{equation*}
   \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
 \end{equation*}
 
 With \texttt{SrcOver} blending, which is associative,
-this order of operations is not important,
-but with other blend modes it becomes significant.
+  this order of operations is not important,
+  but with other blend modes it becomes significant.
 For example,
-we reepat the previous snippet,
-but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
+  we reepat the previous snippet,
+  but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
 
 \begin{figure}[H]
   \centering
@@ -412,17 +407,16 @@ but pass a \texttt{Multiply} blend mode to the \texttt{saveLayer} command.
 
 \subsubsection{Masking}
 \label{subsubsec:masking}
-\label{subsubsec:balh}
 
 To further motivate the need for \texttt{saveLayers},
-consider masking again.
-In \Cref{subsec:blah} we saw how we can use
-\texttt{clipRect} to mask images.
+  consider masking again.
+In \Cref{subsec:clipping} we saw how we can use
+  \texttt{clipRect} to mask images.
 This works when we only need to mask by a rectangle.
 But masking with complicated shapes is hard with just clipping.
 Instead of trying to clip directly with a complicated shape,
-we can instead draw the clip shape in stages on a seperate layer
-and mask using that shape.
+  we can instead draw the clip shape in stages on a seperate layer
+  and mask using that shape.
 
 \begin{figure}[H]
   \centering
@@ -461,8 +455,8 @@ We now draw the mask shape on the new layer.
 
 \texttt{DstIn} emulates masking through blending;
 When we \texttt{DstIn} one pixel over another,
-an opaque top pixel keeps the bottom pixel,
-and a transparent top pixel removes it.
+  an opaque top pixel keeps the bottom pixel,
+  and a transparent top pixel removes it.
 
 \begin{figure}[H]
   \centering
@@ -481,17 +475,17 @@ and a transparent top pixel removes it.
 \end{figure}
 
 \texttt{DstIn} blending is also far more powerful than just clipping,
-because it also allows masking with gradients,
-allowing ust to create more complicated images
-that just clipping would not allow us to.
+  because it also allows masking with gradients,
+  allowing ust to create more complicated images
+  that just clipping would not allow us to.
 For example,
-here is the previous image,
-now masked with a radial gradient.
+  here is the previous image,
+  now masked with a radial gradient.
 
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{grad_mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.28]{drawing3.pdf}}\\[0.6em]
     \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
   \end{tabular}
   \quad
@@ -504,24 +498,21 @@ now masked with a radial gradient.
   \end{tabular}
 \end{figure}
 
-
-
-
 \subsection{Equivalences}
 \label{subsec:equivalences}
 
 In \Cref{subsubsec:balh} we saw how complex masks
-can be done with ease using a \texttt{saveLayer}
-with \texttt{DstIn} blending.
+  can be done with ease using a \texttt{saveLayer}
+  with \texttt{DstIn} blending.
 But what if just a rectangle mask is needed?
 Our \texttt{saveLayer} and \texttt{DstIn} program would still work.
 But,
-it is clearly less performant than just doing a clip;
+  it is clearly less performant than just doing a clip;
 We have to allocate a whole new layer,
-just to do something Skia alreayd has a fast path for!
+  just to do something Skia alreayd has a fast path for!
 Here,
-we have two different skia programs that produce the same image,
-but one us clearly a better choice than the other.
+  we have two different skia programs that produce the same image,
+  but one us clearly a better choice than the other.
 
 \begin{figure}[H]
   \centering
@@ -544,18 +535,18 @@ but one us clearly a better choice than the other.
 \end{figure}
 
 Therefore it should be possible to replace a skia program
-with a faster one,
-given they have indentical results.
+  with a faster one,
+  given they have indentical results.
 In \Cref{sec:semantics}
-we develop a semantics,
-which allows proving that two Skia programs have identical results,
-including verifying general-purpose rewrite rules.
+  we develop a semantics,
+  which allows proving that two Skia programs have identical results,
+  including verifying general-purpose rewrite rules.
 \Cref{sec:compiler} then uses these rewrites
-to build a general-purpose Skia optimizer
-that rewrites programs to reduce the use
-of multiple layers and of \texttt{DstIn} blending.
+  to build a general-purpose Skia optimizer
+  that rewrites programs to reduce the use
+  of multiple layers.
 \Cref{sec:eval} then shows that this compiler
-results in dramatically faster rendering
-on a wide range of real-world Skia programs.
+  results in dramatically faster rendering
+  on a wide range of real-world Skia programs.
 
 \end{document}
