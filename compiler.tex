@@ -8,89 +8,247 @@ In this section we will discuss the implementation of the rewrite rules
 Given that we have shown our rewrites over terms in \muskia,
   we would like to perform these rewrites within Skia on a similiar
   representation of commands.
-The canvas API within Skia does not perform drawing operations
-  when methods are called.
-The commands are instead stored in an in-memory buffer of commands
-  called \texttt{SkRecord}~\cite{skrecord} prior to any further drawing.
-We will perform our optimizations on this buffer.
-The \texttt{SkRecord} buffer is actually a dense array of commands.
-To perform our rewrites we need to be able to replace, clear, and insert
-  commands into the \texttt{SkRecord} buffer.
-Replacing commands in the buffer takes O(1) time.
-We implement clearing by simply replacing commands we want to clear with a
-  \texttt{NoOp} command,
-  so it also takes O(1) time.
-Insertion usually takes O(N) time in the worst case for an array.
-This would make it slow to perform multiple insertions into the array.
-Instead we perform our insertions via an InsertionSet~\cite{insertionset},
-  which amortizes the cost of many insertions,
-  effectively making insertion O(1).
+As we have discussed before in \Cref{sec:skia},
+  the method calls of a \texttt{SkCanvas} object
+  can be record in an in memory buffer of commands
+  called \texttt{SkRecord}.
+\texttt{SkRecord} is a dense collection
+  of \texttt{SkRecords} objects.%
+\footnote{Confusingly, the collection of the many \texttt{SkRecords} object is a
+uses the singular word \texttt{SkRecord}.}
+A \texttt{SkRecords} object,
+  for example \texttt{SkRecords::DrawRect},
+  has a tag to distinguish it from other
+  \texttt{SkRecords} objects
+  and also contains all the information that the specific
+  command needs:
+To continue our example,
+  a \texttt{SkRecords::DrawRect} object
+  will contain a reference to a \texttt{SkRect} object
+  which define the bounds of the rectangle being drawn
+  and a \texttt{SkPaint}.
+The buffer managed by \texttt{SkRecord}
+  is actually an array of pointers to \texttt{SkRecords} objects.
+The allocation of \texttt{SkRecords} object is taken care of by a
+  \texttt{SkArenaAlloc} arena allocator.
+ \Cref{fig:skrecord-layout} illustrates the memory layout.
+As the \texttt{SkRecord} buffer is the most straightforward way to access the
+  Skia API commands before any drawing occurs, all of are rewrites mutate this
+  buffer.
 
-\subsection{Rewrite Matching}
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    x=1cm,
+    y=1cm,
+    >={Latex[length=2mm]},
+    ptr/.style={draw, minimum width=0.8cm, minimum height=0.6cm, inner sep=0pt, font=\scriptsize, align=center},
+    rec/.style={draw, minimum width=2.9cm, minimum height=0.8cm, font=\scriptsize, align=center},
+    lbl/.style={font=\small\ttfamily}
+  ]
+    % Labels
+    \node[lbl, anchor=east] at (-0.3, 1.2) {fRecords:};
+    \node[lbl, anchor=east] at (-0.3, 0.0) {fAlloc:};
 
-Our rewrite matcher is implemented as a pushdown-automaton,
-  which mirrors our layer/clip stack based operational semantics
-  discussed in \fillin{foo}.
-Instead of maintained a stack of layers or clips,
-  the matcher maintains a stack of states.
-The current top state of the stack is the current state of the matcher.
-Along with a stack of state,
-  the matchers also maintain a stack of metadata.
-For example,
-  for the Dstin to Mask rewrite,
-  once we have matched the entire pattern,
-  we need to know where to insert the clip* command,
-  as well as the location of the dstin savelayer
-  so it can be cleared.
+    % Pointer array (fRecords)
+    \node[ptr] (p1) at (0.05, 1.2) {$*$};
+    \node[ptr, right=0cm of p1] (p2) {$*$};
+    \node[ptr, right=0cm of p2] (p3) {$*$};
+    \node[anchor=west, font=\small] at ($(p3.east)+(0.10,0)$) {$\cdots$};
 
-Considering that savelayers are the main commands we are tracking,
-  our state stack only changes when we see savelayers.
-We choose not to track saves as they would make the state stack far too long.
-Instead we track a savedepth,
-  and we use the savedepth to track wether a restore is for a savelayer or a
-  save.
-Because of ths decsision,
-  our state stack does not go a lot,
-  allowing us to keep all possible members of the state stack
-  on the program stack.
-Also, combining both the metadata and the state stack,
-  we never really need to backtrack our pattern amtching loop
-  to pefrom rewrites.
-We perform each rewrite seperately.
-We could certainly come up with a smarter rewriteing scheme,
-  by precalculating save/savelayer---restore pairs,
-  or preforming some sort of information sharing,
-  by combining rewrites that do not interact.
-In practice we did not need to perform any more optimizations,
-  as simply compiling the optimizer with compiler and link time optimizations
-  was enough to make the the optimizer fast enough
-  so that the rewrites pay for themeselves.
-We discuss this in more detail in the \fillin{eval}.
+    % Record allocation (fAlloc)
+    \node[rec] (r1) at (1.1, 0.0) {\texttt{SkRecords::DrawRect}};
+    \node[rec, right=0cm of r1] (r2) {\texttt{SkRecords::ClipRect}};
+    \node[rec, right=0cm of r2] (r3) {\texttt{SkRecords::DrawRect}};
+    \node[anchor=west, font=\small] at ($(r3.east)+(0.10,0)$) {$\cdots$};
 
-\subsection{Translation Validation}
+    % Higher elbow heights so the final vertical drop is visible
+    \coordinate (mid1) at (0,0.95);
+    \coordinate (mid2) at (0,0.85);
+    \coordinate (mid3) at (0,0.75);
 
-As our optimizer lies outside of our mechanized semantics,
-  we cannot straighforwardly claim that our optimizer
-  implements the rewrites proved in Lean within Skia.
-That is why we have implemented a small Translation Validation
-  engine using our Lean semantics.
-As it was tricky to prove the compositionality of our rules in Lean,
-  we instead decide to prove each optimization in isolation to the other.
-We do this by dumping the intermeddiate skia program after performing each
-  rewrite.
-We then have 5 programs,
-  each one rewritten with one rewrite rule.
-We then prove each transformation seperately in Lean.
-The proofs are mosty push button.
-We rely on Lean's powerful \texttt{grind} tactic to smartly apply the rewrites
-  we have already proven in rewrite form.
-To help \texttt{grind} solve these proofs,
-  we increase \texttt{grind}'s internal timeout mechanism.
-We make all definitions of our mechanized smenatics opaque,
-  except for the rewrite theorems itself.
-This way \texttt{grind} only applies the rewrite theorems,
-  and does not waste time expanding, for example,
-  our denotational semantics.
+    % Orthogonal arrows, tip slightly above the box border
+    \draw[->, shorten >=2pt]
+      (p1.south) -- (p1 |- mid1) -- (r1 |- mid1) -- (r1.north);
+    \draw[->, shorten >=2pt]
+      (p2.south) -- (p2 |- mid2) -- (r2 |- mid2) -- (r2.north);
+    \draw[->, shorten >=2pt]
+      (p3.south) -- (p3 |- mid3) -- (r3 |- mid3) -- (r3.north);
 
-\todo[inline]{hard to know what the actual eval claim is here}
- \end{document}
+  \end{tikzpicture}
+  \caption{\texttt{SkRecord} stores an array of pointers (\texttt{fRecords}) into a contiguous chunk of record objects (\texttt{fAlloc}).}
+  \label{fig:skrecord-layout}
+\end{figure}
+
+Skia provides facilities to serialize the \texttt{SkRecord} buffer
+  into a binary format called ``Skia Picture'' or \texttt{skp}.
+All information in a \texttt{SkRecord} format required for drawing,
+  even images drawn,
+  are serialized into a \texttt{skp}.%
+\footnote{The only exception to what gets serialized seems to be typefaces.}
+Given that \texttt{skp}s are an easy way to debug and inspect
+  how Chrome generates Skia programs for specific websites,
+  Chrome provides a way to dump \texttt{skp}s for websites:
+The \texttt{chrome.gpuBenchmarking.printToSkPicture} method
+  dumps \texttt{skps}s of a website to disk.
+We use this facility to collect benchmarks for our evaluation
+  discussed in more detail in \Cref{sec:eval}
+It is important to note here that Chrome can dump multiple \texttt{skp}s for one
+  website.
+Chrome has a compositing step prior to rendering with Skia,
+  wherein it groups different visuals elements of a website
+  into a layers.
+This is done to reduce the amount of time spent re-rendering
+  when something changes on the website;
+visual elements that are likely to change together
+  are grouped into the same layer.
+It is this layer which is converted into a Skia program
+  which the browser finally renders onto the screen.
+Our optimizer currently only optimizes single layers,
+  and does not perform any cross-layer optimizations.
+
+Our optimizer reads a \texttt{skp} file and optimizes it by rewriting it using
+  our suite of verified rewrite rules we have seen before.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    >=Latex,
+    font=\scriptsize,
+    lhs/.style={draw, rounded corners, fill=blue!6, minimum width=4.0cm,
+      minimum height=0.75cm, align=left, inner sep=4pt},
+    rhs/.style={draw, rounded corners, fill=green!6, minimum width=7.6cm,
+      minimum height=0.75cm, align=left, inner sep=4pt}
+  ]
+    \node[font=\small\bfseries, anchor=west] at (-0.2,3.25) {Command class};
+    \node[font=\small\bfseries, anchor=west] at (4.8,3.25) {Action on \texttt{state\_stack}/\texttt{index\_stack}};
+
+    \node[lhs, anchor=west] (c0) at (0,2.65) {\texttt{SaveLayer} with plain paint};
+    \node[rhs, anchor=west] (a0) at (4.8,2.65) {if stack non-empty: set top $\leftarrow I$;\\push $(M, i)$};
+
+    \node[lhs, anchor=west] (c1) at (0,1.80) {\texttt{SaveLayer} with non-plain paint};
+    \node[rhs, anchor=west] (a1) at (4.8,1.80) {if stack non-empty: set top $\leftarrow I$;\\push $(I, i)$};
+
+    \node[lhs, anchor=west] (c2) at (0,0.95) {\texttt{Save}};
+    \node[rhs, anchor=west] (a2) at (4.8,0.95) {push $(I, i)$};
+
+    \node[lhs, anchor=west] (c3) at (0,0.10) {\texttt{Draw} with non-plain paint};
+    \node[rhs, anchor=west] (a3) at (4.8,0.10) {if top is $M$: set top $\leftarrow I$};
+
+    \node[lhs, anchor=west] (c4) at (0,-0.75) {\texttt{Restore}};
+    \node[rhs, anchor=west] (a4) at (4.8,-0.75) {if stack empty: continue; else pop $(state,index)$.\\if $state=M$: \texttt{replace<Save>(index)} and increment \texttt{match\_count}};
+
+    \draw[->] (c0.east) -- (a0.west);
+    \draw[->] (c1.east) -- (a1.west);
+    \draw[->] (c2.east) -- (a2.west);
+    \draw[->] (c3.east) -- (a3.west);
+    \draw[->] (c4.east) -- (a4.west);
+  \end{tikzpicture}
+  \caption{Implementation-shaped view of \texttt{RemoveOpaqueSaveLayers}.
+  The matcher is easiest to read as command dispatch plus stack effects,
+  rather than as a classic PDA state graph.}
+  \label{fig:opaque-savelayer-matcher}
+\end{figure}
+
+
+
+\subsubsection{Mutating \texttt{SkRecord}}
+
+To perform rewrites over a \texttt{SkRecord} buffer,
+  we need to be able to change, remove, and add commands
+  into the buffer.
+Changing commands is easy.
+We only need to allocate a new \texttt{SkRecords} object
+  in the arena allocator,
+  and change the pointer to point to this new object.
+Removal is just like changing commands,
+  because we just change the command we want to remove
+  into a special \texttt{SkRecords::NoOp} object.
+Insertion is tricky into a dense array.
+Compiler IRs usually are represented as doubly linked lists
+  to allow easy constant-time insertion given a location.
+As \texttt{SkRecord} is a dense array,
+  insertion instead takes linear time,
+  because we have to first grow the array to accomadate the new element
+  and then shift all elements after the insertion location
+  to make space for the new element.
+We can do better by amortizing the cost of many insertions.
+We do this by storing all the insertions that are to be done.
+Then when we have determined all the insertions to be done,
+  we allocate space needed for all insertions,
+  and in one linear scan shift all the ncessary elements
+  and perform all insertions.
+This technique has been given the name ``InsertionSet''
+  and is employed in the B3 JIT -- which also uses a dense array as its IR
+  memory representation -- powering the WebKit browser engine.
+We have implemented ``InsertionSet'' in \texttt{SkRecord}
+  to facilitate easy insertion.
+
+% \subsection{Rewrite Matching}
+
+% Our rewrite matcher is implemented as a pushdown-automaton,
+%   which mirrors our layer/clip stack based operational semantics
+%   discussed in \fillin{foo}.
+% Instead of maintained a stack of layers or clips,
+%   the matcher maintains a stack of states.
+% The current top state of the stack is the current state of the matcher.
+% Along with a stack of state,
+%   the matchers also maintain a stack of metadata.
+% For example,
+%   for the Dstin to Mask rewrite,
+%   once we have matched the entire pattern,
+%   we need to know where to insert the clip* command,
+%   as well as the location of the dstin savelayer
+%   so it can be cleared.
+
+% Considering that savelayers are the main commands we are tracking,
+%   our state stack only changes when we see savelayers.
+% We choose not to track saves as they would make the state stack far too long.
+% Instead we track a savedepth,
+%   and we use the savedepth to track wether a restore is for a savelayer or a
+%   save.
+% Because of ths decsision,
+%   our state stack does not go a lot,
+%   allowing us to keep all possible members of the state stack
+%   on the program stack.
+% Also, combining both the metadata and the state stack,
+%   we never really need to backtrack our pattern amtching loop
+%   to pefrom rewrites.
+% We perform each rewrite seperately.
+% We could certainly come up with a smarter rewriteing scheme,
+%   by precalculating save/savelayer---restore pairs,
+%   or preforming some sort of information sharing,
+%   by combining rewrites that do not interact.
+% In practice we did not need to perform any more optimizations,
+%   as simply compiling the optimizer with compiler and link time optimizations
+%   was enough to make the the optimizer fast enough
+%   so that the rewrites pay for themeselves.
+% We discuss this in more detail in the \fillin{eval}.
+
+% \subsection{Translation Validation}
+
+% As our optimizer lies outside of our mechanized semantics,
+%   we cannot straighforwardly claim that our optimizer
+%   implements the rewrites proved in Lean within Skia.
+% That is why we have implemented a small Translation Validation
+%   engine using our Lean semantics.
+% As it was tricky to prove the compositionality of our rules in Lean,
+%   we instead decide to prove each optimization in isolation to the other.
+% We do this by dumping the intermeddiate skia program after performing each
+%   rewrite.
+% We then have 5 programs,
+%   each one rewritten with one rewrite rule.
+% We then prove each transformation seperately in Lean.
+% The proofs are mosty push button.
+% We rely on Lean's powerful \texttt{grind} tactic to smartly apply the rewrites
+%   we have already proven in rewrite form.
+% To help \texttt{grind} solve these proofs,
+%   we increase \texttt{grind}'s internal timeout mechanism.
+% We make all definitions of our mechanized smenatics opaque,
+%   except for the rewrite theorems itself.
+% This way \texttt{grind} only applies the rewrite theorems,
+%   and does not waste time expanding, for example,
+%   our denotational semantics.
+
+% \todo[inline]{hard to know what the actual eval claim is here}
+\end{document}
