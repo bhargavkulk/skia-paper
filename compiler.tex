@@ -127,39 +127,6 @@ As \texttt{skp}s can be easily read into and from a \texttt{SkRecord} buffer,
   our optimizer takes as input the \texttt{skp} to be optimized,
   and returns an optimized one.
 
-\begin{figure}[t]
-  \centering
-  \begin{tikzpicture}[
-    x=1cm,
-    y=1cm,
-    >=Latex,
-    box/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=blue!5},
-    ibox/.style={draw, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=orange!8},
-    mbox/.style={draw, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center, font=\scriptsize, fill=green!8},
-    note/.style={font=\scriptsize, align=left}
-  ]
-    \node[box] (scan) at (0,0) {Linear scan\\\texttt{for i in [0, count)}};
-    \node[box] (dispatch) at (4.0,0) {Typed dispatch\\\texttt{Is<SaveLayer>/Is<Draw>/...}};
-    \node[ibox] (state) at (8.1,0) {Per-rule matcher state\\\texttt{state\_stack + saveCount + indices}};
-    \node[mbox] (mutate) at (12.3,0) {Mutation\\\texttt{replace<NoOp>/replace<Save>/insert<...>}};
-
-    \draw[->] (scan) -- (dispatch);
-    \draw[->] (dispatch) -- (state);
-    \draw[->] (state) -- (mutate);
-
-    \node[note, anchor=north west] at (-1.6,-1.2) {
-      Invariant: each stack entry records candidate-match context at one nesting level.\\
-      \texttt{saveCount} separates normal \texttt{Save}/\texttt{Restore} balancing from\\
-      \texttt{SaveLayer} pattern depth, so unrelated nesting does not cause false matches.
-    };
-
-    \draw[->, dashed] (state.south) .. controls +(0,-1.0) and +(0,-1.0) .. (dispatch.south);
-    \node[note, anchor=north] at (6.0,-2.2) {Continue scanning with updated top-of-stack state};
-  \end{tikzpicture}
-  \caption{Implementation-level shape of rewrite matching in \texttt{easteregg.cpp}: command dispatch drives a stack matcher, which emits local mutations once a candidate closes at \texttt{Restore}.}
-  \label{fig:rewrite-matching-architecture}
-\end{figure}
-
 \subsubsection{Mutating \texttt{SkRecord}}
 
 To perform rewrites over a \texttt{SkRecord} buffer,
@@ -189,108 +156,109 @@ Then when we have determined all the insertions to be done,
 This technique has been given the name ``InsertionSet''
   and is employed in the B3 JIT -- which also uses a dense array as its IR
   memory representation -- powering the WebKit browser engine.
-We have implemented ``InsertionSet'' in \texttt{SkRecord}
+We have implemented an InsertionSet in \texttt{SkRecord}
   to facilitate easy insertion of \texttt{SkRecords} objects.
-
-
-
-
 
 \subsection{Rewrite Matching}
 
-The rewrite we have discussed before in \fillin{foo} are implemented as
+The rewrite we have discussed before in \foo are implemented as
   single-pass matchers over the \texttt{SkRecord} command buffer.
 Each matcher iterates through the command buffer,
   maintaining the current state of the matcher on a stack.
-  In \fillin{foo} we show the interface of the rewrite matcher.
+  In \foo we show the interface of one of the rewrite matchers we use.
 
-  \begin{figure}
-    \small
-    \begin{tabular}{T}
-      struct RemoveOpaqueSaveLayers \{ \\
-      \quad void transform(SkRecord* records); \\
-      \\
-      private: \\
-      \quad enum MatchState \{ Matching, Ignore \}; \\
-      \quad skia\_private::STArray<8, MatchState> state\_stack; \\
-      \quad skia\_private::STArray<8, int> index\_stack; \\
-      \\
-      \quad SkRecords::Is<SkRecords::SaveLayer> isSaveLayer; \\
-      \quad SkRecords::Is<SkRecords::Save> isSave; \\
-      \quad SkRecords::Is<SkRecords::Restore> isRestore; \\
-      \quad SkRecords::IsSingleDraw isDraw; \\
-      \};
+  \begin{figure}[h]
+    \footnotesize
+    \begin{tabular}{cc}
+      \begin{tabular}{T}
+        struct RemoveOpaqueSaveLayers \{ \\
+        \quad void transform(SkRecord* records); \\
+        \\
+        private: \\
+        \quad struct MatchState \{ \\
+        \quad\quad enum class \{ Matching, Ignore \} state; \\
+        \quad\quad int index; \\
+        \quad\quad int saveCount; \\
+        \quad \}; \\
+        \quad skia\_private::STArray<8, MatchState> state\_stack; \\
+        \quad skia\_private::STArray<8, int> index\_stack; \\
+        \\
+        \quad SkRecords::Is<SkRecords::SaveLayer> isSaveLayer; \\
+        \quad SkRecords::Is<SkRecords::Save> isSave; \\
+        \quad SkRecords::Is<SkRecords::Restore> isRestore; \\
+        \quad SkRecords::IsSingleDraw isDraw; \\
+        \};
+      \end{tabular}
+      &
+       \begin{tabular}{T}
+         void transform(SkRecord* records) \{ \\
+         \quad for (int i = 0; i < records->count(); i++) \{ \\
+         \quad\quad if (records->mutate(i, isSaveLayer)) \{ \\
+         \quad\quad\quad // ... \\
+         \quad\quad \} else if (records->mutate(i, isSave)) \{ \\
+         \quad\quad\quad // ... \\
+         \quad\quad \} else if (records->mutate(i, isDraw)) \{ \\
+         \quad\quad\quad // ... \\
+         \quad\quad \} else if (records->mutate(i, isRestore)) \{ \\
+         \quad\quad\quad // ... \\
+         \quad\quad \} \\
+         \quad \} \\
+         \}
+       \end{tabular}
     \end{tabular}
     \caption{}
     \label{fig:}
   \end{figure}
 
+The core of the matching logic is int he \texttt{transform} function that
+  mutates a \texttt{SkRecord} buffer.
+The structure of the transform --
+  an example transform function is listed in \foo{} --
+  is quite simple.
+It loops through each element of \texttt{SkRecord} in sucession
+  and matches on what it is using the \texttt{Is<...>} functor.
+At each case,
+  what the matcher does depends on the rewrite rule being implemented.
+For example,
+  in the transform function for the opaque save layer rewrite discussed in \foo,
+  its \texttt{Is<SkRecords::SaveLayer>} case would push a \texttt{Matching}
+  state onto the stack if the paint of the current savelayer is ever opaque
+  srcover else it pushes an \texttt{Ignore}.
+The current state of the matcher is maintained by \texttt{state\_stack}.
+\texttt{state\_stack} mirrors the layer stack seen in the operational semantics
+  in \foo;
+\texttt{SaveLayer}s will push matching states onto it, and \texttt{Restore}s
+  will pop of it.
+As all of our rewrites remove savelayers,
+  the actual rewriting occurs when a \texttt{Restore} is seen.
+As we only ever do a linear scan of the \texttt{SkRecord} buffer and operations
+  to modify the buffer also only ever take linear time, all our transform
+  functions run in linear time.
+Space-wise one would think the matchers would be linear
+  but we have optimized space usage by exploting some quirks in the code
+  generated by Chrome.
+While Chrome is liberal with its use of \texttt{Save},
+  it does try ot ensure it does not nest too many \texttt{SaveLayer}s.
+Emprically, we've never seen Chrome nest more than 4 \texttt{SaveLayer}s.
+Which means, if we only track the state of \texttt{SaveLayer}s in the
+  \texttt{state\_stack}, we should be able to keep all the state information on the stack
+  instead of the heap.
+Which is why we use Skia's \texttt{STArray<i, T>} vector type,
+  which keeps the first \texttt{i} elements of the array on the stack instead
+  adn the rest on the heap (ideally we never have to allocate stack states on
+  the heap).
+We deal with \texttt{save} by just maintaining a count of the number of
+  \texttt{save}s seen till now,
+  which we also save in the \texttt{state\_stack}.
+Then depending the current save count,
+  and the save count on the stack,
+  we'd know if the \texttt{restore} matches a \texttt{save} or a
+  \texttt{savelayer}.
+Which means out matcher also does not grow much in space.
+The exct stacks, the behaviour of the transform function, and the metadata saved
+  in the \texttt{state\_stack} depends on rewrite we are matching.
+Beyond these optimizations, we noticed that it was enough just compiling the
+  state machine using \texttt{clang} optimization level 3.
+We discuss the speed of the optimizer in more detail in \foo.
 
-% \subsection{Rewrite Matching}
-
-% Our rewrite matcher is implemented as a pushdown-automaton,
-%   which mirrors our layer/clip stack based operational semantics
-%   discussed in \fillin{foo}.
-% Instead of maintained a stack of layers or clips,
-%   the matcher maintains a stack of states.
-% The current top state of the stack is the current state of the matcher.
-% Along with a stack of state,
-%   the matchers also maintain a stack of metadata.
-% For example,
-%   for the Dstin to Mask rewrite,
-%   once we have matched the entire pattern,
-%   we need to know where to insert the clip* command,
-%   as well as the location of the dstin savelayer
-%   so it can be cleared.
-
-% Considering that savelayers are the main commands we are tracking,
-%   our state stack only changes when we see savelayers.
-% We choose not to track saves as they would make the state stack far too long.
-% Instead we track a savedepth,
-%   and we use the savedepth to track wether a restore is for a savelayer or a
-%   save.
-% Because of ths decsision,
-%   our state stack does not go a lot,
-%   allowing us to keep all possible members of the state stack
-%   on the program stack.
-% Also, combining both the metadata and the state stack,
-%   we never really need to backtrack our pattern amtching loop
-%   to pefrom rewrites.
-% We perform each rewrite seperately.
-% We could certainly come up with a smarter rewriteing scheme,
-%   by precalculating save/savelayer---restore pairs,
-%   or preforming some sort of information sharing,
-%   by combining rewrites that do not interact.
-% In practice we did not need to perform any more optimizations,
-%   as simply compiling the optimizer with compiler and link time optimizations
-%   was enough to make the the optimizer fast enough
-%   so that the rewrites pay for themeselves.
-% We discuss this in more detail in the \fillin{eval}.
-
-% \subsection{Translation Validation}
-
-% As our optimizer lies outside of our mechanized semantics,
-%   we cannot straighforwardly claim that our optimizer
-%   implements the rewrites proved in Lean within Skia.
-% That is why we have implemented a small Translation Validation
-%   engine using our Lean semantics.
-% As it was tricky to prove the compositionality of our rules in Lean,
-%   we instead decide to prove each optimization in isolation to the other.
-% We do this by dumping the intermeddiate skia program after performing each
-%   rewrite.
-% We then have 5 programs,
-%   each one rewritten with one rewrite rule.
-% We then prove each transformation seperately in Lean.
-% The proofs are mosty push button.
-% We rely on Lean's powerful \texttt{grind} tactic to smartly apply the rewrites
-%   we have already proven in rewrite form.
-% To help \texttt{grind} solve these proofs,
-%   we increase \texttt{grind}'s internal timeout mechanism.
-% We make all definitions of our mechanized smenatics opaque,
-%   except for the rewrite theorems itself.
-% This way \texttt{grind} only applies the rewrite theorems,
-%   and does not waste time expanding, for example,
-%   our denotational semantics.
-
-% \todo[inline]{hard to know what the actual eval claim is here}
 \end{document}
