@@ -35,8 +35,25 @@ The allocation of \texttt{SkRecords} object is taken care of by a
 As the \texttt{SkRecord} buffer is the most straightforward way to access the
   Skia API commands before any drawing occurs, all of are rewrites mutate this
   buffer.
+\texttt{SkRecord} provides two methods to access the underlying
+  \texttt{SkRecords} buffer, \texttt{visit} and \texttt{mutate}.
+Both methods also need a functor%
+\footnote{Functor here refers to a C++ class that has the function call operator
+  overloaded, not the typeclass implementing an algebraic structure in niche
+  languages like Haskell.
+}
+Thes ematchign functors allow us to not only match but do other operations using
+  the record before returning the reference.
+For the purpose of rewrite matching,
+  we only use the \texttt{SkRecords::Is<...>} functor.
+\texttt{Is} is templated over \texttt{SkRecords} and all it does is if the
+  \texttt{SkRecords} that \texttt{Is} is templated over matches the tag of the
+  \texttt{SkRecords} at the index we are visiting, we save a reference to the
+  object in the functor.
+In short, \texttt{Is<A>} lets us know if the \texttt{SkRecords} object at a
+  certain index is \texttt{A}.
 
-\begin{figure}[t]
+\begin{figure}[h]
   \centering
   \begin{tikzpicture}[
     x=1cm,
@@ -106,9 +123,9 @@ It is this layer which is converted into a Skia program
   which the browser finally renders onto the screen.
 Our optimizer currently only optimizes single layers,
   and does not perform any cross-layer optimizations.
-
-Our optimizer reads a \texttt{skp} file and optimizes it by rewriting it using
-  our suite of verified rewrite rules we have seen before.
+As \texttt{skp}s can be easily read into and from a \texttt{SkRecord} buffer,
+  our optimizer takes as input the \texttt{skp} to be optimized,
+  and returns an optimized one.
 
 \begin{figure}[t]
   \centering
@@ -175,13 +192,38 @@ This technique has been given the name ``InsertionSet''
 We have implemented ``InsertionSet'' in \texttt{SkRecord}
   to facilitate easy insertion of \texttt{SkRecords} objects.
 
+
+
+
+
 \subsection{Rewrite Matching}
 
 The rewrite we have discussed before in \fillin{foo} are implemented as
   single-pass matchers over the \texttt{SkRecord} command buffer.
 Each matcher iterates through the command buffer,
   maintaining the current state of the matcher on a stack.
+  In \fillin{foo} we show the interface of the rewrite matcher.
 
+  \begin{figure}
+    \small
+    \begin{tabular}{T}
+      struct RemoveOpaqueSaveLayers \{ \\
+      \quad void transform(SkRecord* records); \\
+      \\
+      private: \\
+      \quad enum MatchState \{ Matching, Ignore \}; \\
+      \quad skia\_private::STArray<8, MatchState> state\_stack; \\
+      \quad skia\_private::STArray<8, int> index\_stack; \\
+      \\
+      \quad SkRecords::Is<SkRecords::SaveLayer> isSaveLayer; \\
+      \quad SkRecords::Is<SkRecords::Save> isSave; \\
+      \quad SkRecords::Is<SkRecords::Restore> isRestore; \\
+      \quad SkRecords::IsSingleDraw isDraw; \\
+      \};
+    \end{tabular}
+    \caption{}
+    \label{fig:}
+  \end{figure}
 
 
 % \subsection{Rewrite Matching}

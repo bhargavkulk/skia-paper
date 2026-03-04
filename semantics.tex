@@ -796,7 +796,7 @@ If we recall how dstin blending works,
   dstin blending in a opaque pixel masks in,
   while a transparent pixel masks out.
 Now if the pixel we are blending on is Transprent
-  -- which \denote{Empty} is --
+  -- which $\denote{Empty}$ is --
   the result remains transparent.
 The other side of the equality also reduces to Transparent
   by definition of clipAll.
@@ -864,7 +864,7 @@ By the definition of clipAll we get
 
 \begin{align*}
 \denote{Draw(l', g', p, c')} \\
-  = \denote{Draw(clipAll(l', mask), g', p, c' $/cap$ mask)}
+  = \denote{Draw(clipAll(l', mask), g', p, c' $\cap$ mask)}
 \end{align*}
 
 Using the inductive hypothesis and the compositionality of our denotations:
