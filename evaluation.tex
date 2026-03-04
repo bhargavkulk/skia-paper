@@ -2,4 +2,28 @@
 \begin{document}
 \section{Evaluation}
 \label{sec:eval}
+
+\begin{enumerate}
+\item[RQ1] Are the optimizations correct? % TV, and pixel diffs (antialisaing)
+\item[RQ2] Does the optimizater pay for itself? % time taken to optimize
+\item[RQ3] Does the otpimnizer improve the render time of real world Skia
+  programs? % render time CDF Metal
+\item[RQ4] Are the optimizations generic across websites, GPUs, and backends. % more CDF
+\end{enumerate}
+
+\subsection{Methodology}
+
+Names of wbesites, chrome (playwright),
+% '--no-sandbox', '--enable-gpu-benchmarking'
+, chrome command
+
+descrobe compiler, based on Skia version, compiler with clang version,
+machine(s) details
+
+benchmarking, nanobench(backends), descrive nanobench, sawy we do the same sort
+of benchamrking for optimization time
+
+TV has a compiler from skp to lean terms
+
+pixel diff uses imagemagick(flags, tolerance magice number)
 \end{document}
