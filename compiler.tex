@@ -137,39 +137,27 @@ The optimizer operates on layers individually,
   and neither performs cross-layer optimizations
   nor influences how Chrome splits a page into layers.
 
-\subsubsection{Mutating \texttt{SkRecord}}
+\subsection{Rewriting}
 
-To perform rewrites over a \texttt{SkRecord} buffer,
-  we need to be able to change, remove, and add commands
-  into the buffer.
-Changing commands is easy.
-We only need to allocate a new \texttt{SkRecords} object
-  in the arena allocator,
-  and change the pointer to point to this new object.
-Removal is just like changing commands,
-  because we just change the command we want to remove
-  into a special \texttt{SkRecords::NoOp} object.
-Insertion is tricky into a dense array.
-Compiler IRs usually are represented as doubly linked lists
-  to allow easy constant-time insertion given a location.
-As \texttt{SkRecord} is a dense array,
-  insertion instead takes linear time,
-  because we have to first grow the array to accomadate the new element
-  and then shift all elements after the insertion location
-  to make space for the new element.
-We can do better by amortizing the cost of many insertions.
-We do this by storing all the insertions that are to be done.
-Then when we have determined all the insertions to be done,
-  we allocate space needed for all insertions,
-  and in one linear scan shift all the ncessary elements
-  and perform all insertions.
-This technique has been given the name ``InsertionSet''
-  and is employed in the B3 JIT -- which also uses a dense array as its IR
-  memory representation -- powering the WebKit browser engine.
-We have implemented an InsertionSet in \texttt{SkRecord}
-  to facilitate easy insertion of \texttt{SkRecords} objects.
-
-\subsection{Rewrite Matching}
+Applying the rewrite rules in \Cref{sec:rules}
+  requires change, remove, or add commands in the command buffer.
+Changing commands is easy:
+  the optimizer allocates a new \texttt{SkRecords} object in the arena
+  and changes the buffer to point to this new object.
+Removal likewise change the command to remove
+  into a special \texttt{SkRecords::NoOp} command.
+Insertion, however, is tricky, because the input command buffer is dense.
+Inserted commands are allocated into the arena as normal.
+However, to minimize run time,
+  the actual insertion into the buffer is delayed.
+Instead, all insertions are first made into a separate insertion buffer.
+Then, after the compilation pass is complete,
+  a new buffer of the right size is allocated
+  and a single linear scan is performed
+  to merge the original buffer and the insertion buffer.
+We learned of this technique from the WebKit browser engine's B3 JIT,
+  where it is called an ``InsertionSet''~\cite{insertionset},
+  though we believe this technique is well-known.
 
 The rewrite we have discussed before in \foo are implemented as
   single-pass matchers over the \texttt{SkRecord} command buffer.
