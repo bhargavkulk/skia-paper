@@ -159,56 +159,61 @@ We learned of this technique from the WebKit browser engine's B3 JIT,
   where it is called an ``InsertionSet''~\cite{insertionset},
   though we believe this technique is well-known.
 
-The rewrite we have discussed before in \foo are implemented as
-  single-pass matchers over the \texttt{SkRecord} command buffer.
-Each matcher iterates through the command buffer,
-  maintaining the current state of the matcher on a stack.
-  In \foo we show the interface of one of the rewrite matchers we use.
-
-  \begin{figure}[h]
-    \footnotesize
-    \begin{tabular}{cc}
-      \begin{tabular}{T}
-        struct RemoveOpaqueSaveLayers \{ \\
-        \quad void transform(SkRecord* records); \\
-        \\
-        private: \\
-        \quad struct MatchState \{ \\
-        \quad\quad enum class \{ Matching, Ignore \} state; \\
-        \quad\quad int index; \\
-        \quad\quad int saveCount; \\
-        \quad \}; \\
-        \quad skia\_private::STArray<8, MatchState> state\_stack; \\
-        \quad skia\_private::STArray<8, int> index\_stack; \\
-        \\
-        \quad SkRecords::Is<SkRecords::SaveLayer> isSaveLayer; \\
-        \quad SkRecords::Is<SkRecords::Save> isSave; \\
-        \quad SkRecords::Is<SkRecords::Restore> isRestore; \\
-        \quad SkRecords::IsSingleDraw isDraw; \\
-        \};
-      \end{tabular}
-      &
-       \begin{tabular}{T}
-         void transform(SkRecord* records) \{ \\
-         \quad for (int i = 0; i < records->count(); i++) \{ \\
-         \quad\quad if (records->mutate(i, isSaveLayer)) \{ \\
-         \quad\quad\quad // ... \\
-         \quad\quad \} else if (records->mutate(i, isSave)) \{ \\
-         \quad\quad\quad // ... \\
-         \quad\quad \} else if (records->mutate(i, isDraw)) \{ \\
-         \quad\quad\quad // ... \\
-         \quad\quad \} else if (records->mutate(i, isRestore)) \{ \\
-         \quad\quad\quad // ... \\
-         \quad\quad \} \\
-         \quad \} \\
-         \}
-       \end{tabular}
+\begin{figure}[h]
+  \footnotesize
+  \begin{tabular}{cc}
+    \begin{tabular}{T}
+      struct RemoveOpaqueSaveLayers \{ \\
+      \quad void transform(SkRecord* records); \\
+      \\
+      private: \\
+      \quad struct MatchState \{ \\
+      \quad\quad enum class \{ Matching, Ignore \} state; \\
+      \quad\quad int index; \\
+      \quad\quad int saveCount; \\
+      \quad \}; \\
+      \quad skia\_private::STArray<8, MatchState> state\_stack; \\
+      \quad skia\_private::STArray<8, int> index\_stack; \\
+      \\
+      \quad SkRecords::Is<SkRecords::SaveLayer> isSaveLayer; \\
+      \quad SkRecords::Is<SkRecords::Save> isSave; \\
+      \quad SkRecords::Is<SkRecords::Restore> isRestore; \\
+      \quad SkRecords::IsSingleDraw isDraw; \\
+      \};
     \end{tabular}
-    \caption{}
-    \label{fig:}
-  \end{figure}
+    &
+     \begin{tabular}{T}
+       void transform(SkRecord* records) \{ \\
+       \quad for (int i = 0; i < records->count(); i++) \{ \\
+       \quad\quad if (records->mutate(i, isSaveLayer)) \{ \\
+       \quad\quad\quad // ... \\
+       \quad\quad \} else if (records->mutate(i, isSave)) \{ \\
+       \quad\quad\quad // ... \\
+       \quad\quad \} else if (records->mutate(i, isDraw)) \{ \\
+       \quad\quad\quad // ... \\
+       \quad\quad \} else if (records->mutate(i, isRestore)) \{ \\
+       \quad\quad\quad // ... \\
+       \quad\quad \} \\
+       \quad \} \\
+       \}
+     \end{tabular}
+  \end{tabular}
+  \caption{}
+  \label{fig:statemachine}
+\end{figure}
 
-The core of the matching logic is int he \texttt{transform} function that
+The remaining complexity of the optimizer consists of
+  efficiently finding the relevant patterns in the command buffer.
+To maximize performance, it is important that each compilation pass
+  performs a single pass over the command buffer.
+Each pattern is thus matched via a state machine
+  stored on a small stack; the stack of state machine states
+  is stack-allocated for typical \texttt{skp}s
+  thanks to a Skia's \todo{SkShortVector} container.
+
+\Cref{fig:statemachine} shows an outline of one such state machine
+  for the \srcover \SaveLayer rewrite in \Cref{sec:rules}.
+The core of the matching logic is in the \texttt{transform} function that
   mutates a \texttt{SkRecord} buffer.
 The structure of the transform --
   an example transform function is listed in \foo{} --
