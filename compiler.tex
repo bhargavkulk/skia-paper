@@ -3,55 +3,62 @@
 \section{Compiler}
 \label{sec:compiler}
 
-In this section we will discuss the implementation of the rewrite rules
-  we have proven in the previous section within Skia.
-Given that we have shown our rewrites over terms in \muskia,
-  we would like to perform these rewrites within Skia on a similiar
-  representation of commands.
-As we have discussed before in \Cref{sec:skia},
-  the method calls of a \texttt{SkCanvas} object
-  can be record in an in memory buffer of commands
-  called \texttt{SkRecord}.
+To show that the \muskia semantics
+  are useful for developing impactful Skia tooling,
+  this section discusses the implementation
+  of a Skia optimizer using the rewrite rules
+  discussed in \Cref{ssec:rules}.
+Besides correctly implementing the relevant rules,
+  the optimizer must also be highly-efficient
+  because Skia rasterization must meet a refresh rate target
+  and thus has a budget of hundreds to thousands of microseconds,
+  of which the optimizer must be a smaller share.
+For this reason, the optimizer sometimes implements
+  a somewhat-restricted version of the rewrites
+  to ensure that it runs a single pass over the Skia command buffer.
+
+\subsection{Memory Management}
+
+When a Skia client calls a methods on the \texttt{SkCanvas} object,
+  Skia records this command in an in-memory buffer
+  called an \texttt{SkRecord}.
 \texttt{SkRecord} is a dense collection
   of \texttt{SkRecords} objects.%
-\footnote{Confusingly, the collection of the many \texttt{SkRecords} object is a
-uses the singular word \texttt{SkRecord}.}
-A \texttt{SkRecords} object,
+\footnote{
+Confusingly,
+  the collection of the many \texttt{SkRecords} objects
+  uses the singular word \texttt{SkRecord}.
+}
+Each \texttt{SkRecords} object,
   for example \texttt{SkRecords::DrawRect},
-  has a tag to distinguish it from other
-  \texttt{SkRecords} objects
-  and also contains all the information that the specific
-  command needs:
-To continue our example,
-  a \texttt{SkRecords::DrawRect} object
+  is distinguished by a tag
+  and then has additional fields for
+  all the arguments to that specific command.
+\texttt{SkRecords::DrawRect}, for example,
   will contain a reference to a \texttt{SkRect} object
-  which define the bounds of the rectangle being drawn
-  and a \texttt{SkPaint}.
-The buffer managed by \texttt{SkRecord}
-  is actually an array of pointers to \texttt{SkRecords} objects.
-The allocation of \texttt{SkRecords} object is taken care of by a
+  which defines the bounds of the rectangle being drawn
+  and an \texttt{SkPaint}.
+The \texttt{SkRecord} manages a buffer, which is
+  an array of pointers to \texttt{SkRecords} objects,
+  each of which is allocated in an
   \texttt{SkArenaAlloc} arena allocator.
  \Cref{fig:skrecord-layout} illustrates the memory layout.
-As the \texttt{SkRecord} buffer is the most straightforward way to access the
-  Skia API commands before any drawing occurs, all of are rewrites mutate this
-  buffer.
+Importantly, this design means that
+  the compiler can mutate the \texttt{SkRecord} buffer
+  without moving the actual \texttt{SkRecords} objects.
+
 \texttt{SkRecord} provides two methods to access the underlying
   \texttt{SkRecords} buffer, \texttt{visit} and \texttt{mutate}.
 Both methods also need a functor%
-\footnote{Functor here refers to a C++ class that has the function call operator
-  overloaded, not the typeclass implementing an algebraic structure in niche
-  languages like Haskell.
+\footnote{
+Functor here refers to a C++ concept---%
+  a class that has the function call operator overloaded---%
+  not the unrelated concept in category theory.
 }
-Thes ematchign functors allow us to not only match but do other operations using
-  the record before returning the reference.
-For the purpose of rewrite matching,
-  we only use the \texttt{SkRecords::Is<...>} functor.
-\texttt{Is} is templated over \texttt{SkRecords} and all it does is if the
-  \texttt{SkRecords} that \texttt{Is} is templated over matches the tag of the
-  \texttt{SkRecords} at the index we are visiting, we save a reference to the
-  object in the functor.
-In short, \texttt{Is<A>} lets us know if the \texttt{SkRecords} object at a
-  certain index is \texttt{A}.
+In general, these functors allow matching and also mutation,
+  but we only use the \texttt{SkRecords::Is<...>} functor,
+  which performs tag-checking and compiles to an efficient comparison
+  while staying type-safe.
 
 \begin{figure}[h]
   \centering
@@ -97,35 +104,38 @@ In short, \texttt{Is<A>} lets us know if the \texttt{SkRecords} object at a
   \label{fig:skrecord-layout}
 \end{figure}
 
-Skia provides facilities to serialize the \texttt{SkRecord} buffer
-  into a binary format called ``Skia Picture'' or \texttt{skp}.
+Skia can serialize \texttt{SkRecord} objects
+  to and from a binary format called a ``Skia Picture'' or \texttt{skp}.
 All information in a \texttt{SkRecord} format required for drawing,
-  even images drawn,
-  are serialized into a \texttt{skp}.%
-\footnote{The only exception to what gets serialized seems to be typefaces.}
-Given that \texttt{skp}s are an easy way to debug and inspect
-  how Chrome generates Skia programs for specific websites,
-  Chrome provides a way to dump \texttt{skp}s for websites:
-The \texttt{chrome.gpuBenchmarking.printToSkPicture} method
-  dumps \texttt{skps}s of a website to disk.
-We use this facility to collect benchmarks for our evaluation
-  discussed in more detail in \Cref{sec:eval}
-It is important to note here that Chrome can dump multiple \texttt{skp}s for one
-  website.
-Chrome has a compositing step prior to rendering with Skia,
-  wherein it groups different visuals elements of a website
-  into a layers.
-This is done to reduce the amount of time spent re-rendering
-  when something changes on the website;
-visual elements that are likely to change together
-  are grouped into the same layer.
-It is this layer which is converted into a Skia program
-  which the browser finally renders onto the screen.
-Our optimizer currently only optimizes single layers,
-  and does not perform any cross-layer optimizations.
-As \texttt{skp}s can be easily read into and from a \texttt{SkRecord} buffer,
-  our optimizer takes as input the \texttt{skp} to be optimized,
-  and returns an optimized one.
+  including images, are serialized into a \texttt{skp}.%
+\footnote{
+An exception seems to be that typefaces do not gets serialized.
+}
+This allows us to evaluate our optimizer
+  without interference from the complex Google Chrome runtime;
+  specifically, our evaluation
+  reads an \texttt{skp} from disk, optimizes it,
+  and writes the optimized \texttt{skp} to a new file.
+Note that though the input and optimized output are stored in different files,
+  during optimization the optimizer mutates a single \texttt{SkRecord}
+  without making any copies.
+
+Importantly, Google Chrome can
+  dump its generated Skia programs to disk as \texttt{skp}s
+  with the \texttt{chrome.gpuBenchmarking.printToSkPicture} debug method,
+  available when Chrome is run with \texttt{--no-sandbox} and
+  \texttt{--enable-gpu-benchmarking} flags.
+We use this facility to collect benchmarks for our evaluation,
+  as discussed in more detail in \Cref{sec:eval}.
+It is important to note here that Chrome generates
+  multiple Skia programs, meaning multiple \texttt{skp}s,
+  for a single website.
+These multiple programs represent different ``layers'' of the page,
+  which are then composited in a later step;
+  this split into layers is important for efficient animations~\cite{wbe}.
+The optimizer operates on layers individually,
+  and neither performs cross-layer optimizations
+  nor influences how Chrome splits a page into layers.
 
 \subsubsection{Mutating \texttt{SkRecord}}
 
