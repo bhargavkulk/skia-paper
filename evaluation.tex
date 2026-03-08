@@ -37,14 +37,13 @@ For this evaluation we run our optimizer on two machines whose specs we list
 
 \begin{enumerate}
 \item[Machine \#1] 8-core Apple M2 CPU/GPU, 16GB RAM, clang version 17.0.0
-\item[Machine \#2] i7-8700K CPU, Intel CoffeeLake-S GT2 GPU, \fillin{data stuff
-    i need to figure out sorr pavel}, clang version 18.1.3
+\item[Machine \#2] i7-8700K CPU, Intel CoffeeLake-S GT2 GPU, 32 GB DDR4 RAM, clang version 18.1.3
 \end{enumerate}
 
 It is important to note that the benchmark set,
   that is the number of layers of all 100 websites,
   differ from machine to machine.
-THis mainly due to Chrome acting differently with respect to compositing(the
+This mainly due to Chrome acting differently with respect to compositing(the
   step before rendering wherein Chrome splits visual elements on websites into
   layers) from machine to machine.
 So for the evaluation, we have a total of \macbenchnum benchmarks for machine
@@ -75,7 +74,7 @@ As rendering time is not many magnitudes greater than the timer overhead%
 We now describe how \texttt{nanobench} avoids that, by talking about the
   measurement scheme.
 Before actually measuring the time taken to render for a specific \texttt{skp}
-  file, \texttt{nanobench} first measures the number of the loops of rendering
+  file, \texttt{nanobench} first measures the number of loops of rendering
   needed to make the timing overhead negligible.
 In \texttt{nanobench}, each reported sample is computed as:
   total elapsed time for a run, divided by the number of playback loops in that
@@ -88,16 +87,20 @@ For GPU playback, \texttt{nanobench}
 it doubles loops until the sample exceeds the target, then rescales loops to
   land near that target.
 This makes each sample long enough that timer-call overhead is negligible.
-\bhargav{gpuwaitandsync, flush things, dont know enoight about GPU to explain}
 Using this scheme, we measure 100 samples for each benchmark, both the optimized
   and unoptimized \texttt{skp}.
 We summarize the rendering speedup across 100 samples using their geometric
   mean.
 For this research question we only measure rendering time of all benchmarks
   on Machine \#1 running Skia's Graphite/Metal GPU backend.
-Graphite is \filling{cite graphite} Skia's new GPU backend that ...
-\bhargav{i need to summarize the differences}
-We run benchmarks over other machines and frameworks in \foo.
+Graphite is Skia’s new GPU rasterization backend, rebuilt for modern
+  graphics APIs (like Metal, Vulkan, and D3D12) with a cleaner architecture and
+  multithreaded rendering workflow.
+Skia's older GPU backend, Ganesh, targeted GPU's through GL.
+% https://blog.chromium.org/2025/07/introducing-skia-graphite-chromes.html
+While this section only discusses performance on Graphite,
+  in \foo we also show our optimizer's performance on Ganesh as well as other
+  hardware platforms in \foo.
 
 \begin{figure}
   \includegraphics{grmetal_cdf.pdf}
@@ -110,37 +113,88 @@ The X axis of the plot is the speedup --baseline render time / optimized render
   time-- while the Y axis is the percentage of benchmarks that have
   speedup less than or equal to a certain speedup.
 On this specific machine-backend combination,
-  we see a maximum speedup of
+  we see a maximum speedup of \foo.
+Moreover
 Looking at \foo,
   note that most of the CDF line is over the 1$\times$ speedup line.
 This means a majority -- here \macfracone{} -- of the benchmarks render faster after being
   optimized.
 
-The long right tail of the CDF of plot is due the optimizer significantly improving
-  the redering time of group of russian websites we listed in \foo.
+The long right tail of the CDF plot is due the optimizer significantly improving
+  the rendering time of group of russian websites we listed in \foo.
 Recall,
-  that these russian werbsites seem to share the web framework,
+  that these russian websites seem to share the web framework,
   and as a result we are able to remove the redundant gradient mask layers
   described in \foo.
 Moreover,
   these gradiant mask layers are always inside an opaque save layer,
-  which means that the gradient mask layer encovers a new  rewrite oppurtunity.
-These websites also generate many more save layers than other websites.
-This plus the fact that simply doing a gradient mask seems to be slow,
-  seems to make the optimized rendering times very fast.
+  which means that the gradient mask layer encovers a new rewrite oppurtunity.
 
-We only report slowdowns for around \foo of the benchmarks.
-Moreover all the slowdowns we report in the left tail of the
-  plot are mostly noise
-  as none of them are optimized,
-  i.e. their optimized and baseline \skps are identical.
+Slowdowns are \foo of the benchmarks.
+All of the slowdowns are seen on website with \emph{no matches},
+  suggesting all of the slowdowns seen in the left-tail of the CDF
+  are all measurement/runtime noise and not caused by our optimizer.
+
+Furthermore,
+  all of the significant speedups we see in the CDF plot are due to the
+  optimizer, and not measurement/runtime noise.
+Specifically,
+  out of the \foo benchmarks, \foo are speedups.
+Within these speedups,
+  \foo are actually optimized by the optimizer.
+The range of the speedups of the optimized benchmarks -- \foo to \foo{} -- are
+  larger than the range of the speeudps of the unoptimized benchmarks -- \foo.
+
+In summary,
+  our optimizer, which implements the rewrites described \foo,
+  improves the rendering time significanlty for real-workd websites.
 
 \subsection{RQ2 Does the optimizer pay for itself}
 
+While our optimizer does speed-up the rendering time large, high traffic
+  websites, this rendering time is meaningless if the time taken to optimize
+  is slow.
+In this section we aim to show that our optimizer pays for itself i.e. the time
+  to optimize a \texttt{skp} is always far smaller than the time taken to render
+  the optimized \texttt{skp}.
+To measure optimziation time, we replicated \texttt{nanobench}'s benchmarking
+  scheme we described in \foo.
 
+\begin{figure}
+  \includegraphics{grmetal_optscatter.pdf}
+  \caption{}
+  \label{fig:grmetal-optscatter}
+\end{figure}
 
+We first show optimization times in seperation to everrything else.
+  \Cref{fig:grmetal-optscatter} is a scatter plot of the time taken to optimize
+  a benchmark vs the number of Skia commands in the benchmark.
+There arer two important facts to note from the figure.
+First, like we claim in \Cref{sec:compiler},
+  the time taken to optimize is linear wrt to the size of the Skia program.
+Firthermore,
+  note the range of optimization times we report.
+All optimization times are within 25 $\mu$s.
+This is significantly smaller than the time taken to render.
+To visualize this,
+  we draw the CDF from the previous section, except instead of calculating
+  speedups as between baseline and optimzied render time,
+  we now factor in the optimization time.
 
-\bhargav{not sure what else goes here}
+\begin{figure}
+  \includegraphics{grmetal_optcdf.pdf}
+  \caption{}
+  \label{fig:grmetal-optcdf}
+\end{figure}
+
+\Cref{fig:grmetal-optcdf} is visually indistnguishable from
+\Cref{fig:grmetal-cdf}.
+We originally wanted to superimpose both plots to show the tiny difference between the
+ two plots, but in reality such a plot was not very helpful given how similiar
+ the two plots are.
+To sumamrize, we show our optimizer is linear with respect to the number of
+  commands in the Skia program, and that the time taken to optimization is far
+  smaller than the time taken to render.
 
 
 
