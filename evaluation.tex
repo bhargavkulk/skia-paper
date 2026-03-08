@@ -4,6 +4,13 @@
 \label{sec:eval}
 \bhargav{need to workshop this intro}
 
+% Nightly OpenGL
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1772989339:main:d4fa04de/
+% Nightly Vulkan
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1772991488:main:3f3fb1cf/
+% Nightly CPU
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1772999495:main:da983323/
+
 We evaluate the optimizer, and by extension the semantics, by asking four
   research questions:
 
@@ -53,7 +60,137 @@ The optimizer is based off of Skia commit f931a2e13749b3c95c76e57ba2589c1abb6b61
   the \texttt{main} branch \fillin{cite}.
 We describe research qeustion-specific methodology in the relevant subsections.
 
-\subsection{RQ1}
+\subsection{RQ1 Are the optimizations correct?}
+
+In this section we aim to ask, wether the optimizer is \emph{correct}.
+This qeustion can be answered in two aces.
+Firstly, wether the optimzier
+  conforms to the semantics laid out in \Cref{sec:semantics}.
+Secondly,
+  wether the images rendered by the optimized Skia programs are identical to the
+  images rendered unoptimized.
+We aim to answer both questions in this section.
+
+\subsubsection{Conforming with semantics}
+
+TO show that our optimizer implemented withing Skis conforms to the semantics,
+  we build a translation validator for the optimizer.
+The translation validator is built on top of the semantics mechanized in Lean.
+As the optimizer applies each rewrite seperaetly and in a specific order,
+  our translation validator validate each seperate rewrite pass.
+We do this by first dumping the intermeddiate \texttt{skp}s after each rewrite.
+We then seralize each of these intermeddiate \texttt{skps}s into a readable JSON
+  format using the a tool provided by Skia called \texttt{skp\_parser}.
+We then convert these JSON Skia programs into Lean terms with a compiler.
+This compiler implements the operational semantics of \muskia as described in
+  \foo along with a few clip geometry simplificiations.
+The compiler mainly tries to simplify clips, by trying collapsing clips as
+  follows:
+
+\begin{equation*}
+g \cap g = g
+\end{equation*}
+
+The compiler also tries to convert Path geoemetries into simpler shape as an
+  when possible (Skia does this under the hood).
+In the translation validator in Skia,
+  we aim to prove each intermeddiate rewrite with a theorem.
+For example,
+  the first rewrite is the gradient mask rewrite.
+So, in Lean,
+  we would prove equality of the source Skia program and the intermeddiate SKia
+  program generated after performing the gradient mask rewrite.
+This is then done sequentially for all the other rewrite passes too.
+We prove the theorem only using the already proven rewrite in Lean.
+This is fasciliated by the powerful \texttt{grind} tactic in Lean.
+\texttt{grind} uses techniques inspired from modenr SMT solvers to automatically
+  prove theorems in Lean.
+Ir is able to prove facts by trying to apply older facts from a specified
+  database of facts.
+We restrict the database of facts that \texttt{grind} has access to in order
+  reign in the search space.
+For example,
+  the \texttt{grind} invocation for the proof of the gradient mask rewrite only has the
+  gradient mask theorem in its database, similiarly for the other rewrite
+  passes.
+
+\begin{figure}
+\begin{BVerbatim}
+theorem src_eq_opt1 : denote src = denote opt1 := by
+  unfold src
+  unfold opt1
+  grind (gen := 80) [GradientMask]
+\end{BVerbatim}
+  \caption{Example of a rewrite pass theorem statement along with the generated
+    pass. \texttt{src} is the source Skia program, and \texttt{opt1} is the
+    program generated after running the gradient mask rewrite. Notice how we
+    only give pass \texttt{GradientMask} which is the gradient mask rewrite
+    proven in Lean using the mechanized semantics described in
+    \Cref{sec:semantics}. We increase the search space size of \texttt{grind} to
+    help it prove rewrites for larger skia programs.}
+\label{fig:layerTV}
+\end{figure}
+
+It is important to note that the compiler, and by extension the translation
+  validator only supports the fragment of Skia we formalize in \muskia.
+That means Skia programs with image filters, blurs, color filters other than
+  luminance and so on, will be rejected by the translation validator.
+This does not mean that the the programs are unequal, in fact later on in this
+  section we show that even programs that are not represented by \muskia
+  are not only optimized but also yield the same image.
+
+Across the \macbenchnum benchmarks on machine \#1,
+  we sucessfully translation validate \fillin{34} pass translation validation.
+In fact, out of the \fillin{42} programs that do pass trasnlation validation,
+  all but \fillin{9} programs fail due to \texttt{grind} timeouts.
+Our translation validation scheme, proves correct not only simpl programs with
+  one type of rewrite, but also programs that have many nested rewrites.
+For example,
+  the lone layer of Pinterest that has a \texttt{SaveLayer} has three nested
+  rewrites:
+  a lumninance filter save layer, nested in a \texttt{DstIn} mask, nested in a
+  opaque \texttt{SaveLayer}.
+Only by sucessfully performing the inner rewrite can you expose a rewrite
+  oppurtunity for the next rewrite, and all three nested rewrites are proven
+  correct by the translation validator.
+
+
+\subsubsection{Optimizations yeield the same images}
+
+Beyond just smenatic correctnes, we also show that both baseline and optimized
+  Skia programs render to the same PNG image.
+We do this by, first rendering Skia programs (both baseline and optimized) into
+  PNG files through Skia, and then using ImageMagick's \texttt{compare} tool to
+  compare both of them.
+We use the options \texttt{-metric AE}, which tells
+  \texttt{compare} to compare each pixel and report the number of differring
+  pixels, and \texttt{-fuzz 1\%}, which asks for a 1\% tolerance from
+  \texttt{compare}.
+Across \macbenchnum benchmarks on machine \#1,
+  only 16 show some difference in pixels.
+And on further inspection, the differences that do remain are indistinguishable
+  to the human eye.
+We attribute this to anti-aliasing.
+Anti-aliasing is a technique used to smooth out jagged, slanted or curved lines
+  that cross over pixels by blending them to make them smooth.
+Anti-aliassing is necessary to draw smooth curves so that they are do not seem
+  jarring to the human eyes.
+To do anti-aliasing, you need to assume the geometries you are drawing ar
+  real-avlaued constrains.
+Our semantics do not admit that as we assume geometries to be a distinct
+  collection of points.
+Nevertheless, differences produced by anti-aliassing issues do not seem
+  to be distinguishable by the human eye.
+We show one such example in \Cref{fig:diff}.
+
+\begin{figure}
+  \includegraphics[scale=0.7]{TikTok__layer_5.png}
+  \includegraphics[scale=0.7]{TikTok__layer_5__ee.png}
+  \includegraphics[scale=0.7]{TikTok__layer_5__diff.png}
+  \caption{Baseline, optimized, and a diff produced by \texttt{compare} for a
+    layer of the website Tiktok.}
+\label{fig:diff}
+\end{figure}
 
 \subsection{RQ2 Does the otpimnizer improve the render time of real world Skia
   programs?}
@@ -102,9 +239,10 @@ While this section only discusses performance on Graphite,
   in \foo we also show our optimizer's performance on Ganesh as well as other
   hardware platforms in \foo.
 
-\begin{figure}
-  \includegraphics{grmetal_cdf.pdf}
-  \caption{}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.49\linewidth]{grmetal_cdf.pdf}
+  \caption{Graphite/Metal render-time CDF.}
   \label{fig:grmetal-cdf}
 \end{figure}
 
@@ -160,10 +298,13 @@ In this section we aim to show that our optimizer pays for itself i.e. the time
 To measure optimziation time, we replicated \texttt{nanobench}'s benchmarking
   scheme we described in \foo.
 
-\begin{figure}
-  \includegraphics{grmetal_optscatter.pdf}
-  \caption{}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.49\linewidth]{grmetal_optscatter.pdf}\hfill
+  \includegraphics[width=0.49\linewidth]{grmetal_optcdf.pdf}
+  \caption{Graphite/Metal optimization plots: optimization-time scatter (left) and CDF with optimization time included (right).}
   \label{fig:grmetal-optscatter}
+  \label{fig:grmetal-optcdf}
 \end{figure}
 
 We first show optimization times in seperation to everrything else.
@@ -181,12 +322,6 @@ To visualize this,
   speedups as between baseline and optimzied render time,
   we now factor in the optimization time.
 
-\begin{figure}
-  \includegraphics{grmetal_optcdf.pdf}
-  \caption{}
-  \label{fig:grmetal-optcdf}
-\end{figure}
-
 \Cref{fig:grmetal-optcdf} is visually indistnguishable from
 \Cref{fig:grmetal-cdf}.
 We originally wanted to superimpose both plots to show the tiny difference between the
@@ -195,12 +330,6 @@ We originally wanted to superimpose both plots to show the tiny difference betwe
 To sumamrize, we show our optimizer is linear with respect to the number of
   commands in the Skia program, and that the time taken to optimization is far
   smaller than the time taken to render.
-
-
-
-
-
-
 
 
 
