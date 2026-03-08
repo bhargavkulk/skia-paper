@@ -2,28 +2,152 @@
 \begin{document}
 \section{Evaluation}
 \label{sec:eval}
+\bhargav{need to workshop this intro}
+
+We evaluate the optimizer, and by extension the semantics, by asking four
+  research questions:
 
 \begin{enumerate}
 \item[RQ1] Are the optimizations correct? % TV, and pixel diffs (antialisaing)
-\item[RQ2] Does the optimizater pay for itself? % time taken to optimize
-\item[RQ3] Does the otpimnizer improve the render time of real world Skia
+\item[RQ2] Does the otpimnizer improve the render time of real world Skia
   programs? % render time CDF Metal
+\item[RQ3] Does the optimizer pay for itself? % time taken to optimize
 \item[RQ4] Are the optimizations generic across websites, GPUs, and backends. % more CDF
 \end{enumerate}
 
 \subsection{Methodology}
 
-Names of wbesites, chrome (playwright),
-% '--no-sandbox', '--enable-gpu-benchmarking'
-, chrome command
+We evaluate our optimizer on the top 100 most-visited websites in the world.%
+\footnote{We do not run it on the full list , as we exclude explicit websites
+  from the list.
+}
+This data is collated from rankings from Semrush \fillin{cite} and Similiarweb \fillin{cite}.
+As our optimizer runs on \texttt{skp} files,
+  we first dump them from Chrome, as described in \foo.
+We reiterate,
+  that one website can yeild more than one \texttt{skp} file.
+As our rewrites focus on removing \texttt{SaveLayer}s,
+  we remove \texttt{skp}s that are do not have the \texttt{SaveLayer} commnand.
+This filtering is enabled by the \texttt{skp\_parser} tool that converts
+  \texttt{skp} files to JSON files, for easily manual or scripted inspection.
+As browsers run on different architectures with different GPU API,
+  we also run our optimizer on different machines.
+For this evaluation we run our optimizer on two machines whose specs we list
+  below:
 
-descrobe compiler, based on Skia version, compiler with clang version,
-machine(s) details
+\begin{enumerate}
+\item[Machine \#1] 8-core Apple M2 CPU/GPU, 16GB RAM, clang version 17.0.0
+\item[Machine \#2] i7-8700K CPU, Intel CoffeeLake-S GT2 GPU, \fillin{data stuff
+    i need to figure out sorr pavel}, clang version 18.1.3
+\end{enumerate}
 
-benchmarking, nanobench(backends), descrive nanobench, sawy we do the same sort
-of benchamrking for optimization time
+It is important to note that the benchmark set,
+  that is the number of layers of all 100 websites,
+  differ from machine to machine.
+THis mainly due to Chrome acting differently with respect to compositing(the
+  step before rendering wherein Chrome splits visual elements on websites into
+  layers) from machine to machine.
+So for the evaluation, we have a total of \macbenchnum benchmarks for machine
+  \#1 and \nightbenchnum benchmarks for machine \#2.
 
-TV has a compiler from skp to lean terms
+The optimizer is based off of Skia commit f931a2e13749b3c95c76e57ba2589c1abb6b6192 of
+  the \texttt{main} branch \fillin{cite}.
+We describe research qeustion-specific methodology in the relevant subsections.
 
-pixel diff uses imagemagick(flags, tolerance magice number)
+\subsection{RQ1}
+
+\subsection{RQ2 Does the otpimnizer improve the render time of real world Skia
+  programs?}
+
+To answer this research question,
+  we benchmark the rendering time of both the unoptimized and optimized
+  \texttt{skp}s of the websites we discussed before.
+To measure render time,
+  we use \texttt{nanobench}, a benchmarking tool internal to Skia.
+\texttt{nanobench} actually has many different benchmarking options,
+  the \texttt{skp} \texttt{playback} options are what we use
+  to measure render time.
+As rendering time is not many magnitudes greater than the timer overhead%
+\footnote{\texttt{nanobench} uses \texttt{std::chrono::steady\_clock} as its
+  timer.}
+  we need to choose a careful ebcnhmarking scheme that is able to factor out
+  timer overhead.
+We now describe how \texttt{nanobench} avoids that, by talking about the
+  measurement scheme.
+Before actually measuring the time taken to render for a specific \texttt{skp}
+  file, \texttt{nanobench} first measures the number of the loops of rendering
+  needed to make the timing overhead negligible.
+In \texttt{nanobench}, each reported sample is computed as:
+  total elapsed time for a run, divided by the number of playback loops in that
+  run.
+So the key to making the timer overhead neglibible is to choose a good loop
+  count.
+For GPU playback, \texttt{nanobench}
+  calculates the number of loops needed so each sample lasts about a target
+  duration (default \texttt{--gpuMs=5} ms):
+it doubles loops until the sample exceeds the target, then rescales loops to
+  land near that target.
+This makes each sample long enough that timer-call overhead is negligible.
+\bhargav{gpuwaitandsync, flush things, dont know enoight about GPU to explain}
+Using this scheme, we measure 100 samples for each benchmark, both the optimized
+  and unoptimized \texttt{skp}.
+We summarize the rendering speedup across 100 samples using their geometric
+  mean.
+For this research question we only measure rendering time of all benchmarks
+  on Machine \#1 running Skia's Graphite/Metal GPU backend.
+Graphite is \filling{cite graphite} Skia's new GPU backend that ...
+\bhargav{i need to summarize the differences}
+We run benchmarks over other machines and frameworks in \foo.
+
+\begin{figure}
+  \includegraphics{grmetal_cdf.pdf}
+  \caption{}
+  \label{fig:grmetal-cdf}
+\end{figure}
+
+The CDF chart in \foo plots the optimizer's results.
+The X axis of the plot is the speedup --baseline render time / optimized render
+  time-- while the Y axis is the percentage of benchmarks that have
+  speedup less than or equal to a certain speedup.
+On this specific machine-backend combination,
+  we see a maximum speedup of
+Looking at \foo,
+  note that most of the CDF line is over the 1$\times$ speedup line.
+This means a majority -- here \macfracone{} -- of the benchmarks render faster after being
+  optimized.
+
+The long right tail of the CDF of plot is due the optimizer significantly improving
+  the redering time of group of russian websites we listed in \foo.
+Recall,
+  that these russian werbsites seem to share the web framework,
+  and as a result we are able to remove the redundant gradient mask layers
+  described in \foo.
+Moreover,
+  these gradiant mask layers are always inside an opaque save layer,
+  which means that the gradient mask layer encovers a new  rewrite oppurtunity.
+These websites also generate many more save layers than other websites.
+This plus the fact that simply doing a gradient mask seems to be slow,
+  seems to make the optimized rendering times very fast.
+
+We only report slowdowns for around \foo of the benchmarks.
+Moreover all the slowdowns we report in the left tail of the
+  plot are mostly noise
+  as none of them are optimized,
+  i.e. their optimized and baseline \skps are identical.
+
+\subsection{RQ2 Does the optimizer pay for itself}
+
+
+
+
+\bhargav{not sure what else goes here}
+
+
+
+
+
+
+
+
+
 \end{document}
