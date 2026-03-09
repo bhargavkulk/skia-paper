@@ -19,7 +19,7 @@ We evaluate the optimizer, and by extension the semantics, by asking four
 \item[RQ2] Does the otpimnizer improve the render time of real world Skia
   programs? % render time CDF Metal
 \item[RQ3] Does the optimizer pay for itself? % time taken to optimize
-\item[RQ4] Are the optimizations generic across websites, GPUs, and backends. % more CDF
+\item[RQ4] Are the optimizations generic across Skia backends, hardwar, and websites? % more CDF
 \end{enumerate}
 
 \subsection{Methodology}
@@ -43,8 +43,8 @@ For this evaluation we run our optimizer on two machines whose specs we list
   below:
 
 \begin{enumerate}
-\item[Machine \#1] 8-core Apple M2 CPU/GPU, 16GB RAM, clang version 17.0.0
-\item[Machine \#2] i7-8700K CPU, Intel CoffeeLake-S GT2 GPU, 32 GB DDR4 RAM, clang version 18.1.3
+\item \textbf{Machine \#1:} 8-core Apple M2 CPU/GPU, 16GB RAM, clang version 17.0.0
+\item \textbf{Machine \#2:} i7-8700K CPU, Intel CoffeeLake-S GT2 GPU, 32 GB DDR4 RAM, clang version 18.1.3
 \end{enumerate}
 
 It is important to note that the benchmark set,
@@ -84,13 +84,8 @@ We then seralize each of these intermeddiate \texttt{skps}s into a readable JSON
 We then convert these JSON Skia programs into Lean terms with a compiler.
 This compiler implements the operational semantics of \muskia as described in
   \foo along with a few clip geometry simplificiations.
-The compiler mainly tries to simplify clips, by trying collapsing clips as
-  follows:
-
-\begin{equation*}
-g \cap g = g
-\end{equation*}
-
+The compiler mainly tries to simplify clips, for example simplifying the
+  intersection of equal clips.
 The compiler also tries to convert Path geoemetries into simpler shape as an
   when possible (Skia does this under the hood).
 In the translation validator in Skia,
@@ -98,7 +93,7 @@ In the translation validator in Skia,
 For example,
   the first rewrite is the gradient mask rewrite.
 So, in Lean,
-  we would prove equality of the source Skia program and the intermeddiate SKia
+  we would prove equality of the source Skia program and the intermeddiate Skia
   program generated after performing the gradient mask rewrite.
 This is then done sequentially for all the other rewrite passes too.
 We prove the theorem only using the already proven rewrite in Lean.
@@ -331,6 +326,36 @@ To sumamrize, we show our optimizer is linear with respect to the number of
   commands in the Skia program, and that the time taken to optimization is far
   smaller than the time taken to render.
 
+  \subsection{RQ4 Are the optimizations generic across Skia backends, hardware, and
+    websites?}
+
+In this section we aim to show that the rewrites described in
+  \Cref{sec:rewrites} are \emph{generalizable}.
+We can show this in two different axes.
+Firstly,
+  we can show that the rewrites generalize over different GPU APIs and backends.
+Secondly,
+  we can show that the rewrites geenralize to other websites and not just the
+  benchmark we set we first chose to explore said rewrites.
+
+\subsubsection{Generalizability over various hardware and GPU API}
+
+To evaluate this claim,
+  we simply repeat the experiment conducted in \foo, but now over different GPU
+  API and hardware.
+Recall that Skia has two GPU backends.
+We run our optimizer over benchmarks for both machines, over both GPU APIs.
+For machine \#1, as you have see, we use Metal \foo as Graphite's GPU API.
+While for machine \#2 we use Vulkan\foo.
+
+\begin{figure}
+  \includegraphics{grmetal_cdf.pdf}
+  \includegraphics{grmetal_cdf.pdf}
+  \includegraphics{grvk_cdf.pdf}
+  \includegraphics{gnopengl_cdf.pdf}
+  \caption{}
+\label{fig:cdfmatrix}
+\end{figure}
 
 
 \end{document}

@@ -5,47 +5,45 @@
 
 \pavel{make sure we dont reference colors}
 
-Skia is a popular library for 2D graphics.
+Skia is a widely used 2D graphics library.
 Skia's basic APIs
   create drawable 2D ``surfaces'' and ``layers'',
   draw shapes to those surfaces and layers,
   blend them together,
   and apply effects.
-These APIs are accessed by calling methods
-  on a Skia \texttt{SkCanvas} object;
-  however, internally, these \texttt{SkCanvas} operations
-  just append commands to a command buffer,
-  which we can take to be a stand-alone program.
-The program is executed when Skia's \texttt{flush} method is called.
+These
+  operations are issued through methods on a \SkCanvas,
+  which manages the drawing state.
+At execution time, the behavior is backend-dependent:
+  CPU backends apply draws
+  directly to CPU-visible pixel memory,
+  while GPU backends enqueue work that is flushed to backend API objects,
+  and then submitted for GPU execution.
+But in either case,
+  this list of commands issued prior to rendering
+  can be stored in an intermeddiate buffer of commands
+  to be use for either serialization, replaying, or optimizations,
+  which we can take to be a stand-alone programming language.
 This section introduces the language's basic operations.
-
-\bhargav{I need to get codex to read the skia source to make sure this is how it
-works}
 
 \subsection{Drawing and Painting}
 \label{subsec:drawing-painting}
 
-The \texttt{drawRect} command is used to draw rectangles:%
-\footnote{
-  All code snippets in this section elide the \texttt{SkCanvas} object
-  and method-call syntax to maintain focus on
-  the Skia command language itself.
-  We likewise drop the \texttt{Sk} prefix on most types.
-}
+The \SkDrawRect command is used to draw rectangles:%
 
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     canvas->drawRect(rect1, p);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing1.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing1.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -56,31 +54,31 @@ The \texttt{drawRect} command is used to draw rectangles:%
 Here the layout is meant to evoke
   a Hoare triple:
 the left square shows the (empty) state of the canvas
-  before the \texttt{drawRect} command,
+  before the \SkDrawRect command,
   while the right square shows the state of the canvas afterwards.
-The \texttt{drawRect} command needs the bounds of the rectangle
+The \SkDrawRect command needs the bounds of the rectangle
   that needs to be drawn.
-\texttt{drawRect} also takes a \texttt{SkPaint}
+\SkDrawRect also takes a \skpaint
   as an argument.
-A \texttt{SkPaint} describes \emph{how} a geometry is drawn,
+A \SkPaint describes \emph{how} a geometry is drawn,
   for example how to \emph{fill} the geometry.
-The default fill for a \texttt{SkPaint} is the color black,
+The default fill for a \SkPaint is the color black,
   but we can also change it to another color.
 
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     p.setColor(SK\_ColorRED);\\
     canvas->drawRect(rect1, p);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -91,10 +89,10 @@ It's also possible to specify a non-constant fill,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     p.setShader(\\
     \quad SkShaders::LinearGradient(...)\\
@@ -103,7 +101,7 @@ It's also possible to specify a non-constant fill,
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing3.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing3.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -147,16 +145,16 @@ Suppose we draw a second, overlapping, blue square:
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     p.setColor(SK\_ColorBLUE);\\
     canvas->drawRect(rect2, p);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing4.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -184,10 +182,10 @@ For example, the \texttt{Multiply} blend mode
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     p.setColor(SK\_ColorBLUE);\\
     p.setBlendMode(\\
     \quad SkBlendMode::kMultiply\\
@@ -196,7 +194,7 @@ For example, the \texttt{Multiply} blend mode
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing5.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -226,16 +224,16 @@ One uses \texttt{clipRect} like this:
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->clipRect(c\_rect);\\
     canvas->drawRect(rect1, redPaint);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing6.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing6.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -256,17 +254,17 @@ This means that a single \texttt{clipRect} operation
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->clipRect(c\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
     canvas->drawRect(rect2, bluePaint);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing7.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing7.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -283,10 +281,10 @@ Luckily, Skia maintains a \emph{stack} of clip states;
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->save();\\
     canvas->clipRect(c\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
@@ -295,7 +293,7 @@ Luckily, Skia maintains a \emph{stack} of clip states;
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing8.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing8.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -313,16 +311,16 @@ Conceptually, \texttt{saveLayer} allocates
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->saveLayer();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -332,17 +330,17 @@ All drawing commands until the corresponding \texttt{restore}
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->drawRect(rect2, bluePaint);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -353,16 +351,16 @@ Then, when the \texttt{restore} command it reached,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     restore();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing4.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing4.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -392,16 +390,16 @@ For example,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing9.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{drawing2.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     restore(); // multiply blending
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing5.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing5.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -421,16 +419,16 @@ Instead of trying to clip directly with a complicated shape,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->saveLayer();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -439,17 +437,17 @@ We now draw the mask shape on the new layer.
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing0.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     canvas->drawRect(rect2, bluePaint);
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -461,16 +459,16 @@ When we \texttt{DstIn} one pixel over another,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{mask.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     restore(); // multiply blending
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{masked_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{masked_mandrill.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -485,16 +483,16 @@ For example,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{drawing3.pdf}}\\[0.6em]
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing3.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{T}
+  \begin{tabular}{>{\smaller}T}
     restore(); // multiply blending
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{grad_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{grad_mandrill.pdf}}
   \end{tabular}
 \end{figure}
 
@@ -517,20 +515,20 @@ Here,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \begin{tabular}{T}
+    \begin{tabular}{>{\smaller}T}
       restore(); // multiply blending
     \end{tabular}\\[0.8em]
-    \begin{tabular}{T}
+    \begin{tabular}{>{\smaller}T}
       restore(); // second program
     \end{tabular}
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.28]{simple_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{simple_mandrill.pdf}}
   \end{tabular}
 \end{figure}
 
