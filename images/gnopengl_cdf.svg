@@ -333,7 +333,7 @@ L 288.407188 31.99625
    </g>
    <g id="text_14">
     <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif" transform="translate(105.637187 14.798437)">Empirical CDF of speedup</text>
-    <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif" transform="translate(83.755937 25.99625)">(on ganesh-opengl backend, n=83)</text>
+    <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif" transform="translate(83.755937 25.99625)">(on ganesh-opengl-intel backend, n=83)</text>
    </g>
   </g>
  </g>

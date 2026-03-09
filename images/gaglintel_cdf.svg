@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="295.607187pt" height="296.643pt" viewBox="0 0 295.607187 296.643" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-03-08T21:41:00.281661</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M -0 296.643 
+L 295.607187 296.643 
+L 295.607187 0 
+L -0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 56.467188 259.08675 
+L 288.407188 259.08675 
+L 288.407188 31.99625 
+L 56.467188 31.99625 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path id="m0a843de228" d="M 0 0 
+L 0 3.5 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m0a843de228" x="80.607183" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="80.607183" y="273.685187" transform="rotate(-0 80.607183 273.685187)">0.50</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use xlink:href="#m0a843de228" x="116.977263" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="116.977263" y="273.685187" transform="rotate(-0 116.977263 273.685187)">0.75</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use xlink:href="#m0a843de228" x="153.347344" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="153.347344" y="273.685187" transform="rotate(-0 153.347344 273.685187)">1.00</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m0a843de228" x="189.717425" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="189.717425" y="273.685187" transform="rotate(-0 189.717425 273.685187)">1.25</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5">
+      <g>
+       <use xlink:href="#m0a843de228" x="226.087506" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="226.087506" y="273.685187" transform="rotate(-0 226.087506 273.685187)">1.50</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m0a843de228" x="262.457586" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="262.457586" y="273.685187" transform="rotate(-0 262.457586 273.685187)">1.75</text>
+     </g>
+    </g>
+    <g id="text_7">
+     <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="172.437187" y="287.363312" transform="rotate(-0 172.437187 287.363312)">Speedup (Baseline / Optimized)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_7">
+      <defs>
+       <path id="m3ff13ee3b9" d="M 0 0 
+L -3.5 0 
+" style="stroke: #000000; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="259.08675" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="262.885969" transform="rotate(-0 49.467188 262.885969)">0%</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="213.66865" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="217.467869" transform="rotate(-0 49.467188 217.467869)">20%</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_9">
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="168.25055" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="172.049769" transform="rotate(-0 49.467188 172.049769)">40%</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="122.83245" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="126.631669" transform="rotate(-0 49.467188 126.631669)">60%</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_11">
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="77.41435" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="81.213569" transform="rotate(-0 49.467188 81.213569)">80%</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#m3ff13ee3b9" x="56.467188" y="31.99625" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: end" x="49.467188" y="35.795469" transform="rotate(-0 49.467188 35.795469)">100%</text>
+     </g>
+    </g>
+    <g id="text_14">
+     <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif; text-anchor: middle" x="14.798438" y="145.5415" transform="rotate(-90 14.798438 145.5415)">Benchmarks at or below this speedup</text>
+    </g>
+   </g>
+   <g id="line2d_13">
+    <path d="M 67.009915 256.35072 
+L 144.500162 256.35072 
+L 144.500162 253.61469 
+L 148.916982 253.61469 
+L 148.916982 250.87866 
+L 149.534243 250.87866 
+L 149.577321 245.406599 
+L 150.12541 245.406599 
+L 150.12541 242.670569 
+L 150.270111 242.670569 
+L 150.270111 239.934539 
+L 151.526289 239.934539 
+L 151.586443 234.462479 
+L 151.660348 234.462479 
+L 151.710138 228.990419 
+L 151.776938 228.990419 
+L 151.776938 226.254389 
+L 151.981927 226.254389 
+L 151.981927 223.518358 
+L 152.221335 223.518358 
+L 152.324017 215.310268 
+L 152.541615 215.310268 
+L 152.541615 212.574238 
+L 152.672473 212.574238 
+L 152.74642 207.102178 
+L 152.798561 207.102178 
+L 152.905629 198.894087 
+L 152.925823 198.894087 
+L 153.028784 193.422027 
+L 153.101165 193.422027 
+L 153.195277 179.741877 
+L 153.241787 179.741877 
+L 153.33082 171.533786 
+L 153.411902 171.533786 
+L 153.456379 163.325696 
+L 153.567469 163.325696 
+L 153.589043 157.853636 
+L 153.801922 157.853636 
+L 153.801922 155.117605 
+L 154.276514 155.117605 
+L 154.276514 152.381575 
+L 154.486694 152.381575 
+L 154.507773 146.909515 
+L 155.063291 146.909515 
+L 155.063291 144.173485 
+L 155.450517 144.173485 
+L 155.450517 141.437455 
+L 156.017263 141.437455 
+L 156.017263 138.701425 
+L 156.342964 138.701425 
+L 156.342964 135.965395 
+L 156.94231 135.965395 
+L 156.962694 130.493334 
+L 157.614961 130.493334 
+L 157.614961 127.757304 
+L 160.676236 127.757304 
+L 160.676236 125.021274 
+L 161.515988 125.021274 
+L 161.515988 122.285244 
+L 162.295065 122.285244 
+L 162.295065 119.549214 
+L 164.367948 119.549214 
+L 164.367948 116.813184 
+L 164.929079 116.813184 
+L 164.929079 114.077154 
+L 167.980963 114.077154 
+L 167.980963 111.341123 
+L 168.716508 111.341123 
+L 168.716508 108.605093 
+L 172.635311 108.605093 
+L 172.635311 105.869063 
+L 173.023592 105.869063 
+L 173.023592 103.133033 
+L 175.716931 103.133033 
+L 175.716931 100.397003 
+L 176.277737 100.397003 
+L 176.277737 97.660973 
+L 179.374368 97.660973 
+L 179.374368 94.924943 
+L 182.791283 94.924943 
+L 182.80919 89.452883 
+L 183.567375 89.452883 
+L 183.567375 86.716852 
+L 184.139703 86.716852 
+L 184.139703 83.980822 
+L 185.096483 83.980822 
+L 185.096483 81.244792 
+L 186.435532 81.244792 
+L 186.435532 78.508762 
+L 192.006273 78.508762 
+L 192.006273 75.772732 
+L 192.882486 75.772732 
+L 192.882486 73.036702 
+L 197.047991 73.036702 
+L 197.047991 70.300672 
+L 197.679974 70.300672 
+L 197.679974 67.564642 
+L 198.435015 67.564642 
+L 198.435015 64.828611 
+L 201.601183 64.828611 
+L 201.601183 62.092581 
+L 202.34416 62.092581 
+L 202.34416 59.356551 
+L 218.646707 59.356551 
+L 218.646707 56.620521 
+L 222.622396 56.620521 
+L 222.622396 53.884491 
+L 232.533652 53.884491 
+L 232.533652 51.148461 
+L 244.208811 51.148461 
+L 244.208811 48.412431 
+L 273.950113 48.412431 
+L 273.950113 45.676401 
+L 274.083974 45.676401 
+L 274.083974 42.94037 
+L 276.444431 42.94037 
+L 276.495107 37.46831 
+L 277.791093 37.46831 
+L 277.86446 31.99625 
+L 277.86446 31.99625 
+" clip-path="url(#p3687990ac4)" style="fill: none; stroke: #1f77b4; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_14">
+    <path d="M 153.347344 259.08675 
+L 153.347344 31.99625 
+" clip-path="url(#p3687990ac4)" style="fill: none; stroke-dasharray: 5.55,2.4; stroke-dashoffset: 0; stroke: #cc0000; stroke-width: 1.5"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 56.467188 259.08675 
+L 56.467188 31.99625 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 288.407188 259.08675 
+L 288.407188 31.99625 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 56.467188 259.08675 
+L 288.407187 259.08675 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 56.467188 31.99625 
+L 288.407187 31.99625 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif" transform="translate(105.637187 14.798437)">Empirical CDF of speedup</text>
+    <text style="font-size: 10px; font-family: 'Linux Libertine O', 'Linux Libertine', 'DejaVu Serif', 'Times New Roman', 'Times', serif" transform="translate(83.755937 25.99625)">(on ganesh-opengl backend, n=83)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p3687990ac4">
+   <rect x="56.467188" y="31.99625" width="231.94" height="227.0905"/>
+  </clipPath>
+ </defs>
+</svg>

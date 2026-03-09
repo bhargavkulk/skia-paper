@@ -5,7 +5,7 @@
 \bhargav{need to workshop this intro}
 
 % Nightly OpenGL
-% https://nightly.cs.washington.edu/reports/easteregg-skia/1772989339:main:d4fa04de/
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1773031260:main:f56903d5/
 % Nightly Vulkan
 % https://nightly.cs.washington.edu/reports/easteregg-skia/1772991488:main:3f3fb1cf/
 % Nightly CPU
@@ -53,8 +53,8 @@ It is important to note that the benchmark set,
 This mainly due to Chrome acting differently with respect to compositing(the
   step before rendering wherein Chrome splits visual elements on websites into
   layers) from machine to machine.
-So for the evaluation, we have a total of \macbenchnum benchmarks for machine
-  \#1 and \nightbenchnum benchmarks for machine \#2.
+So for the evaluation, we have a total of \grmetalnumbench benchmarks for machine %
+  \#1 and \grvknumbench benchmarks for machine \#2.
 
 The optimizer is based off of Skia commit f931a2e13749b3c95c76e57ba2589c1abb6b6192 of
   the \texttt{main} branch \fillin{cite}.
@@ -134,10 +134,10 @@ This does not mean that the the programs are unequal, in fact later on in this
   section we show that even programs that are not represented by \muskia
   are not only optimized but also yield the same image.
 
-Across the \macbenchnum benchmarks on machine \#1,
-  we sucessfully translation validate \fillin{34} pass translation validation.
-In fact, out of the \fillin{42} programs that do pass trasnlation validation,
-  all but \fillin{9} programs fail due to \texttt{grind} timeouts.
+Across the \grmetalnumbench benchmarks on machine \#1,
+  we sucessfully translation validate \tvpass.
+In fact, out of the \tvmuskia programs that are not rejected by the compiler,
+  all but \tvgrindtimeout programs fail due to \texttt{grind} timeouts.
 Our translation validation scheme, proves correct not only simpl programs with
   one type of rewrite, but also programs that have many nested rewrites.
 For example,
@@ -161,8 +161,8 @@ We use the options \texttt{-metric AE}, which tells
   \texttt{compare} to compare each pixel and report the number of differring
   pixels, and \texttt{-fuzz 1\%}, which asks for a 1\% tolerance from
   \texttt{compare}.
-Across \macbenchnum benchmarks on machine \#1,
-  only 16 show some difference in pixels.
+Across \grmetalnumbench benchmarks on machine \#1,
+  only \grmetalpixdif show some difference in pixels.
 And on further inspection, the differences that do remain are indistinguishable
   to the human eye.
 We attribute this to anti-aliasing.
@@ -237,20 +237,20 @@ While this section only discusses performance on Graphite,
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.49\linewidth]{grmetal_cdf.pdf}
-  \caption{Graphite/Metal render-time CDF.}
+  \caption{Graphite/Metal render-time CDF. To read this plot, pick a speedup value on the X axis and move up to the curve; the Y value is the fraction of benchmarks with speedup $\leq$ that value (e.g., at 1$\times$, Y is the share that did not speed up). Equivalently, 1 -- Y at 1$\times$ is the share that got faster.}
   \label{fig:grmetal-cdf}
 \end{figure}
 
-The CDF chart in \foo plots the optimizer's results.
+The CDF chart in \Cref{grmetal-cdf} plots the optimizer's results.
 The X axis of the plot is the speedup --baseline render time / optimized render
   time-- while the Y axis is the percentage of benchmarks that have
   speedup less than or equal to a certain speedup.
 On this specific machine-backend combination,
-  we see a maximum speedup of \foo.
+  we see a maximum speedup of \grmetalmaxspeed.
 Moreover
-Looking at \foo,
+Looking at the plot,
   note that most of the CDF line is over the 1$\times$ speedup line.
-This means a majority -- here \macfracone{} -- of the benchmarks render faster after being
+This means a majority -- here \grmetalpctspeed -- of the benchmarks render faster after being
   optimized.
 
 The long right tail of the CDF plot is due the optimizer significantly improving
@@ -263,7 +263,7 @@ Moreover,
   these gradiant mask layers are always inside an opaque save layer,
   which means that the gradient mask layer encovers a new rewrite oppurtunity.
 
-Slowdowns are \foo of the benchmarks.
+Slowdowns are \grmetalpctslow of the benchmarks.
 All of the slowdowns are seen on website with \emph{no matches},
   suggesting all of the slowdowns seen in the left-tail of the CDF
   are all measurement/runtime noise and not caused by our optimizer.
@@ -272,11 +272,12 @@ Furthermore,
   all of the significant speedups we see in the CDF plot are due to the
   optimizer, and not measurement/runtime noise.
 Specifically,
-  out of the \foo benchmarks, \foo are speedups.
+  out of the \grmetalnumbench benchmarks, \grmetalnumspeed are speedups.
 Within these speedups,
-  \foo are actually optimized by the optimizer.
-The range of the speedups of the optimized benchmarks -- \foo to \foo{} -- are
-  larger than the range of the speeudps of the unoptimized benchmarks -- \foo.
+  \grmetalnumspmatch are actually optimized by the optimizer.
+The range of the speedups of the optimized benchmarks -- \grmetalspmatchmin to \grmetalspmatchmax -- are
+  larger than the range of the speeudps of the unoptimized benchmarks --
+  \grmetalspnomatchmin to \grmetalspnomatchmax.
 
 In summary,
   our optimizer, which implements the rewrites described \foo,
@@ -326,36 +327,155 @@ To sumamrize, we show our optimizer is linear with respect to the number of
   commands in the Skia program, and that the time taken to optimization is far
   smaller than the time taken to render.
 
-  \subsection{RQ4 Are the optimizations generic across Skia backends, hardware, and
-    websites?}
+\subsection{RQ4 Are the optimizations generic across Skia backends, hardware, and
+  websites?}
 
-In this section we aim to show that the rewrites described in
-  \Cref{sec:rewrites} are \emph{generalizable}.
-We can show this in two different axes.
-Firstly,
-  we can show that the rewrites generalize over different GPU APIs and backends.
-Secondly,
-  we can show that the rewrites geenralize to other websites and not just the
-  benchmark we set we first chose to explore said rewrites.
+In this section, we want to ask if the optimzer's results are
+  generalizable.
+We evaluate this along two orthogonal axes of generalizability.
+First, \emph{platform generalizability}: do the rewrites help across different
+  hardware, GPU APIs, and Skia backends
+Second, \emph{workload generazaibility}: do the rewrites help on websites beyond
+  thos used to develop the rewrites used in the optimizer
 
-\subsubsection{Generalizability over various hardware and GPU API}
+\subsubsection{Platform generalizability}
 
-To evaluate this claim,
-  we simply repeat the experiment conducted in \foo, but now over different GPU
-  API and hardware.
-Recall that Skia has two GPU backends.
-We run our optimizer over benchmarks for both machines, over both GPU APIs.
-For machine \#1, as you have see, we use Metal \foo as Graphite's GPU API.
-While for machine \#2 we use Vulkan\foo.
+Here we ask whether our rewrites are specific to one platform,
+ or whether they transfer across different hardware and rendering backends.
+To test this, we evaluate the optimizer in a 2$\times$2 setting:
+   two machines (Machine \#1 (Apple) and Machine \#2 (Intel)) crossed with Skia’s two GPU backends
+   (Graphite and Ganesh).
+Concretely, we run:
+
+\begin{enumerate}
+\item Graphite/Metal and Ganesh/OpenGL on machine \#1
+\item Graphite/Vulkan and Ganesh/OpenGL on machine \#2
+\end{enumerate}
+
+This experiment reuses the same website-derived benchmark collection process as
+  in \Cref{sec:eval-rq2}
+  (with per-machine benchmarks determined by Chrome’s platform-dependent compositing behavior).
+\Cref{fig:cdfmatrix} shows one CDF per machine/backend pair.
+If the optimizer’s gains were backend- or hardware-specific,
+  we would expect improvements to disappear in some quadrants.
+Instead, we observe improvements across all four settings,
+  indicating that the rewrites are not tied to a single GPU API,
+  backend implementation, or machine.
 
 \begin{figure}
-  \includegraphics{grmetal_cdf.pdf}
-  \includegraphics{grmetal_cdf.pdf}
-  \includegraphics{grvk_cdf.pdf}
-  \includegraphics{gnopengl_cdf.pdf}
-  \caption{}
-\label{fig:cdfmatrix}
+  \centering
+  \includegraphics[scale=0.5]{grmetal_cdf.pdf}
+  \includegraphics[scale=0.5]{gaglapple_cdf.pdf}
+  \includegraphics[scale=0.5]{grvk_cdf.pdf}
+  \includegraphics[scale=0.5]{gaglintel_cdf.pdf}
+  \caption{Render-time CDFs for all machine/backend combinations:
+    Graphite/Metal (top-left), Ganesh/OpenGL-Apple (top-right),
+    Graphite/Vulkan (bottom-left), and Ganesh/OpenGL-Intel (bottom-right).}
+  \label{fig:cdfmatrix}
 \end{figure}
 
+In all cases, we notice the same behaviour as in \Cref{sec:eval-rq2}.
+The long right-tail is due to the optimizer significantly improving the set of
+  russian websites (we see rendering time speedups of up to \grmetalmaxspeed in
+  Graphite/Metal, \gaglapmaxspeed in Ganesh/OpenGL-Apple,
+  \grvkmaxspeed in Graphite/Vulkan, and \gagleintmaxspeed in
+  Ganesh/OpenGL-Intel)
+Just like we saw in \foo,
+  some benchmarks that show speedups are rewritte by the optimizer,
+  but some are not.
+The benchmarks that were rewritten show more significant speedups
+  than the ones that were not across all hardware/backend pairs.
+This means that the rewrites contribute to speedups the most,
+  and their speedups are not measurement noise.
+Furthermore,
+  across all hardware/backend pairs,
+  almost all the slowdowns are \emph{not rewritten} by the optimizer i.e.
+  the baseline and optimized Skia programs are identitical.
+Which means across all hardware/backend pairs,
+  our optimizer never incurs slowdowns,
+  with the exception of a layer of the website Canva on Ganesh/OpenGL,
+  which has a persistent slowdown of \gaglcanvaslowdown.
+We have already seen this website before in \foo.
+To summarize, this website sees 3 rewrites, each of which enables the next.
+First, can remove the luminance filter \SaveLayer which just has a single mask.
+Fater performing this rewrite, we now exposes a \DstIn mask.
+After performing the \DstIn mask, which moves the mask of the image (here the
+  complicated logo of Canva), to a \texttt{clipPath} command, clipping the gradient draws that
+  make up the backdrop.
+Finally after getting rid of the \DstIn \SaveLayer,
+  we now find a opaque SrcOver \SaveLayer, which we also remove.
+It turns out,
+  that for Ganesh/OpenGl-Intel,
+  performing a complicated \texttt{clipPath} is rather expensive and msut be
+  avoided.
+Our optimizer can just not perform the DstIn mask rewrite for complicated path,
+  and only do so for simple geometries like rectangles and rounded-rectangles.
+Such a slowdown is understandable, because the specific quirks of
+  hardware/backend pairs are out-of-model for our semantics.
+Nevertheless,
+  the \DstIn mask for Canva is the \emph{only} regression we see across all
+  benchmarks.%
+\footnote{While machine \#1 and \#2, have slightly different benchmark sets,
+  the Canva layer is in both.}
+ This means we can confidently claim that our optimizer generalizes over platforms.
+
+\subsubsection{Workload generalizability}
+
+We next ask whether the optimizer generalizes across \emph{workloads},
+  not just across platforms.
+Here,
+  workload means the distribution of website-derived Skia programs.
+To test this,
+  we keep the optimizer and rewrite order fixed, and evaluate it on
+  an out-of-sample website corpus that was not used while developing the
+  rewrites.
+We chose the next 100 most visited websites in the world (like before collated
+  from web traffic rankings from Semrush and Similarweb).
+As we did for the original benchmark set,
+  we dumped their \skps from Chrome as described in \foo (This yielded \foo benchmarks).
+And we ran them in the exact same way as we did the benchmarks in \foo.
+Crucially, we do not add any new rewrites rules,
+  as we are trying to evaluate the generalizability of the existing rewrite ruleset.
+If the optimizer were overfit to the original benchmark set,
+  we would expect its gains to disappear or become inconsistent on these new benchmarks.
+Hence, we evaluate the same metrics as before (render-time speedup CDF,
+  rewritten/non-rewritten breakdown, and regressions) to check whether the same
+  performance pattern persists.
+
+% figure  goes here
+
+The CDF plot of the speedups of the new benchmark set are not any different from
+  \foo.
+
+Like in the old benchmarks set,
+  we see significant speedups of up to \foo.
+Some benchmarks with speedups have been rewritten by the optimizer (\foo),
+  while many have not.
+The speedups of the benchmarks that gave been rewritten are significcantly
+  higher (\foo) than those without (\foo).
+Which means, just like we have seen before, our optimizer is responsible for the
+  siginifcant speeupds, and not measurement noise.
+
+Slowdowns are \foo of the new benchmarks.
+Again, as we saw before,
+  all of the slowdowns are seen on benchmarks with \emph{no matches},
+  suggesting all of the slowdowns seen in the left-tail of the CDF
+  are all measurement/runtime noise and not caused by our optimizer.
+
+The gradient mask rewrite does not fire at all in benchmark suite.
+This is to be expected, because the new benchmark set does not have any Russian
+  websites.
+We still see significant speedups, furthering bolstering our argument that the
+  rewrites we chose generalize to websites beyond the initial benchmark set.
+
+Certainly,
+  with new benchmarks come new patterns to optimize.
+If one would like to come up with new rewrites,
+  then one should follow the same process we did.
+Which is,
+  inspecting the resulting \skps from the websites,
+  identifying common patterns amongst them,
+  proving an indentified pattern against our the mechanized semantics in Lean,
+  and finally implementing it as a rewriter in Skia.
 
 \end{document}
