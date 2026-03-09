@@ -429,10 +429,10 @@ To test this,
   we keep the optimizer and rewrite order fixed, and evaluate it on
   an out-of-sample website corpus that was not used while developing the
   rewrites.
-We chose the next 100 most visited websites in the world (like before collated
+We chose the next 100 most visited websites in the world (like before, collated
   from web traffic rankings from Semrush and Similarweb).
 As we did for the original benchmark set,
-  we dumped their \skps from Chrome as described in \foo (This yielded \foo benchmarks).
+  we dumped their \skps from Chrome as described in \foo (This yielded \grmetalnewnumbench benchmarks).
 And we ran them in the exact same way as we did the benchmarks in \foo.
 Crucially, we do not add any new rewrites rules,
   as we are trying to evaluate the generalizability of the existing rewrite ruleset.
@@ -443,20 +443,27 @@ Hence, we evaluate the same metrics as before (render-time speedup CDF,
   performance pattern persists.
 
 % figure  goes here
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.49\linewidth]{grmetalnew_cdf.pdf}
+  \caption{Graphite/Metal render-time CDF. To read this plot, pick a speedup value on the X axis and move up to the curve; the Y value is the fraction of benchmarks with speedup $\leq$ that value (e.g., at 1$\times$, Y is the share that did not speed up). Equivalently, 1 -- Y at 1$\times$ is the share that got faster.}
+  \label{fig:grmetal-cdf}
+\end{figure}
 
-The CDF plot of the speedups of the new benchmark set are not any different from
+The CDF plot(\Cref{fig:cdf-new}) of the speedups of the new benchmark set are not any different from
   \foo.
 
 Like in the old benchmarks set,
-  we see significant speedups of up to \foo.
-Some benchmarks with speedups have been rewritten by the optimizer (\foo),
-  while many have not.
+  we see significant speedups of up to \grmetalnewmaxspeed.
+Some benchmarks with speedups have been rewritten by the optimizer (\grmetalnewnumspmatch),
+  while many have not (\grmetalnewnumspnomatch).
 The speedups of the benchmarks that gave been rewritten are significcantly
-  higher (\foo) than those without (\foo).
+  higher (\grmetalnewspmatchmin to \grmetalnewspmatchmax)
+  than those without (\grmetalnewspnomatchmin to \grmetalnewspnomatchmax).
 Which means, just like we have seen before, our optimizer is responsible for the
   siginifcant speeupds, and not measurement noise.
 
-Slowdowns are \foo of the new benchmarks.
+Slowdowns are \grmetalnewpctslow of the new benchmarks.
 Again, as we saw before,
   all of the slowdowns are seen on benchmarks with \emph{no matches},
   suggesting all of the slowdowns seen in the left-tail of the CDF
