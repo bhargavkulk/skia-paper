@@ -18,8 +18,8 @@ We evaluate the \muskia semantics, and the optimizer based on them,
 
 \begin{enumerate}
 \item[RQ1] Is the optimizer correct? % TV, and pixel diffs (antialisaing)
-\item[RQ2] Does the optimizer improve the rasterization time? % render time CDF Metal
-\item[RQ3] Is the optimizer fast enough? % time taken to optimize
+\item[RQ2] Is the optimizer effective? % render time CDF Metal
+\item[RQ3] Is the optimizer fast? % time taken to optimize
 \item[RQ4] Are the optimizations generic across Skia backends, hardware, and websites? % more CDF
 \end{enumerate}
 
@@ -70,7 +70,7 @@ This mainly due to Chrome acting differently with respect to compositing(the
 So for the evaluation, we have a total of \grmetalnumbench benchmarks for machine %
   \#1 and \grvknumbench benchmarks for machine \#2.
 
-\subsection{RQ1: Are the optimizations correct?}
+\subsection{RQ1: Is the Optimizer Correct?}
 
 This section aims to answer RQ1 by showing
   that the optimizer is correct,
@@ -164,9 +164,14 @@ The \muskia rewrites of \Cref{sec:rewrites}
   to \texttt{compare},
   asking it to report the number of pixels
   that differ by more than \texttt{1\%} in a color channel.
+Notably, we perform the pixel comparison to all benchmarks,
+  and can thus test the optimizer's correctness
+  even for benchmarks that use features
+  not formalized in \muskia.
+
 Across the \grmetalnumbench benchmarks,
-  only \grmetalpixdif report significant pixel differences,
-  and examine all such instances manually;
+  only \grmetalpixdif report significant pixel differences.
+We examine all such instances manually;
   \Cref{fig:diff} shows one example, from TikTok.
 In all such instances, the differing pixels
   are clearly caused by anti-aliasing,
@@ -197,114 +202,86 @@ Skia does not guarantee its anti-aliasing behavior,
 \label{fig:diff}
 \end{figure}
 
-\subsection{RQ2 Does the otpimnizer improve the render time of real world Skia
-  programs?}
+\subsection{RQ2: Is the Optimizer Effective?}
 
-To answer this research question,
-  we benchmark the rendering time of both the unoptimized and optimized
-  \texttt{skp}s of the websites we discussed before.
-To measure render time,
-  we use \texttt{nanobench}, a benchmarking tool internal to Skia.
-\texttt{nanobench} actually has many different benchmarking options,
-  the \texttt{skp} \texttt{playback} options are what we use
-  to measure render time.
-As rendering time is not many magnitudes greater than the timer overhead%
-\footnote{\texttt{nanobench} uses \texttt{std::chrono::steady\_clock} as its
-  timer.}
-  we need to choose a careful ebcnhmarking scheme that is able to factor out
-  timer overhead.
-We now describe how \texttt{nanobench} avoids that, by talking about the
-  measurement scheme.
-Before actually measuring the time taken to render for a specific \texttt{skp}
-  file, \texttt{nanobench} first measures the number of loops of rendering
-  needed to make the timing overhead negligible.
-In \texttt{nanobench}, each reported sample is computed as:
-  total elapsed time for a run, divided by the number of playback loops in that
-  run.
-So the key to making the timer overhead neglibible is to choose a good loop
-  count.
-For GPU playback, \texttt{nanobench}
-  calculates the number of loops needed so each sample lasts about a target
-  duration (default \texttt{--gpuMs=5} ms):
-it doubles loops until the sample exceeds the target, then rescales loops to
-  land near that target.
-This makes each sample long enough that timer-call overhead is negligible.
-Using this scheme, we measure 100 samples for each benchmark, both the optimized
-  and unoptimized \texttt{skp}.
-We summarize the rendering speedup across 100 samples using their geometric
-  mean.
-For this research question we only measure rendering time of all benchmarks
-  on Machine \#1 running Skia's Graphite/Metal GPU backend.
-Graphite is Skia’s new GPU rasterization backend, rebuilt for modern
-  graphics APIs (like Metal, Vulkan, and D3D12) with a cleaner architecture and
-  multithreaded rendering workflow.
-Skia's older GPU backend, Ganesh, targeted GPU's through GL.
-% https://blog.chromium.org/2025/07/introducing-skia-graphite-chromes.html
-While this section only discusses performance on Graphite,
-  in \foo we also show our optimizer's performance on Ganesh as well as other
-  hardware platforms in \foo.
+This section aims to answer RQ2 by showing
+  that the optimizer is effective
+  at reducing the rasterization time of Skia programs.
+
+To measure render time, we use \texttt{nanobench},
+  Skia's standard, internal benchmarking tool.
+We specifically use the \texttt{playback} benchmarking option,
+  which rasters the same exact \texttt{skp} in a loop,
+  calibrating the number of loops so that
+  the total GPU rasterization time is 5 milliseconds.
+This makes timing overhead negligible.
+\texttt{nanobench} also performs warm-up iterations
+  to avoid measuring shader compilation time.
+To verify that the timing is reliable,
+  we perform the \texttt{nanobench} measurement
+  100 times for each benchmark
+  and consider the geometric mean.
 
 \begin{figure}[t]
+  \todo[inline]{Make it a side caption, use minipage}
   \centering
   \includegraphics[width=0.49\linewidth]{grmetal_cdf.pdf}
-  \caption{Graphite/Metal render-time CDF. To read this plot, pick a speedup value on the X axis and move up to the curve; the Y value is the fraction of benchmarks with speedup $\leq$ that value (e.g., at 1$\times$, Y is the share that did not speed up). Equivalently, 1 -- Y at 1$\times$ is the share that got faster.}
+  \caption{
+    Raster-time speed-up CDF.
+    The horizontal axis shows a speedup value,
+      with the red line marking a $1\times$ speedup
+      meaning identical runtime for the baseline and optimized \texttt{skp}.
+    The vertical axis shows the fraction of benchmarks
+      that meet or exceed that speed-up amount.
+    \grmetalnumspmatch benchmarks
+      are actually affected by the optimizer,
+      and these see all see speed-ups,
+      ranging from \grmetalspmatchmin to \grmetalspmatchmax.
+  }
   \label{fig:grmetal-cdf}
 \end{figure}
 
-The CDF chart in \Cref{grmetal-cdf} plots the optimizer's results.
-The X axis of the plot is the speedup --baseline render time / optimized render
-  time-- while the Y axis is the percentage of benchmarks that have
-  speedup less than or equal to a certain speedup.
-On this specific machine-backend combination,
-  we see a maximum speedup of \grmetalmaxspeed.
-Moreover
-Looking at the plot,
-  note that most of the CDF line is over the 1$\times$ speedup line.
-This means a majority -- here \grmetalpctspeed -- of the benchmarks render faster after being
-  optimized.
+\Cref{fig:grmetal-cdf} show our results.
+In this CDF, benchmarks are arranged vertically,
+  and the dotted red line corresponds to ``no speedup''.
+Points to the right of the line get faster when optimized,
+  with a maximum speedup of \grmetalmaxspeed.
+The very largest websites are seen
+  on \texttt{skp}s from a group of Russian websites
+  that use the same web framework;
+  this framework, as discussed in \Cref{sec:rewrites},
+  uses redundant gradient masks that seem very expensive in Skia.
+Slowdowns are seen on \grmetalpctslow of benchmarks;
+  however, all of the \texttt{skp}s that see slowdowns
+  are \emph{not optimized} suggesting that the slowdowns are noise.
+All of the significant speedups, by contrast,
+  are on websites that \emph{are optimized},
+  suggesting the speed-ups are genuine.
+Specifically, out of \grmetalnumbench benchmarks,
+  \grmetalnumspeed see speedups,
+  and of these, \grmetalnumspmatch
+  are actually optimized by the optimizer.
+The noise in measured speed-ups
+  could be due to GPU load, scheduling, or other concerns,
+  or it could be due to
+  the \texttt{skp} serialization and deserialization machinery;
+  in any case, the range of speed-ups for unoptimized benchmarks,
+  \grmetalspnomatchmin to \grmetalspnomatchmax,
+  is much smaller than the range of speed-ups for optimized benchmarks,
+  \grmetalspmatchmin to \grmetalspmatchmax,
+  suggesting that the speed-ups are genuine.
+In short, the optimizer is effective
+  at significantly improves the rasterization time
+  of real-world Skia programs.
 
-The long right tail of the CDF plot is due the optimizer significantly improving
-  the rendering time of group of russian websites we listed in \foo.
-Recall,
-  that these russian websites seem to share the web framework,
-  and as a result we are able to remove the redundant gradient mask layers
-  described in \foo.
-Moreover,
-  these gradiant mask layers are always inside an opaque save layer,
-  which means that the gradient mask layer encovers a new rewrite oppurtunity.
+\subsection{RQ3: Is the Optimizer Fast?}
 
-Slowdowns are \grmetalpctslow of the benchmarks.
-All of the slowdowns are seen on website with \emph{no matches},
-  suggesting all of the slowdowns seen in the left-tail of the CDF
-  are all measurement/runtime noise and not caused by our optimizer.
-
-Furthermore,
-  all of the significant speedups we see in the CDF plot are due to the
-  optimizer, and not measurement/runtime noise.
-Specifically,
-  out of the \grmetalnumbench benchmarks, \grmetalnumspeed are speedups.
-Within these speedups,
-  \grmetalnumspmatch are actually optimized by the optimizer.
-The range of the speedups of the optimized benchmarks -- \grmetalspmatchmin to \grmetalspmatchmax -- are
-  larger than the range of the speeudps of the unoptimized benchmarks --
-  \grmetalspnomatchmin to \grmetalspnomatchmax.
-
-In summary,
-  our optimizer, which implements the rewrites described \foo,
-  improves the rendering time significanlty for real-workd websites.
-
-\subsection{RQ2 Does the optimizer pay for itself}
-
-While our optimizer does speed-up the rendering time large, high traffic
-  websites, this rendering time is meaningless if the time taken to optimize
-  is slow.
-In this section we aim to show that our optimizer pays for itself i.e. the time
-  to optimize a \texttt{skp} is always far smaller than the time taken to render
-  the optimized \texttt{skp}.
-To measure optimziation time, we replicated \texttt{nanobench}'s benchmarking
-  scheme we described in \foo.
+This section aims to answer RQ3 by showing
+  that the optimizer is fast enough
+  to ``pay for itself'' in rasterization time reductions.
 
 \begin{figure}[t]
+  \todo[inline]{Use subcaption}
   \centering
   \includegraphics[width=0.49\linewidth]{grmetal_optscatter.pdf}\hfill
   \includegraphics[width=0.49\linewidth]{grmetal_optcdf.pdf}
@@ -313,29 +290,27 @@ To measure optimziation time, we replicated \texttt{nanobench}'s benchmarking
   \label{fig:grmetal-optcdf}
 \end{figure}
 
-We first show optimization times in seperation to everrything else.
-  \Cref{fig:grmetal-optscatter} is a scatter plot of the time taken to optimize
-  a benchmark vs the number of Skia commands in the benchmark.
-There arer two important facts to note from the figure.
-First, like we claim in \Cref{sec:compiler},
-  the time taken to optimize is linear wrt to the size of the Skia program.
-Firthermore,
-  note the range of optimization times we report.
-All optimization times are within 25 $\mu$s.
-This is significantly smaller than the time taken to render.
-To visualize this,
-  we draw the CDF from the previous section, except instead of calculating
-  speedups as between baseline and optimzied render time,
-  we now factor in the optimization time.
-
-\Cref{fig:grmetal-optcdf} is visually indistnguishable from
-\Cref{fig:grmetal-cdf}.
-We originally wanted to superimpose both plots to show the tiny difference between the
- two plots, but in reality such a plot was not very helpful given how similiar
- the two plots are.
-To sumamrize, we show our optimizer is linear with respect to the number of
-  commands in the Skia program, and that the time taken to optimization is far
-  smaller than the time taken to render.
+Skia rasterization must be extremely fast:
+  browser engines need rasterization to take
+  hundreds of microseconds for even large, complex websites
+  to meet their frame budgets.
+We thus measure the total optimization time
+  using a similar measurement scheme as in RQ2.
+\Cref{fig:grmetal-optscatter} shows the results.
+On the left, the scatter plot shows that
+  the optimizer's runtime is linear in the \texttt{skp} size,
+  with even the largest \texttt{skp} taking
+  only 25 microseconds to optimize.
+The vast majority of \texttt{skp}s are much smaller
+  and thus much faster.
+On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,
+  but with the estimated optimization time
+  added to the estimated rasterization time.
+Slowdowns are now somewhat more common,
+  since some \texttt{skp}s see no optimizations applied
+  but still spend time in the optimizer.
+Still, the majority of \texttt{skp} continue to show speed-ups,
+  with the largest speed-ups still as large as \N.
 
 \subsection{RQ4 Are the optimizations generic across Skia backends, hardware, and
   websites?}
