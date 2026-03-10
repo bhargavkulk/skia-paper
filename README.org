@@ -86,39 +86,39 @@ $\left\{\vcenter{\hbox{\frame{\includegraphics[scale=0.28]{drawing0.pdf}}}}\righ
 #+end_src
 
 #+begin_src c++
-void draw(SkCanvas* canvas) {
-   SkPaint paint;
+  void draw(SkCanvas* canvas) {
+      SkPaint paint;
 
-SkPoint center = {128.0f, 128.0f};
-SkScalar radius = 128.0f;
+      SkPoint center = {128.0f, 128.0f};
+      SkScalar radius = 128.0f;
 
-SkColor4f colors[] = {
-    SkColors::kBlack,                  // opaque black
-    SkColors::kBlack.withAlpha(0.0f)   // transparent black
-};
+      SkColor4f colors[] = {
+          SkColors::kBlack,                  // opaque black
+          SkColors::kBlack.withAlpha(0.0f)   // transparent black
+      };
 
-SkScalar positions[] = {0.0f, 1.0f};
+      SkScalar positions[] = {0.0f, 1.0f};
 
-auto shader = SkShaders::RadialGradient(
-    center,
-    radius,
-    { {colors, positions, SkTileMode::kClamp}, {} },
-    nullptr
-);
+      auto shader = SkShaders::RadialGradient(
+                                              center,
+                                              radius,
+                                              { {colors, positions, SkTileMode::kClamp}, {} },
+                                              nullptr
+                                              );
 
-paint.setShader(shader);
+      paint.setShader(shader);
 
-  	SkPaint savePaint;
-  	savePaint.setBlendMode(
-		SkBlendMode::kDstIn
-	);
-    SkSamplingOptions sampling;
-    canvas->drawImageRect(image, SkRect::MakeXYWH(0, 0, 256, 256), sampling);
+    	SkPaint savePaint;
+    	savePaint.setBlendMode(
+                             SkBlendMode::kDstIn
+                             );
+      SkSamplingOptions sampling;
+      canvas->drawImageRect(image, SkRect::MakeXYWH(0, 0, 256, 256), sampling);
 
-  	canvas->saveLayer(nullptr, &savePaint);
-  	canvas->drawRect(SkRect::MakeXYWH(0, 0, 256, 256), paint);
-  	canvas->restore();
-}
+    	canvas->saveLayer(nullptr, &savePaint);
+    	canvas->drawRect(SkRect::MakeXYWH(0, 0, 256, 256), paint);
+    	canvas->restore();
+  }
 #+end_src
 
 #+begin_src c++

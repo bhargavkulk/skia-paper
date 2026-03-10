@@ -3,43 +3,8 @@
 \section{Semantics}
 \label{sec:semantics}
 
-\begin{figure}
-  \centering
-  \begin{minipage}{0.40\linewidth}
-    \pavel{I think we require a special \textsf{Transparent} color.}
-    \centering
-    \begin{tabular}{S S}
-      Image  & : \; Point $\to$ Color \\[2pt]
-      Shape  & : \; Point $\to$ Bool \\[2pt]
-      Blend  & : \; Color $\times$ Color $\to$ Color \\[2pt]
-      Filter & : \; Color $\to$ Color
-    \end{tabular}
-    \caption{%
-      Our abstract model of \textsf{Image}s
-      and \textsf{Shapes} is built from
-      abstract types \textsf{Pixels} and \textsf{Colors}.
-    }
-    \label{fig:model}
-  \end{minipage}
-  \hfill
-  \begin{minipage}{0.58\linewidth}
-    \centering
-    \begin{tabular}{T c S}
-       Solid(Color) | LinearGradient(...) ... & : & Image \\
-      Rect(...) | RRect(...) | Path(...) | Text(...) & : & Shape \\
-      Id | Luma ... & : & Filter \\
-      SrcOut | DstIn | ... & : & BlendMode
-    \end{tabular}
-    \caption{%
-      \textsf{Layer} provides
-      a simple functional description of Skia images.
-    }
-    \label{fig:layer}
-  \end{minipage}
-\end{figure}
-
 This paper's semantics of Skia
-  consists of three components~\Cref{fig:diagram}.
+  consists of three components.
 The bottom-most layer is an abstract model of
   images, shapes, blends, and filters defined in terms
   of abstract types \textsf{Point} and \textsf{Color},
@@ -56,6 +21,26 @@ This section describes all three layers
   proven valid using the semantics.
 
 \subsection{Abstract Model}
+
+\begin{figure}
+  \centering
+  \pavel{I think we require a special \textsf{Transparent} color.}
+  \begin{tabular}{S}
+    Image : \; Point $\to$ Color \\
+    e.g.\; Solid(Color), LinearGradient($\ldots$), $\ldots$ \\[4pt]
+    Shape : \; Point $\to$ Bool \\
+    e.g.\; Rect($\ldots$), RRect($\ldots$), Path($\ldots$), Text($\ldots$) \\[4pt]
+    Filter : \; Color $\to$ Color \\
+    e.g.\; Id, Luma, $\ldots$ \\[4pt]
+    Blend : \; Color $\times$ Color $\to$ Color \\
+    e.g.\; SrcOut, DstIn, $\ldots$
+  \end{tabular}
+  \caption{%
+    Abstract semantic types used in our model,
+    interleaved with representative Skia constructors/operators.
+  }
+  \label{fig:model}
+\end{figure}
 
 Traditional programming language semantics
   typically do not have to define their abstract model,

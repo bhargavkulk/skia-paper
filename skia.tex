@@ -305,7 +305,7 @@ Luckily, Skia maintains a \emph{stack} of clip states;
 Much like \sksave and \skrestore can save clip state,
   there is also a \sksavelayer and \skrestore command
   that saves and restores the drawing surface itself.
-Conceptually, \sksaveLayer allocates
+Conceptually, \sksavelayer allocates
   a new, empty drawing surface.
 
 \begin{figure}[H]
@@ -423,7 +423,11 @@ Instead of trying to clip directly with a complicated shape,
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller}T}
-    canvas->saveLayer();
+    SkPaint blend_p;\\
+    blend_p.setBlendMode(\\
+    \quad SkBlendMode::kDstIn\\
+    );\\
+    canvas->saveLayer(blendPaint);
   \end{tabular}
   \quad
   \begin{tabular}{c}
@@ -442,7 +446,9 @@ We now draw the mask shape on the new layer.
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller}T}
-    canvas->drawRect(rect2, bluePaint);
+    SkPaint p;\\
+    canvas->drawRect(rect1, p);\\
+    canvas->drawRect(rect2, p);
   \end{tabular}
   \quad
   \begin{tabular}{c}
@@ -464,11 +470,11 @@ When we \skdstin one pixel over another,
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller}T}
-    restore(); // multiply blending
+    restore();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.26]{masked_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{masked_mandrill.png}}
   \end{tabular}
 \end{figure}
 
@@ -483,16 +489,16 @@ For example,
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.26]{drawing3.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.26]{gradient.png}}\\[0.6em]
     \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller}T}
-    restore(); // multiply blending
+    restore();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.26]{grad_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{gradient_mandrill.png}}
   \end{tabular}
 \end{figure}
 
@@ -509,26 +515,36 @@ But,
 We have to allocate a whole new layer,
   just to do something Skia already has a fast path for!
 Here,
-  we have two different skia programs that produce the same image,
-  but one us clearly a better choice than the other.
+  we have two different Skia programs that produce the same image,
+  but one is clearly a better choice than the other.
 
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.26]{mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{c}
+  \begin{tabular}{l}
     \begin{tabular}{>{\smaller}T}
-      restore(); // multiply blending
-    \end{tabular}\\[0.8em]
+      canvas->clipRect(rect1);\\
+      canvas->drawImage(...);
+    \end{tabular}\\
+    \noalign{\vskip 1.4em}
+    \cline{1-1}
+    \noalign{\vskip 1.4em}
     \begin{tabular}{>{\smaller}T}
-      restore(); // second program
+      canvas->drawImage(...);\\
+      SkPaint b;\\
+      b.setBlendMode(SkBlendMode::kDstIn);\\
+      canvas->saveLayer(b);\\
+      SkPaint p;\\
+      canvas->drawRect(rect1, p);\\
+      canvas->restore();
     \end{tabular}
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.26]{simple_mandrill.pdf}}
+    \frame{\includegraphics[scale=0.26]{rect_mandrill.png}}
   \end{tabular}
 \end{figure}
 
