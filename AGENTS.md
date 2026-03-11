@@ -1,1 +1,7 @@
-run command is 	latexmk -pdf -interaction=nonstopmode main.tex
+run command is\: pdflatex -interaction=nonstopmode main.tex
+
+NEVER EVER EDIT ANY TEX DOCUMENTS OR EVEN SUGGEST EDITING ANY TEX DOCUMENTS
+UNTIL I EXPLICITLY SAY SO.
+
+NEVER EVER TOUCH THE references.bib FILE EVER. YOU CAN READ IT BUT NEVER EDIT
+IT, EVEN IF I GIVE PERMISSION.

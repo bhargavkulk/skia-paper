@@ -201,24 +201,23 @@ To verify that the timing is reliable,
   100 times for each benchmark
   and consider the geometric mean.
 
-\begin{figure}[t]
-  \todo[inline]{Make it a side caption, use minipage}
+\begin{SCfigure}[1.0][t]
   \centering
-  \includegraphics[width=0.49\linewidth]{grmetal_cdf.pdf}
+  \includegraphics[width=0.58\linewidth]{grmetal_cdf.pdf}
   \caption{
     Raster-time speed-up CDF.
     The horizontal axis shows a speedup value,
-      with the red line marking a $1\times$ speedup
-      meaning identical runtime for the baseline and optimized \texttt{skp}.
+    with the red line marking a 1\texttimes{} speedup
+    meaning identical runtime for the baseline and optimized \texttt{skp}.
     The vertical axis shows the fraction of benchmarks
-      that meet or exceed that speed-up amount.
+    that meet or exceed that speed-up amount.
     \grmetalnumspmatch benchmarks
-      are actually affected by the optimizer,
-      and these see all see speed-ups,
-      ranging from \grmetalspmatchmin to \grmetalspmatchmax.
+    are actually affected by the optimizer,
+    and these see all see speed-ups,
+    ranging from \grmetalspmatchmin to \grmetalspmatchmax.
   }
   \label{fig:grmetal-cdf}
-\end{figure}
+\end{SCfigure}
 
 \Cref{fig:grmetal-cdf} show our results.
 In this CDF, benchmarks are arranged vertically,
@@ -260,13 +259,21 @@ This section aims to answer RQ3 by showing
   to ``pay for itself'' in rasterization time reductions.
 
 \begin{figure}[t]
-  \todo[inline]{Use subcaption}
   \centering
-  \includegraphics[width=0.49\linewidth]{grmetal_optscatter.pdf}\hfill
-  \includegraphics[width=0.49\linewidth]{grmetal_optcdf.pdf}
-  \caption{Graphite/Metal optimization plots: optimization-time scatter (left) and CDF with optimization time included (right).}
-  \label{fig:grmetal-optscatter}
-  \label{fig:grmetal-optcdf}
+  \begin{minipage}[t]{0.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{grmetal_optscatter.pdf}
+    \captionof{figure}{Optimization time versus \texttt{skp} size on
+      Graphite/Metal. Runtime scales approximately linearly, and even the largest
+      benchmark optimizes in under \grmetalmaxopttime}
+    \label{fig:grmetal-optscatter}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.49\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{grmetal_optcdf.pdf}
+    \captionof{figure}{CDF with optimization time included.}
+    \label{fig:grmetal-optcdf}
+  \end{minipage}
 \end{figure}
 
 Skia rasterization must be extremely fast:
@@ -342,16 +349,13 @@ The slowdowns with the Ganesh backend
   \includegraphics[scale=0.5]{grvk_cdf.pdf}
   \includegraphics[scale=0.5]{gaglintel_cdf.pdf}
   \caption{
-    Render-time CDFs for all machine/backend combinations:
-    Graphite/Metal (top-left), Ganesh/OpenGL-Apple (top-right),
-    Graphite/Vulkan (bottom-left), and Ganesh/OpenGL-Intel (bottom-right).
-  Render-time CDFs for the
-    Graphite/Vulkan (left) and Ganesh/OpenGL-Intel (right) backends
-    on Machine #2.
-  The optimizer is still effective,
-    with the exception of one benchmark, Canva,
-    on the older Ganesh back-end,
-    which sees a dramatic but easily-avoided slow-down.
+    Render-time CDFs for Graphite/Vulkan (bottom-left) and Ganesh/OpenGL-Intel
+      (bottom-right).
+    Render-time CDFs for the Graphite/Vulkan (left) and
+      Ganesh/OpenGL-Intel (right) backends on Machine \#2.
+    The optimizer is still effective, with the exception of one benchmark,
+    Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
+    slow-down.
   }
   \label{fig:cdfs-hardware}
 \end{figure}
@@ -380,20 +384,20 @@ The resulting \texttt{skp}s are optimized
   and Ganesh backends.
 
 \Cref{fig:cdfs-hardware} shows the results.
-The optimizer is effective on the second machine.
+The optimizer is effective on the second machine too.
 The maximum speed-up with the Graphite backend
   is somewhat smaller
   (\grvkmaxspeed instead of \grmetalmaxspeed)
   though in this case the Russian websites are
   more clearly outliers.
-Slow-down on Graphite continue to be largely due
+Slow-downs on Graphite continue to be largely due
   to noise on benchmarks that aren't optimized,
   while speed-ups are much larger than
   any observed slow-downs.
 
 With the Ganesh backend,
   the same pattern persists
-  (with an even lower maximum speed-up of \gagleintmaxspeed),
+  (with an even lower maximum speed-up of \gaglintmaxspeed),
   except for one benchmark: Canva.
 The relevant part of the Canva benchmark
   is described in more detail in \Cref{sec:rewrites};

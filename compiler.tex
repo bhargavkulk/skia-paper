@@ -7,7 +7,7 @@ To show that the \muskia semantics
   are useful for developing impactful Skia tooling,
   this section discusses the implementation
   of a Skia optimizer using the rewrite rules
-  discussed in \Cref{ssec:rules}.
+  discussed in \Cref{sec:rewrites}.
 Besides correctly implementing the relevant rules,
   the optimizer must also be highly-efficient
   because Skia rasterization must meet a refresh rate target
@@ -135,7 +135,7 @@ The optimizer operates on layers individually,
 
 \subsection{Rewriting}
 
-Applying the rewrite rules in \Cref{sec:rules}
+Applying the rewrite rules in \Cref{sec:rewrites}
   requires changeing, removeing, or adding commands in the command buffer.
 Changing commands is easy:
   the optimizer allocates a new \texttt{SkRecords} object in the arena
@@ -212,7 +212,9 @@ We learned of this technique from the WebKit browser engine's B3 JIT,
     \SaveLayer to be removed. The state machine we show is the state machine for
     only one layer for simplicity. The rewriter actually functions like a stack
     of state machines, with each \SaveLayer pushing the start of a new state
-    machine onto a stack, and a \Restore popping it off. }
+    machine onto a stack, and a \Restore popping it off. Some times the actions
+    of the top most state machine can change the state of the ones below. We
+    implement this by allowing the rewriter to look beyond the top of the stack.}
   \label{fig:statemachine}
 \end{figure}
 
@@ -242,7 +244,7 @@ The index of the \SaveLayer command that needs to be replaces with a \Save
 All commands advance the state machine.
 
 \Cref{fig:statemachine} shows one such state machine
-  for the \srcover \SaveLayer rewrite in \Cref{sec:rules}.
+  for the \srcover \SaveLayer rewrite in \Cref{sec:rewrites}.
 For this rewrite, the state machine starts in a matching state
   if the \SaveLayer has a \srcover blend mode
   (and is opaque; our Lean formalization includes opacity)
@@ -257,10 +259,8 @@ Once a \Restore matching a \SaveLayer is seen,
   the actual rewriting is performed
   by changing the \SaveLayer command
   into a \Save command.
-\Cref{fig:statemachine} shows state machines
-  corresponding to the other rewrites of \Cref{sec:rules}
-  as well; while more complex,
-  these are straightforwardly derivable from
-  the rules themselves.
+While we only show the state machine for the \SrcOver \SaveLayer rewrite,
+  we can and have derived state machines in a straightforward way to implement
+  the other rewrites described in \Cref{sec:rewrites}.
 
 \end{document}

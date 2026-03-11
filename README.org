@@ -137,3 +137,37 @@ void draw(SkCanvas* canvas) {
   	canvas->restore();
 }
 #+end_src
+
+#+begin_src LaTeX
+\begin{figure}
+  \centering
+  \begin{minipage}{0.40\linewidth}
+    \begin{tabular}{S}
+      Layer & ::= & Empty() \\
+            & |   & Draw(l: \textsf{Layer}, s: \Shape,\\
+            &     & \hspace{4em}p: \textsf{Paint}, c: \Shape)\\
+            & |   & BlendLayer(l\textsubscript{bot}, l\textsubscript{top}: \textsf{Layer})
+            &     & \hspace{8em}p: \textsf{Paint}) \\[2pt]
+      Paint & ::= & Paint(fill: Image, filter: Filter, blend: Blend)
+    \end{tabular}
+    \label{fig:layer}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.58\linewidth}
+    \centering
+    \begin{tabular}{S M c T}
+      Command & c & ::= & Draw($g$: Shape, $p$: Paint) \\
+              &   & | & DrawText(string, $p$: Paint) \\
+              &   & | & Clip($cl$: Shape) \\
+              &   & | & Save(); $c$; Restore() \\
+              &   & | & SaveLayer($p$: Paint); $c$; Restore() \\
+              &   & | & $c$; $c$ \\[1pt]
+    \end{tabular}
+    \caption{%
+      \textsf{Layer} provides
+      a simple functional description of Skia images.
+    }
+    \label{fig:muskia}
+  \end{minipage}
+\end{figure}
+#+end_src

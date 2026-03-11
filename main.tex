@@ -1,5 +1,6 @@
 \documentclass[acmsmall,screen,review,anonymous]{acmart}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{subcaption}
 \usepackage{subfiles}
 \usepackage{xspace}
 \usepackage{simplebnf}
@@ -15,6 +16,8 @@
 \usepackage{mathtools}
 \usepackage{varwidth}
 \usepackage{tikz}
+\usepackage[rightcaption]{sidecap}
+\sidecaptionvpos{figure}{c} % vertically center caption
 \usetikzlibrary{arrows.meta,positioning,calc,automata,quotes}
 
 % package conf
@@ -56,11 +59,27 @@
 \newcommand{\skdstin}{\texttt{DstIn}\xspace}
 \newcommand{\skcliprect}{\texttt{clipRect}\xspace}
 
-\newcommand{\savelayer}{\texttt{SaveLayer}\xspace}
-\newcommand{\restore}{\texttt{Restore}\xspace}
-\newcommand{\save}{\texttt{Save}\xspace}
-\newcommand{\paint}{\texttt{Paint}\xspace}
+\newcommand{\SaveLayer}{\texttt{SaveLayer}\xspace}
+\newcommand{\Restore}{\texttt{Restore}\xspace}
+\newcommand{\Save}{\texttt{Save}\xspace}
+\newcommand{\Paint}{\texttt{Paint}\xspace}
 
+\newcommand{\Image}{\textsf{Image}\xspace}
+\newcommand{\Shape}{\textsf{Shape}\xspace}
+\newcommand{\Color}{\textsf{Color}\xspace}
+\newcommand{\Point}{\textsf{Point}\xspace}
+\newcommand{\Blend}{\textsf{Blend}\xspace}
+\newcommand{\Filter}{\textsf{Filter}\xspace}
+
+\newcommand{\Layer}{\textsf{Layer}\xspace}
+\newcommand{\Empty}{\textsf{Empty}\xspace}
+\newcommand{\Draw}{\textsf{Draw}\xspace}
+\newcommand{\BlendLayer}{\textsf{BlendLayer}\xspace}
+\newcommand{\Clip}{\textsf{Clip}\xspace}
+\newcommand{\SrcOver}{\textsf{DstIn}\xspace}
+\newcommand{\DstIn}{\textsf{DstIn}\xspace}
+\newcommand{\Luma}{\textsf{Luma}\xspace}
+\newcommand{\Transparent}{\textsf{Transparent}\xspace}
 
 % EVAL MACROS
 \newcommand{\N}{\fillin{100}\xspace}
@@ -93,7 +112,7 @@
 \newcommand{\grmetaltopoptpct}{\fillin{63.780}\xspace}
 \newcommand{\grmetaltimerovhns}{\fillin{30.205}\xspace}
 \newcommand{\grmetalpixdif}{\fillin{16}\xspace}
-\newcommand{\grmetalmaxopttime}{\fillin{25 $\mu$s}\xspace}
+\newcommand{\grmetalmaxopttime}{\fillin{25\,\textmu s}\xspace}
 
 \newcommand{\gaglapnumbench}{\fillin{99}\xspace}
 \newcommand{\gaglapnumspeed}{\fillin{66}\xspace}
