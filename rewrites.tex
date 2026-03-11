@@ -26,6 +26,23 @@ To demonstrate the flexibility of the \muskia semantics,
   only to Skia programs produced by Google Chrome
   or only to specific web frameworks or even websites.
 
+It is important to understand what we mean by equivalence of \muskia programs.
+The equality we will use in this section is always over entire programs.
+We consider two \muskia programs to be equal
+  when they evaluate to the same \Image under the semantics in
+  \Cref{sec:semantics}.
+We evaluate \muskia programs by first converting the \muskia program into \Layer
+  terms as described by the operational semantics in \Cref{subsec:muskia}.
+We then evaluate the \Layer terms into \Image{}s with the denotational semantics
+  defined in \Cref{subsec:sem-layers}.
+In this section, for every rewrite, we will present the rewrite as \muskia
+  programs, then \Layer terms, and finally the core of the rewrite as an equality
+  over the abstract model.
+Throughout to section,
+  we will group segments of possible \muskia commands with the notation
+  ``$\ell\ldots$''.
+We will use $\ell$ to refer to both the \muskia commands, and the \Layer term
+  they all evaluate to.
 
 \subsection{SrcOver \SaveLayer{}s}
 \label{subsec:src-over-layer}
@@ -42,14 +59,16 @@ To demonstrate the flexibility of the \muskia semantics,
       $\ell_1\ldots$ \\
       SaveLayer(Paint(..., SrcOver)); \\
       \quad $\ell_2\ldots$ \\
-      Restore()
+      Restore(); \\
+      $\ell_3\ldots$
     \end{tabular}
     & \eqimg &
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
       Save(); \\
       \quad $\ell_2\ldots$ \\
-      Restore()
+      Restore(); \\
+      $\ell_3\ldots$
     \end{tabular}
   \end{tabular}
 \end{center}
@@ -147,22 +166,29 @@ This suggests the following idealized equivalence:
 \begin{center}
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
-      $\ell\ldots$ \\
+      $\ell_1\ldots$ \\
       SaveLayer(Paint(..., Dstin)); \\
+      \quad $\ell_2\ldots$ \\
       \quad Draw($g$, Paint(..., SrcOver)); \\
       Restore()
     \end{tabular}
     & \eqimg &
     \begin{tabular}{@{}l@{}}
       Clip($g$); \\
-      $\ell\dots$ \\
+      $\ell_2\ldots$ \\
+      $\ell_1\dots$ \\
     \end{tabular}
   \end{tabular}
 \end{center}
-In this case, the segment of \muskia commands labeled $\ell$
+In this case, the segment of \muskia commands labeled $\ell_1$
   is assumed to not contain \SaveLayer operations.
-\pavel{Isn't there also something about \Clip operations?
-  But they have to be intersection clips, not differences?}
+More importantly, $\ell_2$ \emph{has} to only contain \Clip commands.
+This is because,
+  we are only dealing with masks that are drawn with only one geometry,
+  else we would also have to reason about the blend interactions of the various
+  \Draw commands within the \DstIn \SaveLayer.
+And as we are dealing with simple masks we want to turn into clips,
+  the fill of the masking \Draw mus also be fully opaque.
 
 A challenge with verifying this rewrite
   is that it involves applying the \Clip operation
@@ -187,35 +213,53 @@ We then prove, by induction,
 
 With this induction proven,
   the core \Layer equivalence becomes:
-\pavel{We need to be clearer about assumptions; I think $c$ must be
-  opaque and $p$ must be \srcover.}
-\pavel{Wait, also, I don't think $\denote{\ell}$ is right here;
-  we need a name for the Layer produced by $\ell$.}
+% \pavel{We need to be clearer about assumptions; I think $c$ must be
+%   opaque and $p$ must be \srcover.}
+% \pavel{Wait, also, I don't think $\denote{\ell}$ is right here;
+%   we need a name for the Layer produced by $\ell$.}
 
 \begin{equation*}
-\BlendLayer(\ell, \Draw(\Empty(), m, p, c)) = \mathsf{clipAll}(\ell, m)
+\BlendLayer(\ell, \Draw(\Empty(), m, p, c)) = \mathsf{clipAll}(\ell, c \cap m)
 \end{equation*}
 
 This is then proven by induction over $\ell$,
   recalling that it since $\ell$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
 The base case, $\denote{\ell} = \mathsf{Empty}()$, is trivial,
-  while the inductive case reduces the following
+  while the inductive case reduces to the following
   in the abstract model:
 \begin{equation*}
-\dstin(c_1 \:\mathsf{if}\:x\in g\:\mathsf{else}\:\mathsf{Transparent},
-          c_2\:\mathsf{if}\:x \in m\:\mathsf{else}\:\mathsf{Transparent})
-  = c_1\:\mathsf{if}\:x \in g\cap m\:\mathsf{else}\:\mathsf{Transparent}
+\dstin\!\left(
+\left\{
+\begin{array}{ll}
+  c_1, & x \in g \\
+  \mathsf{Transparent}, & \text{otherwise}
+\end{array}
+\right\},
+\left\{
+\begin{array}{ll}
+  c_2, & x \in c \cap m \\
+  \mathsf{Transparent}, & \text{otherwise}
+\end{array}
+\right\}
+\right)
+=
+\left\{
+\begin{array}{ll}
+  c_1, & x \in g \cap c \cap m \\
+  \mathsf{Transparent}, & \text{otherwise}
+\end{array}
+\right\}
 \end{equation*}
   where $c_2$ is known to be opaque.
-This is proven by case analysis on $x \in g$ and $x \in m$.
+This is proven by case analysis on $x \in g$ and $x \in c \cap m$.
 
 While the high-level rewrite is straightforward,
   we initially wrote down an incorrect version
   of the high-level theorem,
   missing critical assumptions about
   the lack of \SaveLayer operations in $\ell$,
-  the opacity of $c$, and the use of the \DstIn blend mode
+  the opacity of the colors involved, and the use of the \DstIn blend mode
   to draw the mask.
 The proof with the \muskia semantics
   was critical to surfacing the need for these assumptions
@@ -244,7 +288,7 @@ The proof with the \muskia semantics
 </svg>
 \end{BVerbatim}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.34\linewidth}
+  \begin{minipage}[c]{0.25\linewidth}
     \centering
     \frame{\includegraphics[width=\linewidth]{canva.pdf}}
   \end{minipage}

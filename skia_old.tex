@@ -3,24 +3,6 @@
 \section{Skia}
 \label{sec:skia}
 
-% \newcommand{\layerstack}[2]{%
-%   \begin{tabular}{@{}c@{}}
-%     \hspace{0.9em}\raisebox{0.9em}{\frame{\includegraphics[scale=0.15]{#1}}}\\[-3.1em]
-%     \frame{\includegraphics[scale=0.15]{#2}}
-%   \end{tabular}%
-% }
-
-\newcommand{\layerstack}[2]{%
-  \begin{tikzpicture}[baseline=(base.center)]
-    \node[anchor=south west] (base) at (0,0)
-      {\frame{\includegraphics[scale=0.15]{#2}}};
-    % Keep width aligned with single-image cells while allowing vertical stack reveal.
-    \path[use as bounding box] (base.south west) rectangle ([yshift=0.8em]base.north east);
-    \node[anchor=south west] at (0.8em,0.8em)
-      {\frame{\includegraphics[scale=0.15]{#1}}};
-  \end{tikzpicture}%
-}
-
 \pavel{make sure we dont reference colors}
 
 Skia is a widely used 2D graphics library.
@@ -70,7 +52,7 @@ The \skdrawrect command is used to draw rectangles:%
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     canvas->drawRect(rect1, p);
   \end{tabular}
@@ -104,7 +86,7 @@ The default fill for a \skpaint is the color black,
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     p.setColor(SK\_ColorRED);\\
     canvas->drawRect(rect1, p);
@@ -125,7 +107,7 @@ It's also possible to specify a non-constant fill,
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     p.setShader(\\
     \quad SkShaders::LinearGradient(...)\\
@@ -181,7 +163,7 @@ Suppose we draw a second, overlapping, blue square:
     \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     p.setColor(SK\_ColorBLUE);\\
     canvas->drawRect(rect2, p);
   \end{tabular}
@@ -218,7 +200,7 @@ For example, the \skmultiply blend mode %
     \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     p.setColor(SK\_ColorBLUE);\\
     p.setBlendMode(\\
     \quad SkBlendMode::kMultiply\\
@@ -260,7 +242,7 @@ One uses \skcliprect like this:
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     canvas->clipRect(clip\_rect);\\
     canvas->drawRect(rect1, redPaint);
   \end{tabular}
@@ -290,7 +272,7 @@ This means that a single \skcliprect operation
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     canvas->clipRect(c\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
     canvas->drawRect(rect2, bluePaint);
@@ -317,7 +299,7 @@ Luckily, Skia maintains a \emph{stack} of clip states;
     \frame{\includegraphics[scale=0.15]{drawing0.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     canvas->save();\\
     canvas->clipRect(c\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
@@ -347,11 +329,14 @@ Conceptually, \sksavelayer allocates
     \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     canvas->saveLayer();
   \end{tabular}
   \quad
-  \layerstack{drawing0.pdf}{drawing2.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
+  \end{tabular}
 \end{figure}
 
 All drawing commands until the corresponding \skrestore
@@ -359,13 +344,19 @@ All drawing commands until the corresponding \skrestore
 
 \begin{figure}[H]
   \centering
-  \layerstack{drawing0.pdf}{drawing2.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     canvas->drawRect(rect2, bluePaint);
   \end{tabular}
   \quad
-  \layerstack{drawing9.pdf}{drawing2.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
+  \end{tabular}
 \end{figure}
 
 Then, when the \skrestore command it reached,
@@ -374,9 +365,12 @@ Then, when the \skrestore command it reached,
 
 \begin{figure}[H]
   \centering
-  \layerstack{drawing9.pdf}{drawing2.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     restore();
   \end{tabular}
   \quad
@@ -410,9 +404,12 @@ For example,
 
 \begin{figure}[H]
   \centering
-  \layerstack{drawing9.pdf}{drawing2.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing9.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     restore(); // multiply blending
   \end{tabular}
   \quad
@@ -440,7 +437,7 @@ Instead of trying to clip directly with a complicated shape,
     \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
   \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     SkPaint blend\_p;\\
     blend\_p.setBlendMode(\\
     \quad SkBlendMode::kDstIn\\
@@ -448,22 +445,31 @@ Instead of trying to clip directly with a complicated shape,
     canvas->saveLayer(blendPaint);
   \end{tabular}
   \quad
-  \layerstack{drawing0.pdf}{mandrill.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
+  \end{tabular}
 \end{figure}
 
 We now draw the mask shape on the new layer.
 
 \begin{figure}[H]
   \centering
-  \layerstack{drawing0.pdf}{mandrill.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{drawing0.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     SkPaint p;\\
     canvas->drawRect(rect1, p);\\
     canvas->drawRect(rect2, p);
   \end{tabular}
   \quad
-  \layerstack{mask.pdf}{mandrill.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
+  \end{tabular}
 \end{figure}
 
 \skdstin emulates masking through blending;
@@ -473,9 +479,12 @@ When we \skdstin one pixel over another,
 
 \begin{figure}[H]
   \centering
-  \layerstack{mask.pdf}{mandrill.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{mask.pdf}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     restore();
   \end{tabular}
   \quad
@@ -494,9 +503,12 @@ For example,
 
 \begin{figure}[H]
   \centering
-  \layerstack{gradient.png}{mandrill.pdf}
+  \begin{tabular}{c}
+    \frame{\includegraphics[scale=0.15]{gradient.png}}\\[0.6em]
+    \frame{\includegraphics[scale=0.15]{mandrill.pdf}}
+  \end{tabular}
   \quad
-  \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+  \begin{tabular}{>{\smaller}T}
     restore();
   \end{tabular}
   \quad
@@ -528,14 +540,14 @@ Here,
   \end{tabular}
   \quad
   \begin{tabular}{l}
-    \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+    \begin{tabular}{>{\smaller}T}
       canvas->clipRect(rect1);\\
       canvas->drawImage(...);
     \end{tabular}\\
     \noalign{\vskip 1.4em}
     \cline{1-1}
     \noalign{\vskip 1.4em}
-    \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
+    \begin{tabular}{>{\smaller}T}
       canvas->drawImage(...);\\
       SkPaint b;\\
       b.setBlendMode(SkBlendMode::kDstIn);\\

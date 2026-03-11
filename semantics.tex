@@ -27,7 +27,7 @@ This section describes all three layers
   \centering
   \pavel{I think we require a special \textsf{Transparent} color.}
   \bhargav{Not sure how we fit it into the current abstrac model figure.}
-  \begin{tabular}{S S >{\raggedleft\arraybackslash}p{0.50\linewidth}}
+  \begin{tabular}{S S S}
     Image  & : \; Point $\to$ Color & \textrm{\textit{e.g.}}\; {\sffamily
                                       Solid(Color), LinearGradient($\ldots$),
                                       $\ldots$} \\[4pt]
@@ -136,17 +136,14 @@ This extension does not require any changes to the abstract model,
   \centering
   \begin{subfigure}[T]{0.45\linewidth}
     \centering
-    \begin{tabular}{ScS}
-      Layer
-      & ::= & Empty() \\
-      & |   & Draw($\ell$: Layer, $s$: Shape, \\
-      &     & \quad $p$: Paint, $c$: Shape) \\
-      & |   & BlendLayer($\ell_{\textsf{bot}}$, $\ell_{\textsf{top}}$: Layer, \\
-      &     & \quad\quad $p$: Paint) \\[4pt]
+    \begin{tabular}{SSS}
+      Layer ::= \\
+      | Empty() \\
+      | Draw($\ell$: Layer, $s$: Shape, $p$: Paint, $c$: Shape) \\
+      | BlendLayer($\ell_{\textsf{bot}}$, $\ell_{\textsf{top}}$: Layer, $p$: Paint) \\[4pt]
 
-      Paint
-      & ::= & Paint(\textit{fill}: Image, \textit{filter}: Filter, \\
-      &     & \quad\quad \textit{blend}: Blend)
+      Paint ::= \\
+      | Paint(\textit{fill}: Image, \textit{filter}: Filter, \textit{blend}: Blend)
     \end{tabular}
     \caption{}
     \label{fig:layerlang}
@@ -155,11 +152,12 @@ This extension does not require any changes to the abstract model,
   \begin{subfigure}[T]{0.50\linewidth}
     \centering
     \begin{tabular}{ScS}
-      Command & ::= & Draw($g$: Shape, $p$: Paint) \\
-              & |   & Clip(\textit{cl}: Shape) \\
-              & |   & Save(); $c$; Restore() \\
-              & |   & SaveLayer($p$: Paint); $c$; Restore() \\
-              & |   & $c$; $c$
+      Command ::= \\
+      | Draw($g$: Shape, $p$: Paint) \\
+      | Clip(\textit{cl}: Shape) \\
+      | Save(); $c$; Restore() \\
+      | SaveLayer($p$: Paint); $c$; Restore() \\
+      | $c$; $c$
     \end{tabular}
     \caption{}
     \label{fig:muskia}
@@ -189,20 +187,21 @@ The \layer constructors can be defined in terms of the abstract model,
 
 \begin{figure}
   \begin{align*}
-    \denote{\texttt{Empty()}}(\textsf{pt})
-    &= \mathsf{Transparent}\\[2pt]
-    \denote{\texttt{BlendLayer(l\textsubscript{bot}, l\textsubscript{top},
-    p)}}(\mathsf{pt})
-    &= \mathtt{blend_p}\left(\denote{\mathtt{l_{bot}}}(\mathsf{pt}),\;
-        \texttt{filter\textsubscript{p}}\left(\denote{\mathtt{l_{top}}}(\mathsf{pt})\right)
+    \denote{\Empty()}(\textsf{pt})
+    &= \Transparent\\[2pt]
+    \denote{\BlendLayer(\ell_\textsf{bot}, \ell_\textsf{bot}, p)}(\mathsf{pt})
+    &= \mathsf{blend_\mathrm{p}}\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
+        \textsf{filter\textsubscript{\textrm{\textit{p}}}}\left(\denote{\mathsf{\ell_{top}}}(\mathsf{pt})\right)
       \right) \\[2pt]
-    \denote{\texttt{Draw(l, s, p, c)}}(\mathsf{pt})
-    &= \mathtt{blend_p}\left(\denote{\mathtt{l}(\mathsf{pt})},\;
-      \texttt{filter\textsubscript{p}}\left(
-       \begin{cases}
-         \mathtt{fill_p}(\mathsf{pt}) & \mathsf{pt} \in \mathtt{s} \cap \mathtt{c} \\
-         \mathsf{Transparent} & \textsf{otherwise}
-       \end{cases}
+    \denote{\Draw(\ell, s, p, c)}(\mathsf{pt})
+    &= \mathsf{blend_\mathrm{p}}\left(\denote{\ell(\mathsf{pt})},\;
+      \textsf{filter\textsubscript{\textrm{\textit{p}}}}\left(
+       \left\{
+       \begin{array}{ll}
+         \mathsf{fill_\mathrm{p}}(\mathsf{pt}) & \mathsf{pt} \in s \cap c \\
+         \Transparent & \textsf{otherwise}
+       \end{array}
+       \right\}
        \right)\right)\\
   \end{align*}
   \caption{Denotational semantics for \Layer terms.}
@@ -217,7 +216,7 @@ Each operation is parameterized by a \textsf{Paint} object,
   the fill type, and so on;
   drawing also requires the clip region from the canvas state.
 The signatures for each operation are defined
-  in \Cref{fig:layerlang} as constructors of
+  in \Cref{fig:layer} as constructors of
   a \textsf{Layer} type.
 Equivalence of two \textsf{Layer} terms
   is defined by equivalence of their denotations to \Image{}s.
@@ -403,12 +402,6 @@ The inference rule for sequential composition is straightforward
 
 The \muskia semantics is deterministic,
   and programs never get stuck.
-Equivalence of \muskia programs,
-  which we notate $\eqimg$,
-  is defined as equivalence of their final images.
-This equivalence relation is \emph{not}
-  closed under composition or substitution in general,
-  but it is closed under substitution under \textsf{SaveLayer} commands.
 
 \end{document}
 

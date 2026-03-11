@@ -349,8 +349,6 @@ The slowdowns with the Ganesh backend
   \includegraphics[scale=0.5]{grvk_cdf.pdf}
   \includegraphics[scale=0.5]{gaglintel_cdf.pdf}
   \caption{
-    Render-time CDFs for Graphite/Vulkan (bottom-left) and Ganesh/OpenGL-Intel
-      (bottom-right).
     Render-time CDFs for the Graphite/Vulkan (left) and
       Ganesh/OpenGL-Intel (right) backends on Machine \#2.
     The optimizer is still effective, with the exception of one benchmark,
@@ -418,13 +416,12 @@ In any case, this Canva benchmark is
 
 \subsubsection{Website generalizability}
 
-\begin{figure}[t]
-  \todo[inline]{Side caption with minipage}
+\begin{SCfigure}[1.0][t]
   \centering
   \includegraphics[width=0.49\linewidth]{grmetalnew_cdf.pdf}
-  \caption{Graphite/Metal render-time CDF. To read this plot, pick a speedup value on the X axis and move up to the curve; the Y value is the fraction of benchmarks with speedup $\leq$ that value (e.g., at 1$\times$, Y is the share that did not speed up). Equivalently, 1 -- Y at 1$\times$ is the share that got faster.}
+  \caption{Render time CDF on Graphite/Metal with the new set of 100 websites.}
   \label{fig:cdf-newsites}
-\end{figure}
+\end{SCfigure}
 
 Finally, we ask whether the optimizer is effective
   on across different websites.
