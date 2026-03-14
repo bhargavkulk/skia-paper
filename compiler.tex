@@ -235,19 +235,19 @@ For every object, it calls the corresponding \texttt{on*} callback method
 For some special \texttt{SkRecords} objects,
   \texttt{transform} also does a bit beyond just dispatching callback methods.
 For \Save,
-  \texttt{transform} increments a \texttt{save_count}.
+  \texttt{transform} increments a \texttt{save\_count}.
 For \SaveLayer,
   \texttt{transform} initializes and pushes a new \texttt{Frame} on a stack.
 Before pushing,
-  it also saves the current \texttt{save_count} onto the \texttt{Frame}.
+  it also saves the current \texttt{save\_count} onto the \texttt{Frame}.
 And finally,
   for \Restore,
-  it pops a \texttt{Frame} depending on the current \texttt{save_count}.
-If the current \texttt{save_count} is greater than that of the \texttt{Frame}
+  it pops a \texttt{Frame} depending on the current \texttt{save\_count}.
+If the current \texttt{save\_count} is greater than that of the \texttt{Frame}
   that is on top of the stack, it does not pop of the stack.
 This is because, there have been some intermeddiate \Save{}s before the current
   top-of-stack \SaveLayer, and \texttt{transform} should decrement the
-  \texttt{save_count} instead of popping from the stack.
+  \texttt{save\_count} instead of popping from the stack.
 This scheme helps us in two ways.
 Firstly, this allows us to distinguish between a \Restore of a \Save and a \Restore
   of a \SaveLayer.
