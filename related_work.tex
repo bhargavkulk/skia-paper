@@ -24,7 +24,12 @@ The work on layout engines is closest to the work introduced in this
 
 \paragraph{2D graphics}
 
-In the vast literature of 2D graphics rendering and processing, the Halide
+The scheme of blending colors, which we describe in the abstract model in
+  \Cref{sec:semantics}, was introduced by \citet{blendmodes}.
+Also of note is \citet{pipeline}, which introduces a rudimentary rendering
+  pipeline seperating the concerns between what is being drawn (objects and
+  their spacial positions) and how it is being drawn (rendering).
+In the vast modern literature of 2D graphics rendering and processing, the Halide
 language stands out.
 Halide, introduced in \cite{halide}, is a language helps in describing both the
   computation and scheduling of high performance 2D image processing kernels.
@@ -36,6 +41,13 @@ Although Halide and the work in this paper both focus on trying to improve image
   rendering, Halide focuses on the underlying computation done while rendering,
   while our work focuses on the higher level ordering of drawing instructions
   prior to rendering.
+
+\paragraph{Scene Graphs}
+
+Skia's command API can be thought of as a 2D version of a scene graph. A scene
+graph is a heirarchical data structure which describes the logical and spatial
+arrangement of objects in (usually 3D) \emph{scene}.
+
 
 \paragraph{Semantics for unusual domains}
 
@@ -53,7 +65,7 @@ A visual format that has also been a focus for formalization are for programs th
   to that of \Layer terms to \Image{}s in our work.
 \citet{gcode} on the other hand introduces a semantics for the lower level
   G-code instructions used by 3D printing machines.
-There is a series of papers on both the higher and lower level semantics of
-  knitting machines~\citep{knitsem, knitequiv, ufo}.
+There is also a series of papers on both the higher and lower level semantics of
+  knitting machines (\citet*{knitsem, knitequiv, ufo}).
 
 \end{document}

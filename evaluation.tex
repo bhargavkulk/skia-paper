@@ -48,6 +48,7 @@ For our primary evaluation in RQs 1--3,
   with Skia's ``Graphite'' graphics backend and the Metal GPU API.
 
 \subsection{RQ1: Is the Optimizer Correct?}
+\label{subsec:rq1}
 
 This section aims to answer RQ1 by showing
   that the optimizer is correct,
@@ -82,6 +83,7 @@ If all \texttt{skp} file in the optimization trace
   is equivalent, as a \muskia program, to the previous step.
 
 \begin{figure}
+\small
 \begin{BVerbatim}
 theorem src_eq_opt1 : denote src = denote opt1 := by
   unfold src
@@ -125,7 +127,7 @@ The remaining \tvgrindtimeout benchmarks
   and times out on complex \muskia terms.
 
 
-\subsubsection{Optimizations yeield the same images}
+\subsubsection{Optimizations yeild the same images}
 
 Conformance with the \muskia semantics, however,
   is only as good as the quality of the \muskia semantics themselves.
@@ -202,7 +204,7 @@ To verify that the timing is reliable,
 
 \begin{SCfigure}[1.0][t]
   \centering
-  \includegraphics[width=0.58\linewidth]{grmetal_cdf.pdf}
+  \includegraphics[width=0.45\linewidth]{grmetal_cdf.pdf}
   \caption{
     Raster-time speed-up CDF.
     The horizontal axis shows a speedup value,
@@ -261,7 +263,7 @@ This section aims to answer RQ3 by showing
   \centering
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{grmetal_optscatter.pdf}
+    \includegraphics[scale=0.5]{grmetal_optscatter.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and even the largest
       benchmark optimizes in under \grmetalmaxopttime}
@@ -269,7 +271,7 @@ This section aims to answer RQ3 by showing
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{grmetal_optcdf.pdf}
+    \includegraphics[scale=0.5]{grmetal_optcdf.pdf}
     \captionof{figure}{CDF with optimization time included.}
     \label{fig:grmetal-optcdf}
   \end{minipage}
@@ -417,7 +419,7 @@ In any case, this Canva benchmark is
 
 \begin{SCfigure}[1.0][t]
   \centering
-  \includegraphics[width=0.49\linewidth]{grmetalnew_cdf.pdf}
+  \includegraphics[width=0.45\linewidth]{grmetalnew_cdf.pdf}
   \caption{Render time CDF on Graphite/Metal with the new set of 100 websites.}
   \label{fig:cdf-newsites}
 \end{SCfigure}
