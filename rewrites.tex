@@ -104,13 +104,13 @@ After expanding out the \muskia semantics,
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       BlendLayer($\ell$\textsubscript{1}, \\
-      \quad Draw($\ell$\textsubscript{2}, $g$, $p_d$ \{ \SrcOver \}, $c$), \\
-      $p$)
+      \quad Draw($\ell$\textsubscript{2}, $g$, $p_d$ \{ \SrcOver \}), \\
+      \quad $p$)
     \end{tabular}
     & = &
     \begin{tabular}{@{}l@{}}
       Draw(BlendLayer($\ell$\textsubscript{1}, $\ell$\textsubscript{2}, $p_d$),\\
-      \quad $g$, $p$, $c$)
+      \quad $g$, $p$)
     \end{tabular}
   \end{tabular}
 \end{center}
@@ -198,7 +198,7 @@ To do so, we define a recursive function \textsf{clipAll}
   &\mathsf{clipAll} : \Layer \to \Shape \to \Layer \\
   &\mathsf{clipAll}(\Empty(), m) = \Empty() \\
   &\mathsf{clipAll}(\Draw(\ell, g, p, c), m)
-                   = \Draw(\mathsf{clipAll}(\ell, m), g, p, c \cap m)
+                   = \Draw(\mathsf{clipAll}(\ell, m), g \cap m, p)
 \end{align*}
 
 Note that \textsf{clipAll} is not defined
@@ -213,7 +213,7 @@ With this induction proven,
   the core \Layer equivalence becomes:
 
 \begin{equation*}
-\BlendLayer(\ell, \Draw(\Empty(), m, p_2, c), p_1) = \mathsf{clipAll}(\ell, c \cap m)
+\BlendLayer(\ell, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell, m)
 \end{equation*}
 
 This is then proven by induction over $\ell$,
@@ -222,7 +222,7 @@ This is then proven by induction over $\ell$,
 The base case, where $\ell$ is \Empty, is trivial,
   while the inductive case reduces to the following
   in the abstract model:
-\begin{equation*}
+\begin{gather*}
 \dstin\!\left(
 \left\{
 \begin{array}{ll}
@@ -232,21 +232,21 @@ The base case, where $\ell$ is \Empty, is trivial,
 \right\},
 \left\{
 \begin{array}{ll}
-  c_2, & x \in c \cap m \\
+  c_2, & x \in m \\
   \mathsf{Transparent}, & \text{otherwise}
 \end{array}
 \right\}
-\right)
+\right)\\
 =
 \left\{
 \begin{array}{ll}
-  c_1, & x \in g \cap c \cap m \\
+  c_1, & x \in g \cap m \\
   \mathsf{Transparent}, & \text{otherwise}
 \end{array}
 \right\}
-\end{equation*}
+\end{gather*}
   where $c_2$ is known to be opaque.
-This is proven by case analysis on $x \in g$ and $x \in c \cap m$.
+This is proven by case analysis on $x \in g$ and $x \in m$.
 
 While the high-level rewrite is straightforward,
   we initially wrote down an incorrect version
@@ -425,13 +425,13 @@ Converting to \Layer terms, this rewrite unfolds to:
 \begin{center}
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
-      BlendLayer(Draw(Empty(), \textit{shape}, $p_1$, $c$)\\
-      \quad \quad Draw(Empty(), \textit{shape}, $p_2$, $c$)\\
+      BlendLayer(Draw(Empty(), $s$, $p_1$)\\
+      \quad \quad Draw(Empty(), $s$, $p_2$)\\
       \quad \quad \{ DstIn \})
     \end{tabular}
     & = &
     \begin{tabular}{@{}l@{}}
-      Draw(Empty(), \textit{shape}, $p_1$, $c$)
+      Draw(Empty(), $s$, $p_1$)
     \end{tabular}
   \end{tabular}
 \end{center}

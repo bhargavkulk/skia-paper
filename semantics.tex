@@ -137,7 +137,7 @@ This extension does not require any changes to the abstract model,
     \begin{tabular}{SSS}
       Layer ::= \\
       | Empty() \\
-      | Draw($\ell$: Layer, $s$: Shape, $p$: Paint, $c$: Shape) \\
+      | Draw($\ell$: Layer, $s$: Shape, $p$: Paint) \\
       | BlendLayer($\ell_{\textsf{bot}}$, $\ell_{\textsf{top}}$: Layer, $p$: Paint) \\[4pt]
 
       Paint ::= \\
@@ -196,7 +196,7 @@ The \layer constructors can be defined in terms of the abstract model,
       \textsf{filter\textsubscript{\textrm{\textit{p}}}}\left(
        \left\{
        \begin{array}{ll}
-         \mathsf{fill_\mathrm{p}}(\mathsf{pt}) & \mathsf{pt} \in s \cap c \\
+         \mathsf{fill_\mathrm{p}}(\mathsf{pt}) & \mathsf{pt} \in s \\
          \Transparent & \textsf{otherwise}
        \end{array}
        \right\}
@@ -306,11 +306,11 @@ The simplest is the \textsf{Draw} command,
   { }
   {
     \langle
-    \texttt{Draw(g, p)},
-    \langle l :: L, c :: C \rangle
+    \Draw(s, p),
+    \langle \ell :: L, c :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle \texttt{Draw(l, g, p, c)} :: L, c :: C \rangle
+    \langle \Draw(\ell, s, p) :: L, c :: C \rangle
   }
 \end{mathpar}
 \noindent
@@ -327,7 +327,7 @@ The \textsf{Clip} command likewise modifies
   { }
   {
     \langle
-    \texttt{Clip(c')},
+    \Clip(c'),
     \langle L, c :: C\rangle
     \rangle
     \;\longmapsto\;
@@ -350,7 +350,7 @@ Then, when its matching \textsf{Restore} is reached,
   \inferrule
   {
     \langle
-    \texttt{cmd},
+    \mathit{cmd},
     \langle L, c :: c :: C \rangle
     \rangle
     \;\longmapsto\;
@@ -358,7 +358,7 @@ Then, when its matching \textsf{Restore} is reached,
   }
   {
     \langle
-    \texttt{Save(); cmd; Restore()},
+    \Save(); \mathit{cmd}; \Restore(),
     \langle L, c :: C\rangle
     \rangle
     \;\longmapsto\;
@@ -378,18 +378,18 @@ The \textsf{SaveLayer} command, meanwhile,
   \inferrule
   {
     \langle
-    \texttt{cmd},
-    \langle \texttt{Empty()} :: l :: L, c :: c :: C \rangle \rangle
+    \mathite{cmd},
+    \langle \Empty() :: ell :: L, c :: c :: C \rangle \rangle
     \;\longmapsto\;
-    \langle l' :: l :: L, c' :: c :: C \rangle
+    \langle \ell' :: \ell :: L, c' :: c :: C \rangle
   }
   {
     \langle
-    \texttt{SaveLayer(p); cmd; Restore()},
-    \langle l :: L, c :: C\rangle
+    \SaveLayer(p); \mathit{cmd}; \Restore(),
+    \langle \ell :: L, c :: C\rangle
     \rangle
     \;\longmapsto\;
-    \langle \texttt{BlendLayer(l, l', p)} :: L, c :: C \rangle
+    \langle \BlendLayer(\ell, \ell', p) :: L, c :: C \rangle
   }
 \end{mathpar}
 \noindent
@@ -402,6 +402,3 @@ The \muskia semantics is deterministic,
   and programs never get stuck.
 
 \end{document}
-
-% does applying this rewrite produce speedup
-% do rewrites generalize
