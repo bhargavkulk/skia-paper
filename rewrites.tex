@@ -57,12 +57,12 @@ We will use $\ell$ to refer to both the \muskia commands, and the \Layer term
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
-      SaveLayer(Paint(..., SrcOver)); \\
+      SaveLayer($p$ \{ \SrcOver \}); \\
       \quad $\ell_2\ldots$ \\
       Restore(); \\
       $\ell_3\ldots$
     \end{tabular}
-    & \eqimg &
+    & = &
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
       Save(); \\
@@ -104,14 +104,13 @@ After expanding out the \muskia semantics,
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       BlendLayer($\ell$\textsubscript{1}, \\
-      \quad Draw($\ell$\textsubscript{2}, $g$, Paint(..., SrcOver), $c$), \\
-      Paint(..., SrcOver))
+      \quad Draw($\ell$\textsubscript{2}, $g$, $p_d$ \{ \SrcOver \}, $c$), \\
+      $p$)
     \end{tabular}
-    & \eqimg &
+    & = &
     \begin{tabular}{@{}l@{}}
-      Draw(BlendLayer($\ell$\textsubscript{1}, $\ell$\textsubscript{2}, Paint(...,
-      SrcOver)),\\
-      \quad $g$, Paint(..., SrcOver), $c$)
+      Draw(BlendLayer($\ell$\textsubscript{1}, $\ell$\textsubscript{2}, $p_d$),\\
+      \quad $g$, $p$, $c$)
     \end{tabular}
   \end{tabular}
 \end{center}
@@ -145,8 +144,6 @@ One could optionally prove the case
 
 \subsection{Dstin to Clip}
 
-\bhargav{We need to give this a closer look}
-
 Another common blend mode is \dstin,
   which is used for masking.
 While \dstin blend mode is important
@@ -167,12 +164,12 @@ This suggests the following idealized equivalence:
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
-      SaveLayer(Paint(..., Dstin)); \\
+      SaveLayer($p_1$ \{ \DstIn \}); \\
       \quad $\ell_2\ldots$ \\
-      \quad Draw($g$, Paint(..., SrcOver)); \\
+      \quad Draw($g$, $p_2$ \{ \textsf{Solid}($c_2$), \SrcOver \}); \\
       Restore()
     \end{tabular}
-    & \eqimg &
+    & = &
     \begin{tabular}{@{}l@{}}
       Clip($g$); \\
       $\ell_2\ldots$ \\
@@ -188,7 +185,8 @@ This is because,
   else we would also have to reason about the blend interactions of the various
   \Draw commands within the \DstIn \SaveLayer.
 And as we are dealing with simple masks we want to turn into clips,
-  the fill of the masking \Draw mus also be fully opaque.
+  we take the fill to be a \textsf{Solid} fill of an opaque \Color,
+  noted in the example as $c_2$.
 
 A challenge with verifying this rewrite
   is that it involves applying the \Clip operation
@@ -213,19 +211,15 @@ We then prove, by induction,
 
 With this induction proven,
   the core \Layer equivalence becomes:
-% \pavel{We need to be clearer about assumptions; I think $c$ must be
-%   opaque and $p$ must be \srcover.}
-% \pavel{Wait, also, I don't think $\denote{\ell}$ is right here;
-%   we need a name for the Layer produced by $\ell$.}
 
 \begin{equation*}
-\BlendLayer(\ell, \Draw(\Empty(), m, p, c)) = \mathsf{clipAll}(\ell, c \cap m)
+\BlendLayer(\ell, \Draw(\Empty(), m, p_2, c), p_1) = \mathsf{clipAll}(\ell, c \cap m)
 \end{equation*}
 
 This is then proven by induction over $\ell$,
   recalling that it since $\ell$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
-The base case, $\denote{\ell} = \mathsf{Empty}()$, is trivial,
+The base case, where $\ell$ is \Empty, is trivial,
   while the inductive case reduces to the following
   in the abstract model:
 \begin{equation*}
@@ -334,19 +328,19 @@ The generated Skia program thus looks like this:
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       $\ell\ldots$ \\
-      SaveLayer(Paint(\dots, DstIn)); \\
-      \quad SaveLayer(Paint(\dots, Luma, SrcOver)); \\
+      SaveLayer($p$ \{ SrcOver \}); \\
+      \quad SaveLayer($p_1$ \{ \textsf{Luma}, \SrcOver \}); \\
       \quad \quad Draw(\textrm{\textit{mask}}, \\
-      \quad \quad \quad \quad \quad Paint(Solid(White), \ldots, SrcOver)); \\
+      \quad \quad \quad \quad \quad $p_2$ \{ \textsf{Solid}(White), \SrcOver \}); \\
       \quad Restore() \\
       Restore()
     \end{tabular}
-    & \eqimg
+    & =
     & \begin{tabular}{@{}l@{}}
       $\ell\ldots$ \\
-      SaveLayer(Paint(\dots, DstIn)); \\
+      SaveLayer($p$); \\
       \quad Draw(\textrm{\textit{mask}}, \\
-      \quad \quad \quad \quad Paint(Solid(Black), \ldots, SrcOver)); \\
+      \quad \quad \quad \quad $p_3$ \{ Solid(Black), \SrcOver \}); \\
       Restore()
       \end{tabular}
   \end{tabular}
@@ -399,16 +393,16 @@ All three of these sites seem to use a common web framework
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
       SaveLayer(...);\\
-      \quad Draw(\textit{shape}, Paint(..., SrcOver));\\
-      \quad SaveLayer(Paint(..., DstIn));\\
-      \quad \quad Draw(\textit{shape} Paint(Gradient(), ..., SrcOver));\\
+      \quad Draw($s$, $p_1$ \{ SrcOver \});\\
+      \quad SaveLayer( \{ DstIn \});\\
+      \quad \quad Draw($s$, $p_2$ \{ Gradient(), SrcOver \});\\
       \quad Restore();\\
       Restore();
     \end{tabular}
-    & \eqimg &
+    & = &
     \begin{tabular}{@{}l@{}}
       SaveLayer(...); \\
-      \quad Draw(\textit{shape}, Paint(..., SrcOver)); \\
+      \quad Draw($s$, $p_1$); \\
       Restore();
     \end{tabular}
   \end{tabular}
@@ -431,15 +425,13 @@ Converting to \Layer terms, this rewrite unfolds to:
 \begin{center}
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
-      BlendLayer(Draw(Empty(), \textit{shape}, Paint(..., SrcOver), $c$)\\
-      \quad \quad Draw(Empty(), \textit{shape}, Paint(Gradient, ..., SrcOver), $c$)\\
-      \quad \quad Paint(..., DstIn))
+      BlendLayer(Draw(Empty(), \textit{shape}, $p_1$, $c$)\\
+      \quad \quad Draw(Empty(), \textit{shape}, $p_2$, $c$)\\
+      \quad \quad \{ DstIn \})
     \end{tabular}
-    & \eqimg &
+    & = &
     \begin{tabular}{@{}l@{}}
-      Draw(Empty(), \\
-      \quad \quad \textit{shape}, \\
-      \quad \quad Paint(..., SrcOver), $c$)
+      Draw(Empty(), \textit{shape}, $p_1$, $c$)
     \end{tabular}
   \end{tabular}
 \end{center}

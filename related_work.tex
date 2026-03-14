@@ -2,4 +2,63 @@
 \begin{document}
 \section{Related Work}
 \label{sec:related}
+
+\paragraph{Web Browser Optimizations} Web Browsers are extremely ubiquitous
+  applications in the modern world.
+There has been a lot of work in optimizing
+  various parts of the modern browser.
+For example, \citet{membalancer} optimized
+  the garbage collection in the V8 JavaScript engine that powers Chromium.
+And \citet{spineless} optimized the layout algorithm used in most browsers to
+  speedup redraws in the browser.
+There has also been a lot fo prior work in specfically speeding up JavaScript
+  execution engines.
+For example, \cite{tracemonkey} introduced the idea of trace-based JIT
+  execution, specifically in the SpiderMonkey JavaScript engine in Firefox.
+%https://dl.acm.org/doi/10.1145/3656431
+\cite{linearregex} introduces lienar-time regex matching algorithms for
+  complicated parts of the JavaScript regex semantics.
+% everything else was just surveys, chat gpt just kept gicing mer perf surveys
+
+\paragraph{2D graphics} 2D graphics has long been a center for interest in
+computer science.
+% https://al.radbox.org/doi/10.1145/800031.808606
+\cite{porter-duff} introduces and algebra for compositing, and introduces
+compositing operators or\emph{blend modes}, two of which, \SrcOver and \DstIn,
+we talk about in this paper.
+% https://al.radbox.org/doi/10.1145/3072959.3023386
+\cite{lie-algebra} extends the mathematical study of blend modes to deep
+imageds, where the spacial depth of colors is also encoded in the image.
+% https://dl.acm.org/doi/10.1145/2491956.2462176
+\cite{halide} is an important peice of work in 2D image processing.
+It introduces cheduling language for image processing pipelines
+  that allows algorithmic definitions to be decoupled from
+  execution schedules such as tiling, vectorization, and parallelization.
+Later works extend on the idea introduced by Halide.
+% https://dl.acm.org/doi/10.1145/2897824.2925952
+For example, \cite{sched-halide} introduces an algorithm that automatically
+  generates high-performance execution shecudles for Halide programs.
+% https://dl.acm.org/doi/10.1145/3428234
+Of closer interest to the work introduced in this paper, \cite{halide-verif}
+  formula proves rewrites rules used within the Halide compielr's term-rewriting
+  system, although the rewrite rules target the actual computation of the image
+  processing pipelines rather than how this paper focuses on rendering outcomes.
+
+\paragraph{finding, and verifying optimizations}
+The translation validation scheme described by was inspired by
+  Alive~\cite{alive}~\cite{alive2}, which similiary uses semantics of LLVM IR to
+  verify various middle-end optimization passes.
+Later work~\cite{armtv} extended Alive to also verify backend lowering in the
+LLVM compiler.
+Also of interest is Herbie~\cite{herbie} which optimizes floating-point
+expressions for accuracy, which requires understanding floating-poitn semantics.
+
+
+\paragraph{scene graphs} Skia’s dense buffer of commands functions similarly to
+  a scene graph, which encode drawing commands, state, and transformations into a
+  retained structure that is traversed during rendering.
+
+
+\paragraph{weirdo semantics}
+
 \end{document}
