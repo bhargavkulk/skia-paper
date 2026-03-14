@@ -3,157 +3,15 @@
 \section{Compiler}
 \label{sec:compiler}
 
-To show that the \muskia semantics
-  are useful for developing impactful Skia tooling,
-  this section discusses the implementation
-  of a Skia optimizer using the rewrite rules
-  discussed in \Cref{sec:rewrites}.
-Besides correctly implementing the relevant rules,
-  the optimizer must also be highly-efficient
-  because Skia rasterization must meet a refresh rate target
-  and thus has a budget of hundreds to thousands of microseconds,
-  of which the optimizer must be a smaller share.
-For this reason, the optimizer sometimes implements
-  a somewhat-restricted version of the rewrites
-  to ensure that it runs a single pass over the Skia command buffer.
-
-\subsection{Memory Management}
-
-When a Skia client calls a methods on the \texttt{SkCanvas} object,
-  Skia records this command in an in-memory buffer
-  called an \texttt{SkRecord}.
-\texttt{SkRecord} is a dense collection
-  of \texttt{SkRecords} objects.%
-\footnote{
-Confusingly,
-  the collection of the many \texttt{SkRecords} objects
-  uses the singular word \texttt{SkRecord}.
-}
-Each \texttt{SkRecords} object,
-  for example \texttt{SkRecords::DrawRect},
-  is distinguished by a tag
-  and then has additional fields for
-  all the arguments to that specific command.
-\texttt{SkRecords::DrawRect}, for example,
-  will contain a reference to a \texttt{SkRect} object
-  which defines the bounds of the rectangle being drawn
-  and an \texttt{SkPaint}.
-The \texttt{SkRecord} manages a buffer, which is
-  an array of pointers to \texttt{SkRecords} objects,
-  each of which is allocated in an
-  \texttt{SkArenaAlloc} arena allocator.
- \Cref{fig:skrecord-layout} illustrates the memory layout.
-Importantly, this design means that
-  the compiler can mutate the \texttt{SkRecord} buffer
-  without moving the actual \texttt{SkRecords} objects.
-
-\texttt{SkRecord} provides two methods to access the underlying
-  \texttt{SkRecords} buffer, \texttt{visit} and \texttt{mutate}.
-Both methods also need a functor.%
-\footnote{
-Functor here refers to a C++ concept---%
-  a class that has the function call operator overloaded---%
-  not the unrelated concept in category theory.
-}
-In general, these functors allow matching and also mutation,
-  but we only use the \texttt{SkRecords::Is<...>} functor,
-  which performs tag-checking and compiles to an efficient comparison
-  while staying type-safe.
-
-\begin{figure}[tbp]
-  \centering
-  \begin{tikzpicture}[
-    x=1cm,
-    y=1cm,
-    >={Latex[length=2mm]},
-    ptr/.style={draw, minimum width=0.8cm, minimum height=0.6cm, inner sep=0pt, font=\scriptsize, align=center},
-    rec/.style={draw, minimum width=2.9cm, minimum height=0.8cm, font=\scriptsize, align=center},
-    lbl/.style={font=\small\ttfamily}
-  ]
-    % Labels
-    \node[lbl, anchor=east] at (-0.3, 1.2) {fRecords:};
-    \node[lbl, anchor=east] at (-0.3, 0.0) {fAlloc:};
-
-    % Pointer array (fRecords)
-    \node[ptr] (p1) at (0.05, 1.2) {$*$};
-    \node[ptr, right=0cm of p1] (p2) {$*$};
-    \node[ptr, right=0cm of p2] (p3) {$*$};
-    \node[anchor=west, font=\small] at ($(p3.east)+(0.10,0)$) {$\cdots$};
-
-    % Record allocation (fAlloc)
-    \node[rec] (r1) at (1.1, 0.0) {\texttt{SkRecords::DrawRect}};
-    \node[rec, right=0cm of r1] (r2) {\texttt{SkRecords::ClipRect}};
-    \node[rec, right=0cm of r2] (r3) {\texttt{SkRecords::DrawRect}};
-    \node[anchor=west, font=\small] at ($(r3.east)+(0.10,0)$) {$\cdots$};
-
-    % Direct arrows from pointer slots to the top-left of each record box
-    \draw[->, shorten >=2pt] (p1.south) -- (r1.north west);
-    \draw[->, shorten >=2pt] (p2.south) -- (r2.north west);
-    \draw[->, shorten >=2pt] (p3.south) -- (r3.north west);
-
-  \end{tikzpicture}
-  \caption{
-    \texttt{SkRecord} stores an array of pointers (\texttt{fRecords})
-    into a contiguous chunk of record objects (\texttt{fAlloc}),
-    each of which represents a single Skia command.
-  }
-  \label{fig:skrecord-layout}
-\end{figure}
-
-Skia can serialize \texttt{SkRecord} objects
-  to and from a binary format called a ``Skia Picture'' or \texttt{skp}.
-All information in a \texttt{SkRecord} format required for drawing,
-  including images, are serialized into a \texttt{skp}.%
-\footnote{
-An exception seems to be that typefaces do not gets serialized.
-}
-This allows us to evaluate our optimizer
-  without interference from the complex Google Chrome runtime;
-  specifically, our evaluation
-  reads an \texttt{skp} from disk, optimizes it,
-  and writes the optimized \texttt{skp} to a new file.
-Note that though the input and optimized output are stored in different files,
-  during optimization the optimizer mutates a single \texttt{SkRecord}
-  without making any copies.
-
-Importantly, Google Chrome can
-  dump its generated Skia programs to disk as \texttt{skp}s
-  with the \texttt{chrome.gpuBenchmarking.printToSkPicture} debug method,
-  available when Chrome is run with \texttt{--no-sandbox} and
-  \texttt{--enable-gpu-benchmarking} flags.
-We use this facility to collect benchmarks for our evaluation,
-  as discussed in more detail in \Cref{sec:eval}.
-It is important to note here that Chrome generates
-  multiple Skia programs, meaning multiple \texttt{skp}s,
-  for a single website.
-These multiple programs represent different ``layers'' of the page,
-  which are then composited in a later step;
-  this split into layers is important for efficient animations~\cite{wbe}.
-The optimizer operates on layers individually,
-  and neither performs cross-layer optimizations
-  nor influences how Chrome splits a page into layers.
+To demonstrate the utility of the \muskia semantics
+  for developing impactful Skia tooling,
+  this section discusses a Skia optimizer
+  that applies rewrites discussed in \Cref{sec:rewrites}.
+The optimizer is highly efficient,
+  processing thousands of Skia commands in microseconds,
+  allowing Skia clients to meet demanding refresh rate targets.
 
 \subsection{Rewriting}
-
-Applying the rewrite rules in \Cref{sec:rewrites}
-  requires changeing, removeing, or adding commands in the command buffer.
-Changing commands is easy:
-  the optimizer allocates a new \texttt{SkRecords} object in the arena
-  and changes the buffer to point to this new object.
-Removal likewise changes the command to remove
-  into a special \texttt{SkRecords::NoOp} command.
-Insertion, however, is tricky, because the input command buffer is dense.
-Inserted commands are allocated into the arena as normal.
-However, to minimize run time,
-  the actual insertion into the buffer is delayed.
-Instead, all insertions are first made into a separate insertion buffer.
-Then, after the compilation pass is complete,
-  a new buffer of the right size is allocated
-  and a single linear scan is performed
-  to merge the original buffer and the insertion buffer.
-We learned of this technique from the WebKit browser engine's B3 JIT,
-  where it is called an ``InsertionSet''~\cite{insertionset},
-  though we believe this technique is well-known.
 
 \begin{figure}[h]
   \footnotesize
@@ -168,11 +26,13 @@ struct SkOptPass {
         int save_count;
     };
     STArray<8, Frame> frames;
+    int save_count;
 
     void transform(SkRecord*);
 
     MatchState onSaveLayer(SkRecord*, int);
     void onSave(SkRecord*, int);
+    void onRestoreLayer(SkRecord*, int);
     void onRestore(SkRecord*, int);
     void onDraw(SkRecord*, int);
     void onClip(SkRecord*, int);
@@ -220,71 +80,218 @@ struct SkOptPass {
   \label{fig:statemachine}
 \end{figure}
 
-The remaining complexity of the optimizer consists of
-  efficiently finding the relevant patterns in the command buffer.
-To maximize performance, it is important that each compilation pass
-  performs a single pass over the command buffer.
-We implement this single-pass matcher with the $\SkOptPass$ interface we show in
-  \Cref{fig:statemachine}.
-The main matching logic is handled by the \texttt{transform} method.
-The \texttt{transform} method takes as argument a \texttt{SkRecord} buffer,
-  does a linear-pass over all \texttt{SkRecords} objects in the buffer.
-For every object, it calls the corresponding \texttt{on*} callback method
-  (\emph{e.g.} \texttt{transform} will call \texttt{onSaveLayer} on seeing
-  a \SaveLayer).
-For some special \texttt{SkRecords} objects,
-  \texttt{transform} also does a bit beyond just dispatching callback methods.
-For \Save,
-  \texttt{transform} increments a \texttt{save\_count}.
-For \SaveLayer,
-  \texttt{transform} initializes and pushes a new \texttt{Frame} on a stack.
-Before pushing,
-  it also saves the current \texttt{save\_count} onto the \texttt{Frame}.
-And finally,
-  for \Restore,
-  it pops a \texttt{Frame} depending on the current \texttt{save\_count}.
-If the current \texttt{save\_count} is greater than that of the \texttt{Frame}
-  that is on top of the stack, it does not pop of the stack.
-This is because, there have been some intermeddiate \Save{}s before the current
-  top-of-stack \SaveLayer, and \texttt{transform} should decrement the
-  \texttt{save\_count} instead of popping from the stack.
-This scheme helps us in two ways.
-Firstly, this allows us to distinguish between a \Restore of a \Save and a \Restore
-  of a \SaveLayer.
-Secondly, we only ever push \SaveLayer information onto the stack.
-Moreover, as we have not seen deep nesting of \SaveLayer in \texttt{skp}s
-  generated by Chrome, we could keep the entire \texttt{Frame} stack on the
-  stack instead of the heap.
-Which is why we use Skia's \texttt{STArray}, which keeps the first 8 elements on
-  the stack.
-We further discuss the speed of the optimizer in \Cref{subsec:rq2}.
+When a Skia client calls a method on the \texttt{SkCanvas} object,
+  Skia records this command
+  as an \texttt{SkRecords} object
+  in an in-memory buffer
+  called an \texttt{SkRecord}.%
+\footnote{
+Yes, the class name for the collection is singular
+  while the class name for its elements is plural.
+}
+The optimizer then searches the \texttt{SkRecord} buffer
+  for each rewrite rule from \Cref{sec:rewrites},
+  replacing the matched commands
+  with the right-hand side of the rewrite rule.
+Each rewrite is implemented as a single optimization pass
+  that performs a single pass over the command buffer;
+  that single pass can perform multiple matches.
 
-Now, when \texttt{transform} pushes a \texttt{Frame} onto the stack,
-  it also puts a \texttt{MatchState} in the \texttt{Frame}.
+Each optimization pass implements
+  the \texttt{SkOptPass} interface shown in \Cref{fig:statemachine}.
+Implementation passes subclass from \texttt{SkOptPass}
+  and implement \texttt{on*} callback methods
+  to handle different Skia command types.
+The \texttt{transform} method is the main entry point,
+  performing a single optimization pass
+  over an \texttt{SkRecord} command buffer
+  by calling the relevant callback method
+  for every Skia command in the buffer.
+The \texttt{onOther} callback is called
+  for all commands outside the \muskia semantics;
+  generally the \texttt{onOther} callback
+  invalidates the current match.
+However, \texttt{SkOptPass} also handles a key gap between
+  the actual Skia language
+  and the \muskia semantics of \Cref{sec:semantics}:
+  matching \Save and \SaveLayer
+  to their corresponding \Restore calls
+  and thereby calling \texttt{onRestore} or \texttt{onRestoreLayer}.
 
-A \texttt{MatchState} is state fo the current matcher,
-  which needs to be defined by the specfic rewrite matcher.
-For example, for the \SrcOver-\SaveLayer rewrite,
-  we use two states, \texttt{Matching} and \texttt{Ignore}.
-This is basically a small state machine.
-\Cref{fig:statemachine} shows the state machine
-  for the \srcover \SaveLayer rewrite in \Cref{sec:rewrites}.
-For this rewrite, the state machine starts in a matching state
-  if the \SaveLayer has a \srcover blend mode
-  (and is opaque; our Lean formalization includes opacity)
-  and transitions to a non-matching state if any
-  non-\SrcOver \Draw commands are observed.
-\SaveLayer commands could also
-  transition the parent layer to a non-matching state;
-  in theory this could be supported but we didn't see this pattern
-  in any of our evaluation programs.
-Once a \Restore matching a \SaveLayer is seen,
+To do so, the \texttt{SkOptPass} class stores
+  a \texttt{save\_count} and a stack of \texttt{Frame} objects.
+Every \Save command increments the \texttt{save\_count} field,
+  while every \SaveLayer command pushes a new \texttt{Frame},
+  which in turn also saves the current \texttt{save\_count}.
+When a \Restore command is seen,
+  the \texttt{save\_count} field is compared to
+  the \texttt{save\_count} of the top \texttt{Frame}
+  to determine if a \Save or \SaveLayer is being closed
+  and to call the appropriate callback.
+Additionally, the \muskia language permits
+  rewrites under \SaveLayer commands,
+  so in principle a rewrite can apply to any \SaveLayer/\Restore pair.
+For this reason, the \texttt{Frame} stack also stores
+  a \texttt{MatchState} for each currently-open \SaveLayer;
+  the initial \texttt{MatchState} for the layer
+  is returned from \texttt{onSaveLayer}.
+The stack of frames is stored in a Skia \texttt{STArray},
+  a container that stores its first eight entries on the stack.
+The stack depth corresponds to the \SaveLayer depth,
+  and most Chrome-generated Skia programs we have seen
+  have shallow \SaveLayer depths,
+  so the frame stack is typically entirely stack-allocated.
+
+The \texttt{MatchState} type is instantiated by
+  every individual optimization pass
+  and implements a finite state automaton
+  that matches the rewrite rule.
+For example, the \SrcOver-\SaveLayer rewrite
+  uses two states, \texttt{Matching} and \texttt{Ignore},
+  shown in \Cref{fig:statemachine}.
+The initial \texttt{MatchState} is \texttt{Matching}
+  for \SrcOver \SaveLayer commands%
+\footnote{
+The optimizer also requires
+  the \SaveLayer command to be opaque;
+  while \Cref{sec:semantics} does not include opacity,
+  our Lean formalization does.
+}
+  and \texttt{Ignore} otherwise.
+The \texttt{MatchState} also stores
+  the index in the \texttt{SkRecord}
+  of the \SaveLayer command,
+  for later rewriting.
+\SrcOver \Draw commands stay in the \texttt{Matching} state,
+  while all other \Draw commands and all \SaveLayer commands
+  transition to the \texttt{Ignore} state.
+All other commands (\Clip, \Save, \Restore)
+  do not affect the match state.
+The \texttt{MatchState} therefore indicates
+  whether a given layer
+  is a \SrcOver \SaveLayer containing only
+  \SrcOver \Draw commands---%
+  exactly the requirements of the \SrcOver-\SaveLayer rewrite
+  in \Cref{sec:rewrites}.
+The other rewrites in \Cref{sec:rewrites} have
+  similar, though more elaborate, state machines.
+In \texttt{onRestoreLayer},
   if the current state is matching,
   the actual rewriting is performed
   by changing the \SaveLayer command
-  into a \Save command.
-While we only show the state machine for the \SrcOver \SaveLayer rewrite,
-  we can and have derived state machines in a straightforward way to implement
-  the other rewrites described in \Cref{sec:rewrites}.
+  into a \Save command
+  using the saved index.
+
+\subsection{Memory Management}
+
+While the single-pass design does limit
+  the computational complexity of our optimizer,
+  efficiently manipulating Skia programs in memory
+  is also critical to hitting demanding latency limits.
+Each \texttt{SkRecords} object
+  has a tag and fields for all the arguments
+  to that specific command.
+\texttt{SkRecords::DrawRect}, for example,
+  has a \texttt{DrawRect\_Type} tag,
+  an \texttt{SkRect} for the rectangle bounds,
+  and an \texttt{SkPaint} for the paint parameters.
+The \texttt{SkRecord} buffer stores two fields:
+  \texttt{fRecords},
+  an array of pointers to \texttt{SkRecords} objects,
+  and \texttt{fAlloc}, an arena allocator
+  where the \texttt{SkRecords} objects are stored.
+ \Cref{fig:skrecord-layout} illustrates the memory layout.
+Importantly, this design means that
+  the compiler can mutate the \texttt{SkRecord} buffer
+  without moving the actual \texttt{SkRecords} objects,
+  simply by adjusting the pointers in \texttt{fRecords}.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{tikzpicture}[
+    x=1cm,
+    y=1cm,
+    >={Latex[length=2mm]},
+    ptr/.style={draw, minimum width=0.8cm, minimum height=0.6cm, inner sep=0pt, font=\scriptsize, align=center},
+    rec/.style={draw, minimum width=2.9cm, minimum height=0.8cm, font=\scriptsize, align=center},
+    lbl/.style={font=\small\ttfamily}
+  ]
+    % Labels
+    \node[lbl, anchor=east] at (-0.3, 1.2) {fRecords:};
+    \node[lbl, anchor=east] at (-0.3, 0.0) {fAlloc:};
+
+    % Pointer array (fRecords)
+    \node[ptr] (p1) at (0.05, 1.2) {$*$};
+    \node[ptr, right=0cm of p1] (p2) {$*$};
+    \node[ptr, right=0cm of p2] (p3) {$*$};
+    \node[anchor=west, font=\small] at ($(p3.east)+(0.10,0)$) {$\cdots$};
+
+    % Record allocation (fAlloc)
+    \node[rec] (r1) at (1.1, 0.0) {\texttt{SkRecords::DrawRect}};
+    \node[rec, right=0cm of r1] (r2) {\texttt{SkRecords::ClipRect}};
+    \node[rec, right=0cm of r2] (r3) {\texttt{SkRecords::DrawRect}};
+    \node[anchor=west, font=\small] at ($(r3.east)+(0.10,0)$) {$\cdots$};
+
+    % Direct arrows from pointer slots to the top-left of each record box
+    \draw[->, shorten >=2pt] (p1.south) -- (r1.north west);
+    \draw[->, shorten >=2pt] (p2.south) -- (r2.north west);
+    \draw[->, shorten >=2pt] (p3.south) -- (r3.north west);
+
+  \end{tikzpicture}
+  \caption{
+    \texttt{SkRecord} stores an array of pointers (\texttt{fRecords})
+    into a contiguous chunk of record objects (\texttt{fAlloc}),
+    each of which represents a single Skia command.
+  }
+  \label{fig:skrecord-layout}
+\end{figure}
+
+Applying the rewrites from \Cref{sec:rewrites}
+  requires changing, removing, or adding commands
+  to the \texttt{SkRecord}.
+Changing commands is easy:
+  the optimizer allocates a new \texttt{SkRecords} object in the arena
+  and changes the \texttt{fRecords} buffer to point to this new object.
+Removal likewise changes a command
+  into a special \texttt{SkRecords::NoOp} command.
+When inserting new commands, however,
+  it would be expensive to move the \texttt{fRecords} elements,
+  especially since multiple rewrites can apply to the same \texttt{SkRecord}.
+We therefore store pending insertions into
+  a separate insertion buffer,
+  and merge the original and insertion buffer
+  in a single linear scan
+  after the optimization pass is complete.
+We learned of this technique from the WebKit browser engine's B3 JIT,
+  where it is called an ``InsertionSet''~\cite{insertionset},
+  though the general technique is well-known.
+
+Skia can serialize \texttt{SkRecord} objects
+  to and from a binary format called a ``Skia Picture'' or \texttt{skp}.
+All information in a \texttt{SkRecord} format required for drawing,
+  including referenced external images,
+  are serialized into the \texttt{skp}.%
+\footnote{
+Though typefaces do not get serialized into the \texttt{skp}.
+}
+Google Chrome can dump generated Skia programs as \texttt{skp}s
+  with the \texttt{chrome.gpuBenchmarking.printToSkPicture} debug method,
+  available when Chrome is run with \texttt{--no-sandbox} and
+  \texttt{--enable-gpu-benchmarking} flags.
+It is important to note here that Chrome generates
+  multiple Skia programs, meaning multiple \texttt{skp}s,
+  for a single website.
+These multiple programs represent different ``layers'' of the page,
+  which are then composited in a later step;
+  this split into layers chosen by Chrome
+  to optimize animations~\cite{wbe}
+  and is unrelated to Skia's concept of layers.
+Our optimizer operates on
+  individual \texttt{SkRecord} objects in memory
+  for maximum performance,
+  but our evaluation does save and load
+  these \texttt{SkRecord} objects from/to \texttt{skp} files
+  to minimize interference from Google Chrome during benchmarking,
+  as discussed in more detail in \Cref{sec:eval}.
 
 \end{document}
