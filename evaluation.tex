@@ -3,11 +3,9 @@
 \section{Evaluation}
 \label{sec:eval}
 % Nightly OpenGL
-% https://nightly.cs.washington.edu/reports/easteregg-skia/1773031260:main:f56903d5/
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1773598570:main:39e36f04/
 % Nightly Vulkan
-% https://nightly.cs.washington.edu/reports/easteregg-skia/1772991488:main:3f3fb1cf/
-% Nightly CPU
-% https://nightly.cs.washington.edu/reports/easteregg-skia/1772999495:main:da983323/
+% https://nightly.cs.washington.edu/reports/easteregg-skia/1773599431:main:2183f6ef/
 
 We evaluate the \muskia semantics, and the optimizer based on them,
   on a collection of real-world Skia programs
@@ -38,7 +36,7 @@ Since our optimizer focuses on reducing
   the number of \texttt{SaveLayer} commands,
   we focus on \texttt{skp} files that have \texttt{SaveLayer} commands.
 For our primary evaluation in RQs 1--3,
-  this leaves \grmetalnumbench benchmarks across \N websites.
+  this leaves \grmtlnumbench benchmarks across \N websites.
 
 The optimizer itself is based off of Skia commit \texttt{f931a2e},
   on the \texttt{main} branch between milestones 143 and 144~\cite{skia-releases}.
@@ -76,7 +74,7 @@ The conversion program also performs some minor simplifications,
   such as down-casing \texttt{SkPath} shapes
   to simpler shapes like \texttt{SkRect} when possible,
   to invert a transformation done by Skia.
-If all \texttt{skp} file in the optimization trace
+If all \texttt{skp}s file in the optimization trace
   can be converted to a \muskia Lean term,
   a sequence of lemmas is asserted in Lean,
   claiming that each step in the trace
@@ -110,7 +108,7 @@ The \texttt{grind} database is loaded with
   as well as general theorems about \muskia equivalence.
 \Cref{fig:layerTV} shows an example proof.
 Translation validation succeeds for \tvpass benchmarks
-  of \grmetalnumbench benchmarks,
+  of \grmtlnumbench benchmarks,
   demonstrating that our optimizer conforms with the \muskia semantics
   and providing a ``foundational'' certification of its correctness
   on these benchmarks.
@@ -148,8 +146,8 @@ Notably, we perform the pixel comparison to all benchmarks,
   even for benchmarks that use features
   not formalized in \muskia.
 
-Across the \grmetalnumbench benchmarks,
-  only \grmetalpixdif report significant pixel differences.
+Across the \grmtlnumbench benchmarks,
+  only \grmtlpixdif report significant pixel differences.
 We examine all such instances manually;
   \Cref{fig:diff} shows one example, from TikTok.
 In all such instances, the differing pixels
@@ -204,7 +202,7 @@ To verify that the timing is reliable,
 
 \begin{SCfigure}[1.0][t]
   \centering
-  \includegraphics[width=0.45\linewidth]{grmetal_cdf.pdf}
+  \includegraphics[width=0.45\linewidth]{grmtl_cdf.pdf}
   \caption{
     Raster-time speed-up CDF.
     The horizontal axis shows a speedup value,
@@ -212,10 +210,10 @@ To verify that the timing is reliable,
     meaning identical runtime for the baseline and optimized \texttt{skp}.
     The vertical axis shows the fraction of benchmarks
     that meet or exceed that speed-up amount.
-    \grmetalnumspmatch benchmarks
+    \grmtlnumspmatch benchmarks
     are actually affected by the optimizer,
     and these see all see speed-ups,
-    ranging from \grmetalspmatchmin to \grmetalspmatchmax.
+    ranging from \grmtlspmatchmin to \grmtlspmatchmax.
   }
   \label{fig:grmetal-cdf}
 \end{SCfigure}
@@ -224,30 +222,30 @@ To verify that the timing is reliable,
 In this CDF, benchmarks are arranged vertically,
   and the dotted red line corresponds to ``no speedup''.
 Points to the right of the line get faster when optimized,
-  with a maximum speedup of \grmetalmaxspeed.
+  with a maximum speedup of \grmtlmaxspeed.
 The very largest websites are seen
   on \texttt{skp}s from a group of Russian websites
   that use the same web framework;
   this framework, as discussed in \Cref{sec:rewrites},
   uses redundant gradient masks that seem very expensive in Skia.
-Slowdowns are seen on \grmetalpctslow of benchmarks;
+Slowdowns are seen on \grmtlpctslow of benchmarks;
   however, all of the \texttt{skp}s that see slowdowns
   are \emph{not optimized} suggesting that the slowdowns are noise.
 All of the significant speedups, by contrast,
   are on websites that \emph{are optimized},
   suggesting the speed-ups are genuine.
-Specifically, out of \grmetalnumbench benchmarks,
-  \grmetalnumspeed see speedups,
-  and of these, \grmetalnumspmatch
+Specifically, out of \grmtlnumbench benchmarks,
+  \grmtlnumspeed see speedups,
+  and of these, \grmtlnumspmatch
   are actually optimized by the optimizer.
 The noise in measured speed-ups
   could be due to GPU load, scheduling, or other concerns,
   or it could be due to
   the \texttt{skp} serialization and deserialization machinery;
   in any case, the range of speed-ups for unoptimized benchmarks,
-  \grmetalspnomatchmin to \grmetalspnomatchmax,
+  \grmtlspnomatchmin to \grmtlspnomatchmax,
   is much smaller than the range of speed-ups for optimized benchmarks,
-  \grmetalspmatchmin to \grmetalspmatchmax,
+  \grmtlspmatchmin to \grmtlspmatchmax,
   suggesting that the speed-ups are genuine.
 In short, the optimizer is effective
   at significantly improves the rasterization time
@@ -263,15 +261,15 @@ This section aims to answer RQ3 by showing
   \centering
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{grmetal_optscatter.pdf}
+    \includegraphics[scale=0.5]{grmtl_opttime.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and even the largest
-      benchmark optimizes in under \grmetalmaxopttime}
+      benchmark optimizes in under \grmtlmaxopttime}
     \label{fig:grmetal-optscatter}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{grmetal_optcdf.pdf}
+    \includegraphics[scale=0.5]{grmtl_total_cdf.pdf}
     \captionof{figure}{CDF with optimization time included.}
     \label{fig:grmetal-optcdf}
   \end{minipage}
@@ -287,7 +285,7 @@ We thus measure the total optimization time
 On the left, the scatter plot shows that
   the optimizer's runtime is linear in the \texttt{skp} size,
   with even the largest \texttt{skp} taking
-  only 25 microseconds to optimize.
+  only \grmtlmaxopttime to optimize.
 The vast majority of \texttt{skp}s are much smaller
   and thus much faster.
 On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,
@@ -308,15 +306,15 @@ We focus on rasterization time,
   since optimization does not invoke the back-end
   and thus cannot vary with the chosen back-end.
 
-\subsection{Backend generalizability}
+\subsubsection{Backend generalizability}
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{grmetal_cdf.pdf}
-  \includegraphics[scale=0.5]{gaglapple_cdf.pdf}
+  \includegraphics[scale=0.5]{grmtl_cdf.pdf}
+  \includegraphics[scale=0.5]{gnap_cdf.pdf}
   \caption{
   Render-time CDFs for the
-    Graphite/Metal (left) and Ganesh/OpenGL-Apple (right) backends.
+    Graphite/Metal (left) and Ganesh/Apple (right) backends.
   The newer Graphite backend achieves
     larger speed-ups and fewer slow-downs,
     but the optimizer is still effective on both.
@@ -348,10 +346,10 @@ The slowdowns with the Ganesh backend
 \begin{figure}
   \centering
   \includegraphics[scale=0.5]{grvk_cdf.pdf}
-  \includegraphics[scale=0.5]{gaglintel_cdf.pdf}
+  \includegraphics[scale=0.5]{gnin_cdf.pdf}
   \caption{
     Render-time CDFs for the Graphite/Vulkan (left) and
-      Ganesh/OpenGL-Intel (right) backends on Machine \#2.
+      Ganesh/Intel (right) backends on Machine \#2.
     The optimizer is still effective, with the exception of one benchmark,
     Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
     slow-down.
@@ -386,7 +384,7 @@ The resulting \texttt{skp}s are optimized
 The optimizer is effective on the second machine too.
 The maximum speed-up with the Graphite backend
   is somewhat smaller
-  (\grvkmaxspeed instead of \grmetalmaxspeed)
+  (\grvkmaxspeed instead of \grmtlmaxspeed)
   though in this case the Russian websites are
   more clearly outliers.
 Slow-downs on Graphite continue to be largely due
@@ -396,7 +394,7 @@ Slow-downs on Graphite continue to be largely due
 
 With the Ganesh backend,
   the same pattern persists
-  (with an even lower maximum speed-up of \gaglintmaxspeed),
+  (with an even lower maximum speed-up of \gninmaxspeed),
   except for one benchmark: Canva.
 The relevant part of the Canva benchmark
   is described in more detail in \Cref{sec:rewrites};
@@ -419,7 +417,7 @@ In any case, this Canva benchmark is
 
 \begin{SCfigure}[1.0][t]
   \centering
-  \includegraphics[width=0.45\linewidth]{grmetalnew_cdf.pdf}
+  \includegraphics[width=0.45\linewidth]{grmtlnew_cdf.pdf}
   \caption{Render time CDF on Graphite/Metal with the new set of 100 websites.}
   \label{fig:cdf-newsites}
 \end{SCfigure}
@@ -433,7 +431,7 @@ The initial set of rewrites described in \Cref{sec:rewrites}
 To test this, we froze the optimization passes and pass order
   and performed the same \texttt{skp} gathering process
   for the next 100 most-visited websites (according to the same source),
-  which yielded \grmetalnewnumbench new benchmarks.
+  which yielded \grmtlnewnumbench new benchmarks.
 The authors have never examined
   the generated Skia programs for these websites
   and have made not attempt to
@@ -441,7 +439,7 @@ The authors have never examined
 
 \Cref{fig:cdf-newsites} shows the results.
 Like in the old benchmarks set,
-  we see significant speedups of up to \grmetalnewmaxspeed,
+  we see significant speedups of up to \grmtlnewmaxspeed,
   and, like before,
   websites actually rewritten by the optimizer
   show significantly larger speed-ups than
