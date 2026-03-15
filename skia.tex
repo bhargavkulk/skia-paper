@@ -21,46 +21,32 @@
   \end{tikzpicture}%
 }
 
-Skia is a widely used 2D graphics library.
-Skia was originally developed by an independent company founded by
-  engineers that worked on QuickDraw wich was the 2D graphics library and a core
-  part of the classic MacOS.
+Skia was originally an independent company
+  founded by veterans of MacOS QuickDraw.
 %https://mergr.com/transaction/google-acquires-skia
-The company behind Skia was quickly acquired by Google after its founding,
-  with Skia becoming a core part of the Chromium browser engine's rendering
-  stack from its inception.
-Skia is actively maintained:
-  as of March 11, 2026, its public main branch log shows 80 commits
-  in the prior 7 days.
-Its contributor base is also broad,
-  with 109 entries in the AUTHORS file,
-  and its release process remains regular,
-  with a stable milestone cut every four weeks alongside Chromium.
+\todo{Cite something on the acquisition}
+Google acquired Skia in 2005~\cite{},
+  open-sourced the library, and has maintained it since.
+As of March 2026, its AUTHORS file lists 109 contributors,
+  and it cuts stable milestone releases every four weeks.
 
-Skia's basic APIs
-  create drawable 2D ``surfaces'' and ``layers'',
-  draw shapes to those surfaces and layers,
-  blend them together,
-  and apply effects.
-These
-  operations are issued through methods on a \skcanvas,
-  which manages the drawing state.
-At execution time, the behavior is backend-dependent:
-  CPU backends apply draws
-  directly to CPU-visible pixel memory,
-  while GPU backends enqueue work that is flushed to backend API objects,
-  and then submitted for GPU execution.
-But in either case,
-  this list of commands issued prior to rendering
-  can be stored in an intermeddiate buffer of commands
-  to be use for either serialization, replaying, or optimizations,
-  which we can take to be a stand-alone programming language.
-This section introduces the language's basic operations.
+A Skia client creates a ``surface''
+  and then issues commands to that surface
+  by calling methods of an associated \skcanvas object.
+Then, when a \texttt{flush} method is called,
+  the commands are executed to raster an image to the surface.%
+\footnote{The CPU backend does execute commands eagerly,
+  but most clients use the GPU backend.}
+Commands can also be stored in an intermediate command buffer
+  for serialization or replay.
+We take this command language to be
+  a stand-alone programming language
+  and introduce its basic operations.
 
 \subsection{Drawing and Painting}
 \label{subsec:drawing-painting}
 
-The \skdrawrect command is used to draw rectangles:%
+The \skdrawrect command draws a rectangle:%
 
 \begin{figure}[H]
   \centering
@@ -82,16 +68,14 @@ The \skdrawrect command is used to draw rectangles:%
 % canvas->drawRect(SkRect::MakeXYWH(0, 0, 180, 180), paint);
 
 \noindent
-Here the layout is meant to evoke
+Here, the layout is meant to evoke
   a Hoare triple:
-the left square shows the (empty) state of the canvas
+  the left square shows the (empty) state of the canvas
   before the \skdrawrect command,
   while the right square shows the state of the canvas afterwards.
-The \skdrawrect command needs the bounds of the rectangle
-  that needs to be drawn.
-\skdrawrect also takes a \skpaint
-  as an argument.
-A \skpaint describes \emph{how} a geometry is drawn,
+The first argument to \skdrawrect is the rectangle to be drawn,
+  but the second argument, an \skpaint object, is more interesting.
+An \skpaint describes \emph{how} a geometry is drawn,
   for example how to \emph{fill} the geometry.
 The default fill for a \skpaint is the color black,
   but we can also change it to another color.
@@ -126,8 +110,7 @@ It's also possible to specify a non-constant fill,
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     SkPaint p;\\
     p.setShader(\\
-    \quad SkShaders::LinearGradient(...)\\
-    );\\
+    \quad SkShaders::LinearGradient(...));\\
     canvas->drawRect(rect1, p);
   \end{tabular}
   \quad
@@ -137,9 +120,9 @@ It's also possible to specify a non-constant fill,
 \end{figure}
 
 \noindent
-Skia also supports complex fills like images and shaders.
-  Formally, filling is a stage of Skia's drawing pipeline
-  that assigns a color to every point in the shape.
+Formally, filling is a stage of Skia's drawing pipeline,
+  which assigns a color to every pixel in the shape.
+More complex fills include images and shaders.
 
 \subsection{Blending}
 \label{subsec:blending}
@@ -192,21 +175,22 @@ Suppose we draw a second, overlapping, blue square:
 % paint.setColor(SK_ColorBLUE);
 % canvas->drawRect(SkRect::MakeXYWH(120, 120, 136, 136), paint);
 
-In Skia, the process of drawing this second shape
-  involves, conceptually, two stages.
+Conceptually, drawing this second shape
+  involves two stages.
 First, as before, every pixel in \texttt{rect2}
   is assigned a fill color, here a solid blue.
-Second, this assigned fill color is \emph{blended}
+But then, this assigned fill color is \emph{blended}
   with the existing color for that pixel.
-The default \emph{blend mode}, called \sksrcover,
-  just chooses the new color,%
-\footnote{In reality, the blending is more complicated
+That second stage is a bit difficult to see here,
+  because the default \emph{blend mode},
+  called \sksrcover, just chooses the new color.%
+\footnote{In reality, \sksrcover blending is more complicated
   and depends on the opacity or \emph{alpha}
   of the new color,
-  which can matter for anti-aliasing,
+  which can matter even for opaque fills due to anti-aliasing,
   but in our examples all the colors are opaque
   and we ignore anti-aliasing as a simplification.}
-  but a program can select a different blend modes instead.
+A program can, however, select a different blend modes instead.
 For example, the \skmultiply blend mode %
   combines both colors being blended:
 
@@ -219,8 +203,7 @@ For example, the \skmultiply blend mode %
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     p.setColor(SK\_ColorBLUE);\\
     p.setBlendMode(\\
-    \quad SkBlendMode::kMultiply\\
-    );\\
+    \quad SkBlendMode::kMultiply);\\
     canvas->drawRect(rect2, p);
   \end{tabular}
   \quad
@@ -229,11 +212,11 @@ For example, the \skmultiply blend mode %
   \end{tabular}
 \end{figure}
 
-Now, in the intersection of the two rectangles,
+In the intersection of the two rectangles,
   the initial red color is blended with the newly-drawn blue fill,
   which in the \skmultiply blend mode results in black.
-Formally, blending is another stage in the Skia drawing pipeline,
-  which comes after filling and combines
+Formally, blending is a stage in the Skia drawing pipeline
+  that comes after filling and combines
   the fill color assigned to each pixel
   with the pre-existing color of that pixel.
 
@@ -242,15 +225,12 @@ Formally, blending is another stage in the Skia drawing pipeline,
 
 So far, \skdrawrect has been applying the fill
   to the entirety of the shape being drawn.
-But, sometimes,
-  we need more granual control over the drawing bounds.
-Skia provides a dedicated \skcliprect command
-  to restrict or \emph{clip} shapes to rectangles.%
+But Skia also provides a \skcliprect command
+  to restrict or \emph{clip} the drawing bounds:%
 \footnote{
   Skia allows clipping with arbitrary shapes,
-  but the GPU back-end has fast paths for rectangles
-  and rounded-rectangles, reducing them to scissor tests}
-One uses \skcliprect like this:
+  but rectangle and rounded-rectangle clips are especially fast,
+  using scissor tests.}
 
 \begin{figure}[H]
   \centering
@@ -269,19 +249,17 @@ One uses \skcliprect like this:
 \end{figure}
 
 \noindent
-Note the unusual order of operations here.
-The \skcliprect command is run first,
-  and it does not modify the image at all.
-Instead, it modifies the shape drawn
-  by \emph{later} draw operations.
-Formally, clipping is yet another stage of the Skia drawing pipeline;
-  it comes before filling and modifies the shape being drawn.
+Note that \skcliprect command is run first,
+  before the \skdrawrect command.
+In fact, \skcliprect does not modify the image at all;
+  instead, it modifies \emph{canvas state}
+  that influences later draw operations.
+Formally, that influence happens in
+  yet another stage of the Skia drawing pipeline
+  that comes before filling and modifies the shape being drawn.
 
-Semantically, \skcliprect modifies the \emph{clip state},
-  which stored in the canvas object and affects drawing commands.
-This means that a single \skcliprect operation
-  can affect multiple \skdrawrect operations:
-
+The canvas state is stored in the canvas object
+  and can affect multiple drawing commands:
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
@@ -299,15 +277,13 @@ This means that a single \skcliprect operation
   \end{tabular}
 \end{figure}
 
-Naturally, one might want to clip
-  only a subset of drawing commands.
-Luckily, Skia maintains a \emph{stack} of clip states;
+Naturally, one might want to limit
+  which drawing commands a clip command applies to.
+Luckily, Skia maintains a \emph{stack} of canvas states;
   \skcliprect affects the top of the stack,
   which is used by drawing commands,
   while \sksave and \skrestore commands
-  push and pop from the stack.
-  \sksave and \skrestore act like brackets,
-  restricting the effect of \skcliprect to the enclosed commands:
+  push and pop from the stack:
 
 \begin{figure}[H]
   \centering
@@ -328,14 +304,18 @@ Luckily, Skia maintains a \emph{stack} of clip states;
   \end{tabular}
 \end{figure}
 
+\noindent
+In other words, \sksave and \skrestore act like brackets,
+  restricting the effect of \skcliprect to the enclosed commands:
+
 \subsection{Layers}
 \label{subsec:layers}
 
-Much like \sksave and \skrestore can save clip state,
-  there is also a \sksavelayer and \skrestore command
-  that saves and restores the drawing surface itself.
+Besides the stack of canvas states modified by \sksave and \skrestore,
+  there is a stack of drawing surfaces
+  and \sksavelayer and \skrestore commands that push and pop from it.
 Conceptually, \sksavelayer allocates
-  a new, empty drawing surface.
+  a new, empty drawing surface:
 
 \begin{figure}[H]
   \centering
@@ -381,28 +361,10 @@ Then, when the \skrestore command it reached,
   \end{tabular}
 \end{figure}
 
-Semantically, you can think of \sksavelayer commands
-  as re-associating the order of blend operations.
-In the \sksave example,
-  the order of operations is
-
-\begin{equation*}
-  \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blue}),
-\end{equation*}
-
-While in the \sksavelayer example
-  the order of operations is
-
-\begin{equation*}
-  \textsf{blend}(\textsf{blend}(\textsf{empty}, \textsf{red}), \textsf{blend}(\textsf{empty}, \textsf{blue})).
-\end{equation*}
-
-With \sksrcover blending, which is associative,
-  this order of operations is not important,
-  but with other blend modes it becomes significant.
-For example,
-  we reepat the previous snippet,
-  but pass a \skmultiply blend mode to the \sksavelayer command.
+The \sksavelayer operation accepts an \skpaint argument
+  that can change the blend used during \skrestore.
+For example, with \skmultiply blending,
+  the previous example would look like so:
 
 \begin{figure}[H]
   \centering
@@ -417,18 +379,14 @@ For example,
   \end{tabular}
 \end{figure}
 
-\subsubsection{Masking}
+\subsection{Masking}
 \label{subsubsec:masking}
 
-To further motivate the need for \sksavelayer,
-  consider masking again.
-In \Cref{subsec:clipping} we saw how we can use
-  \skcliprect to mask images.
-This works when we only need to mask by a rectangle.
-But masking with complicated shapes is hard with just clipping.
-Instead of trying to clip directly with a complicated shape,
-  we can instead draw the clip shape in stages on a seperate layer
-  and mask using that shape.
+One prominent use for \sksavelayer is masking.
+This refers to clipping one image
+  based on the contents of another image,
+  and it can be achieved using \sksavelayer
+  with \skdstin blending:
 
 \begin{figure}[H]
   \centering
@@ -439,14 +397,15 @@ Instead of trying to clip directly with a complicated shape,
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     SkPaint blend\_p;\\
     blend\_p.setBlendMode(\\
-    \quad SkBlendMode::kDstIn\\
-    );\\
+    \quad SkBlendMode::kDstIn);\\
     canvas->saveLayer(blendPaint);
   \end{tabular}
   \quad
   \layerstack{drawing0.pdf}{mandrill.pdf}
 \end{figure}
 
+Here the initial state is the image to be masked,
+  while the new layer represents the mask.
 We now draw the mask shape on the new layer.
 
 \begin{figure}[H]
@@ -462,10 +421,16 @@ We now draw the mask shape on the new layer.
   \layerstack{mask.pdf}{mandrill.pdf}
 \end{figure}
 
-\skdstin emulates masking through blending;
-When we \skdstin one pixel over another,
-  an opaque top pixel keeps the bottom pixel,
-  and a transparent top pixel removes it.
+Finally, on \skrestore,
+  the initial image and the mask are combined
+  using \skdstin blending.
+\skdstin is very simple:
+  it simply keeps all pixels from the bottom layer
+  that are colored in in the top layer.%
+\footnote{
+  The behavior with opacity is slightly more complex,
+  but the same basic idea remains.
+}
 
 \begin{figure}[H]
   \centering
@@ -480,13 +445,13 @@ When we \skdstin one pixel over another,
   \end{tabular}
 \end{figure}
 
-\skdstin blending is also far more powerful than just clipping,
-  because it also allows masking with gradients,
-  allowing us to create more complicated images
-  that just clipping would not allow us to.
+\skdstin blending far more powerful than \skcliprect
+  because it also allows masking with
+  arbitrary Skia-drawable images.
 For example,
   here is the previous image,
-  now masked with a radial gradient.
+  masked with a radial gradient.
+\pavel{The program text below is uninformative}
 
 \begin{figure}[H]
   \centering
@@ -504,18 +469,9 @@ For example,
 \subsection{Equivalences}
 \label{subsec:equivalences}
 
-In \Cref{subsubsec:masking} we saw how complex masks
-  can be done with ease using a \sksavelayer
-  with \skdstin blending.
-But what if just a rectangle mask is needed?
-Our \sksavelayer and \skdstin program would still work.
-But,
-  it is clearly less performant than just doing a clip;
-We have to allocate a whole new layer,
-  just to do something Skia already has a fast path for!
-Here,
-  we have two different Skia programs that produce the same image,
-  but one is clearly a better choice than the other.
+Nonetheless, simple rectangular clips
+  can be achieved using either \skcliprect
+  or with a \sksavelayer with \skdstin blending:
 
 \begin{figure}[H]
   \centering
@@ -547,19 +503,24 @@ Here,
   \end{tabular}
 \end{figure}
 
-Therefore it should be possible to replace a skia program
-  with a faster one,
-  given they have indentical results.
-In \Cref{sec:semantics}
-  we develop a semantics,
-  which allows proving that two Skia programs have identical results,
-  including verifying general-purpose rewrite rules.
-\Cref{sec:compiler} then uses these rewrites
-  to build a general-purpose Skia optimizer
-  that rewrites programs to reduce the use
-  of multiple layers.
-\Cref{sec:eval} then shows that this compiler
-  results in dramatically faster rendering
-  on a wide range of real-world Skia programs.
+However, the \sksavelayer-based program
+  is far less efficient than the \skcliprect-based one.
+It has to allocate a whole new layer,
+  draw additional pixels to it,
+  and blend the results together,
+  while the \skcliprect-based one uses a fast path.
+In fact, it is common for the same image
+  to be achievable with many different Skia programs,
+  some of which are much more efficient than others.
+This motivates the rest of the paper:
+\Cref{sec:semantics} develops a semantics,
+  which allows proving that two Skia programs have identical results.
+\Cref{sec:rewrites} uses that semantics
+  to verify several rewrite rules over Skia programs.
+And \Cref{sec:compiler} then uses those rewrites
+  to build a general-purpose Skia optimizer.
+\Cref{sec:eval} demonstrates that this optimizer results
+  in dramatically faster rasterization
+  of a wide range of real-world Skia programs.
 
 \end{document}
