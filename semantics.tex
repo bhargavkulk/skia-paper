@@ -11,7 +11,7 @@ The bottom-most layer is an abstract model of
   which can be instantiated to model
   as much of the actual Skia API as necessary.
 The middle layer is functional operations
-  \texttt{Draw} and \texttt{BlendLayer}
+  \Draw and \BlendLayer
   and an abstract type \textsf{Paint},
   which denote to our abstract model.
 The top layer is an imperative language, \muskia,
@@ -79,7 +79,7 @@ In the same way that a traditional programming language semantics
   might hide the complexity of actually storing closures on the heap.
 }
 The actual Skia implementation
-  defines \Point to be a pair of 32-bit signed integers
+  defines \Point to be a pair of 32-bit floats
   and \Color to be a 32-bit unsigned integer
   interpreted as ARGB pre-multiplied byte-sized color,%
 \footnote{
@@ -124,8 +124,8 @@ The abstract model nonetheless allows for extensibility;
   for example, this section does not discuss opacity,
   but our Lean formalization does include it.
 This extension does not require any changes to the abstract model,
-  and only some tweaks in the denotational semantics defined in the remainder of
-  this section.
+  and only some tweaks in the denotational semantics defined
+  later in this section.
 
 \subsection{Skia as Layers}
 \label{subsec:sem-layers}
@@ -151,8 +151,8 @@ This extension does not require any changes to the abstract model,
     \centering
     \begin{tabular}{ScS}
       Command ::= \\
-      | Draw($g$: Shape, $p$: Paint) \\
-      | Clip(\textit{cl}: Shape) \\
+      | Draw($s$: Shape, $p$: Paint) \\
+      | Clip($s$: Shape) \\
       | Save(); $c$; Restore() \\
       | SaveLayer($p$: Paint); $c$; Restore() \\
       | $c$; $c$
@@ -175,7 +175,7 @@ Skia does not permit
   instead, these always happen in a prescribed order.
 We thus introduce the language of \textsf{Layers},
   shown in \Cref{fig:layerlang},
-  which defines the core \texttt{Draw} and \texttt{BlendLayer} operations
+  which defines the core \Draw and \BlendLayer operations
   in Skia.
 We focus on these two operations specifically
   because they are the core target of the optimizing compiler
@@ -226,16 +226,13 @@ The operations can be denoted to the abstract model,
 \textsf{BlendLayer} is likewise straightforward,
   applying a blend operator, determined by the paint $p$,
   point-wise on the two layers being blended.
-\textsf{Draw} is most complex.
-Conceptually, it first performs clipping,
-  constructing the intersection $s \cap c$
-  of the drawn shape and the clip state;
-  then it performs filling,
+\textsf{Draw} is more complex.
+Conceptually, it first performs filling,
   computing the fill color for each point in the shape;
-  and finally it performs blending
+  and then it performs blending
   on the original color and computed fill for each point.
 The blend is performed
-  even for points outside $s \cap c$;
+  even for points outside of the shape;
   this is critical for, for example, \textsf{DstIn} blending.
 Note that the equalities over denotations are compositional.
 That is, if we know that $\denote{l} = \denote{l}$,
@@ -254,18 +251,18 @@ A \muskia program consists
   whose syntax is defined in \Cref{fig:muskia}.
 \muskia includes the critical features
   described in \Cref{sec:skia},
-  such as the \textsf{Draw} command for drawing,
-  the \textsf{Clip} command for manipulating the clip state,
-  and the \textsf{Save}, \textsf{SaveLayer}, and \textsf{Restore}
+  such as the \Draw command for drawing,
+  the \Clip command for manipulating the clip state,
+  and the \Save, \SaveLayer, and \Restore
   stack manipulation commands,
 \muskia diverges from the full Skia API
   in two main ways.
 First, the syntax definition is more regular
   to eliminate unimportant special cases:
-  \textsf{Save}, \textsf{SaveLayer}, and \textsf{Restore}
+  \Save, \SaveLayer, and \Restore
   must be properly bracketed,
-  and the \texttt{Draw} and \texttt{Clip} commands
-  take arbitrary \textsf{Geometry}s,
+  and the \Draw and \Clip commands
+  take arbitrary \Shape{}s,
 Second, only a small fraction of the API is modeled.
 Nonetheless,
   extending \muskia to cover more of the API is straightforward,
@@ -310,14 +307,16 @@ The simplest is the \textsf{Draw} command,
     \langle \ell :: L, c :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle \Draw(\ell, s, p) :: L, c :: C \rangle
+    \langle \Draw(\ell, s \cup c, p) :: L, c :: C \rangle
   }
 \end{mathpar}
 \noindent
 Note that the \textsf{Draw} operation on the top \textsf{Layer}
   includes both the \textsf{Geometry} and \textsf{Paint}
   from the \textsf{Draw} command
-  as well as the current clip from the canvas state:
+  \fillin{while also intersecting the shape to be drawn with the current clip.
+    This removes the distinction between the geometry being drawn and the clip
+    completetly at the \Layer level.}
 
 The \textsf{Clip} command likewise modifies
   the top canvas state, intersecting it
@@ -379,7 +378,7 @@ The \textsf{SaveLayer} command, meanwhile,
   {
     \langle
     \mathit{cmd},
-    \langle \Empty() :: ell :: L, c :: c :: C \rangle \rangle
+    \langle \Empty() :: \ell :: L, c :: c :: C \rangle \rangle
     \;\longmapsto\;
     \langle \ell' :: \ell :: L, c' :: c :: C \rangle
   }
@@ -398,10 +397,12 @@ The inference rule for sequential composition is straightforward
   is given in our Lean formalization,
   which we intend to submit as an artifact.
 
-The \muskia semantics is deterministic,
-  and programs never get stuck.
+\fillin{The \muskia semantics is deterministic,
+  and programs never get stuck.}
 
 \subsection{Lean Formalization}
+
+\fillin{pavel read this}
 
 We have mechanized the abstract model, \Layer terms, and \muskia and their
   respective semantics in the Lean4 interactive theorem prover~\cite{lean4}.

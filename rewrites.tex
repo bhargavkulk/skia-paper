@@ -26,6 +26,8 @@ To demonstrate the flexibility of the \muskia semantics,
   only to Skia programs produced by Google Chrome
   or only to specific web frameworks or even websites.
 
+\fillin{pavel read this}
+
 It is important to understand what we mean by equivalence of \muskia programs.
 The equality we will use in this section is always over entire programs.
 We consider two \muskia programs to be equal
@@ -43,6 +45,13 @@ Throughout to section,
   ``$\ell\ldots$''.
 We will use $\ell$ to refer to both the \muskia commands, and the \Layer term
   they all evaluate to.
+\fillin{pavel read this.}
+We also shorten the \Paint constructor to the following notation,
+  $p\textsf{\{\,\SrcOver \}}$ where $p$ is the identifier for that specific
+  \Paint and we omit both the \Fill and \Filter arguments
+  to keep the examples easy to read.
+When the \Fill and \Filter areguments are omitted, they are taken to mean any
+  \Fill and the identity \Filter respectively.
 
 \subsection{SrcOver \SaveLayer{}s}
 \label{subsec:src-over-layer}
@@ -99,7 +108,6 @@ This means the induction effectively proceeds by
 After expanding out the \muskia semantics,
   the inductive step requires proving
   the following equivalence of \Layer terms:
-
 \begin{center}
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
@@ -109,12 +117,10 @@ After expanding out the \muskia semantics,
     \end{tabular}
     & = &
     \begin{tabular}{@{}l@{}}
-      Draw(BlendLayer($\ell$\textsubscript{1}, $\ell$\textsubscript{2}, $p_d$),\\
-      \quad $g$, $p$)
+      Draw(BlendLayer($\ell$\textsubscript{1}, $\ell$\textsubscript{2}, $p_d$), $g$, $p$)
     \end{tabular}
   \end{tabular}
 \end{center}
-
 Note the \Draw command uses a \SrcOver blend;
   this is why the commands in $\ell_2$
   must all use \SrcOver blends.
@@ -126,11 +132,9 @@ Applying it repeatedly results in the original equivalence
 This equivalence is, in turn,
   equivalent to the following equality in our abstract model,
   which asserts that \SrcOver blends are associative:
-
 \begin{equation*}
   \SrcOver(a, \SrcOver(b, c)) = \SrcOver(\SrcOver(a, b), c)
 \end{equation*}
-
 In our Lean formalization,
   we provide an instantiation of our abstract model
   using real-valued coordinates and real-valued colors,
@@ -155,7 +159,7 @@ Blending a full mask image with \dstin
   requires first filling all the pixels in the drawn shape,
   and then \dstin blending all pixels in the layer.
 A \Clip operation, by contrast,
-  only fills pixel inside
+  only fills pixels inside
   both the drawn shape and the clip mask,
   and does not need to perform any follow-up blending at all.
 This suggests the following idealized equivalence:
@@ -177,6 +181,7 @@ This suggests the following idealized equivalence:
     \end{tabular}
   \end{tabular}
 \end{center}
+\fillin{pavel read this.}
 In this case, the segment of \muskia commands labeled $\ell_1$
   is assumed to not contain \SaveLayer operations.
 More importantly, $\ell_2$ \emph{has} to only contain \Clip commands.
@@ -193,29 +198,24 @@ A challenge with verifying this rewrite
   to all operations in the segment labeled $\ell$.
 To do so, we define a recursive function \textsf{clipAll}
   on \Layer terms:
-
 \begin{align*}
   &\mathsf{clipAll} : \Layer \to \Shape \to \Layer \\
   &\mathsf{clipAll}(\Empty(), m) = \Empty() \\
-  &\mathsf{clipAll}(\Draw(\ell, g, p, c), m)
+  &\mathsf{clipAll}(\Draw(\ell, g, p), m)
                    = \Draw(\mathsf{clipAll}(\ell, m), g \cap m, p)
 \end{align*}
-
 Note that \textsf{clipAll} is not defined
   on \BlendLayer{}s,
-  which do not have a clip mask parameter;
-  this is why we must assume that $\ell$ does not contain
+  which is why we must assume that $\ell$ does not contain
   any \SaveLayer{}s.
 We then prove, by induction,
   that commuting \Clip over $\ell$ results in $\mathsf{clipAll}(\ell)$.
 
 With this induction proven,
   the core \Layer equivalence becomes:
-
 \begin{equation*}
 \BlendLayer(\ell, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell, m)
 \end{equation*}
-
 This is then proven by induction over $\ell$,
   recalling that it since $\ell$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
@@ -291,7 +291,7 @@ The proof with the \muskia semantics
 \end{figure}
 
 SVG is a declarative, XML-based language for vector graphics.
-It is, in other words, somewhat similar to SVG in purpose;
+It is, in other words, somewhat similar to Skia in purpose;
   browser engines like Chrome's translate SVG
   to Skia commands for rasterization.
 \Cref{fig:subsume-svg}, for example,
@@ -308,12 +308,12 @@ In this snippet, the \texttt{<rect>} line draws a rectangle,
   and a custom mask (defined by a \texttt{<mask>} block)
   so that the Canva logo is ultimately drawn,
   which might strike the reader as quite similar
-  to the \muskia semantics.
+  to Skia.
 
 However, SVG and Skia differ enough
   that the conversion is not straightforward.
 Chrome, for example, performs the fill-and-mask operation
-  by drawing the mask on a \SaveLayer and blending it on the fill using \DstIn
+  by drawing the mask on a \SaveLayer and blending it on the fill uses \DstIn
   blending.
 Moreover, as we discussed in \Cref{subsubsec:masking},
   \DstIn masks using the transparency of the mask layer,
@@ -322,7 +322,8 @@ Moreover, as we discussed in \Cref{subsubsec:masking},
 Chrome performs this conversion using
   a separate \SaveLayer with
   a luminance color filter.
-The generated Skia program thus looks like this:
+The generated Skia program thus looks like this:\fillin{we need to point them to
+the LHS, not sure how with words}
 
 \begin{center}
   \begin{tabular}{S c S}
@@ -357,22 +358,18 @@ Proving this rewrite in the \muskia semantics
   does not even require induction
   because it involves a fixed sequence of three Skia commands.
 The core abstract model equation is:
-
 \begin{equation*}
 \Luma(\srcover(\Transparent, c)) = \srcover(\Transparent, \Luma(c))
 \end{equation*}
-
 The equation is trivially true
   because $\SrcOver(\Transparent, c) = c$.
 Note that the analogous rewrite is not true
   when there are two \Draw commands
   inside the luminance filter \SaveLayer.
 This is because this more general equation is not true:
-
 \begin{equation*}
 \Luma(\srcover(c_1, c_2)) \ne \srcover(\Luma(c_1), \Luma(c_2))
 \end{equation*}
-
 This again demonstrates the subtleties of 2D graphics optimizations
   and the need for the rigorous formal model
   provided by \muskia.
@@ -394,7 +391,7 @@ All three of these sites seem to use a common web framework
     \begin{tabular}{@{}l@{}}
       SaveLayer(...);\\
       \quad Draw($s$, $p_1$ \{ SrcOver \});\\
-      \quad SaveLayer( \{ DstIn \});\\
+      \quad SaveLayer(\{ DstIn \});\\
       \quad \quad Draw($s$, $p_2$ \{ Gradient(), SrcOver \});\\
       \quad Restore();\\
       Restore();
@@ -415,7 +412,7 @@ However, with \dstin blending,
   only the opacity (alpha) of the mask is used, not its color,
   and in many cases the entirety of the gradient is opaque.
 As a result, the mask operation is entirely superfluous.
-It is not clear to use why this pattern is used;
+It is not clear to us why this pattern is used;
   possibly the gradient could be configured to be
   partially transparent but isn't on these websites.
  No induction is needed in this example,
@@ -438,11 +435,9 @@ Converting to \Layer terms, this rewrite unfolds to:
 
 \noindent
 This reduces to the following equation in the abstract model:
-
 \[
 \DstIn(\SrcOver(\Transparent, a), b) = \SrcOver(\Transparent, a)
 \]
-
 \noindent
   where $b$ is known to be opaque,
   which it is because all of the stops of the gradient
