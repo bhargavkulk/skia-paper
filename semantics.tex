@@ -281,77 +281,66 @@ The initial state is
   as the top of the stack.
 
 A \muskia program then performs
-  a sequence of steps  $(c, \Sigma) \longmapsto \Sigma'$.
+  a sequence of steps  $c, \Sigma \longmapsto \Sigma'$.
 The simplest is the \textsf{Draw} command,
   which modifies the top \textsf{Layer}:
 \begin{mathpar}
   \inferrule
   { }
   {
-    \langle
     \Draw(g, p),
     \langle \ell :: L, m :: C \rangle
-    \rangle
     \;\longmapsto\;
-    \langle \DrawShape(\ell, g \cap m, p) :: L, c :: C \rangle
+    \langle \DrawShape(\ell, g \cap m, p) :: L, m :: C \rangle
   }
 \end{mathpar}
 \noindent
-Note that the \textsf{Draw} operation on the top \textsf{Layer}
-  includes both the \textsf{Geometry} and \textsf{Paint}
-  from the \textsf{Draw} command
-  \fillin{while also intersecting the shape to be drawn with the current clip.
-    This removes the distinction between the geometry being drawn and the clip
-    completetly at the \Layer level.}
+Note that the \DrawShape operation
+  is passed the intersection of the shape $g$ being drawn
+  and the current clip mask $m$.
 
-The \textsf{Clip} command likewise modifies
-  the top canvas state, intersecting it
-  with the new clip geometry:
+The \textsf{Clip} command modifies the canvas state,
+  intersecting it with the new clip geometry:
 \begin{mathpar}
   \inferrule
   { }
   {
-    \langle
-    \Clip(c'),
-    \langle L, c :: C\rangle
-    \rangle
+    \Clip(m'),
+    \langle L, m :: C\rangle
     \;\longmapsto\;
-    \langle L, c \cap c' :: C \rangle
+    \langle L, (m \cap m') :: C \rangle
   }
 \end{mathpar}
 \noindent
-Note that the full Skia API includes a
-  \texttt{SkClipOp} parameter
-  that allows instead taking the difference
-  between the current and new clip;
+Note that the actual Skia \texttt{clipRect} command
+  has an optional \texttt{SkClipOp} parameter
+  that allows instead taking the difference instead of intersecting
+  the new mask with the clip state;
   this paper does not show that (straightforward) extension
   but our Lean formalization does include it.
 
 The \textsf{Save} command
-  duplicates the top canvas state.
-Then, when its matching \textsf{Restore} is reached,
-  that top canvas state is discarded:
+  duplicates the top canvas state,
+  runs the bracketed commands,
+  and then discards the new canvas state
+  when its matching \textsf{Restore} is reached:
 \begin{mathpar}
   \inferrule
   {
-    \langle
-    \mathit{cmd},
-    \langle L, c :: c :: C \rangle
-    \rangle
+    c,
+    \langle L, m :: m :: C \rangle
     \;\longmapsto\;
-    \langle L', c' :: c :: C \rangle
+    \langle L', m' :: m :: C \rangle
   }
   {
-    \langle
-    \Save(); \mathit{cmd}; \Restore(),
-    \langle L, c :: C\rangle
-    \rangle
+    (\Save(); c; \Restore()),
+    \langle L, m :: C\rangle
     \;\longmapsto\;
-    \langle L', c :: C \rangle
+    \langle L', m :: C \rangle
   }
 \end{mathpar}
 \noindent
-Note that it does not make
+Note that \Restore does not make
   any changes to the layer state.
 
 The \textsf{SaveLayer} command, meanwhile,
@@ -362,31 +351,33 @@ The \textsf{SaveLayer} command, meanwhile,
 \begin{mathpar}
   \inferrule
   {
-    \langle
-    \mathit{cmd},
-    \langle \Empty() :: \ell :: L, c :: c :: C \rangle \rangle
+    c,
+    \langle \Empty() :: \ell :: L, m :: m :: C \rangle
     \;\longmapsto\;
-    \langle \ell' :: \ell :: L, c' :: c :: C \rangle
+    \langle \ell' :: \ell :: L, m' :: m :: C \rangle
   }
   {
-    \langle
-    \SaveLayer(p); \mathit{cmd}; \Restore(),
-    \langle \ell :: L, c :: C\rangle
-    \rangle
+    (\SaveLayer(p); c; \Restore()),
+    \langle \ell :: L, m :: C\rangle
     \;\longmapsto\;
-    \langle \BlendLayer(\ell, \ell', p) :: L, c :: C \rangle
+    \langle \BlendLayer(\ell, \ell', p) :: L, m :: C \rangle
   }
 \end{mathpar}
 \noindent
 The inference rule for sequential composition is straightforward
   and, along with various extensions to \muskia,
-  is given in our Lean formalization,
-  which we intend to submit as an artifact.
+  is given in our Lean formalization.
 
-\fillin{The \muskia semantics is deterministic,
-  and programs never get stuck.}
-The final state consists of a single layer $L$,
-  which is the output image from the program.
+The \muskia semantics is deterministic,
+  and programs never get stuck.%
+\footnote{
+Proving this requires proving that Skia programs only ever
+  modify the top of the layer and canvas stack,
+  and do not change the stack size.
+This is proven by induction.
+}
+The final state consists of a single layer,
+  whose denotation is the program's output.
 
 \subsection{Lean Formalization}
 
