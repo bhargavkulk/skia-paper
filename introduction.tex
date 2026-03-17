@@ -52,106 +52,25 @@ In practice, doing so is difficult even for sophisticated, well-engineered
 Google Chrome, which is Skia's largest client,
   and is also developed alongside Skia at Google,
   produces \fillin{highly} suboptimal programs for many popular websites.
+The main reason why clients of rasterization libraries
+  are not able to make the best use of them
+  is because these libraries have opaque and non-obvious execution models.
+The ideal solution would be a clear formal semantics that clients of libraries
+  like Skia could use to reason about the programs they generate.
 
-\fillin{problem here is how do we say ``semantics'' is the answer!}
-The main reason for the disconnect between Chrome and Skia
-  is because they have their own distinct data models for images.
-The Chrome then has the responsibilty to map its model of visual content,
-  which is HTML and CSS documents,
-  onto that of Skia.
-But because Skia's model is complex and its execution pipeline is non-obvious,
-  it is hard for even Chrome to perform this translation effectively.
-\fillin{trying something.} The relation between Chrome and Skia is quite like
-the relation between a compiler for a high-level language and assembly.
-The compiler needs to correctly map the high-level language constructs onto
-  efficient sequences of assembly instuctions.
-\fillin{i dont like this, we are promsing semantics that map HTML CSS to skia, i
-  dont know where I am going with this tbh}
-
-
-
-
-
-
-\section{Introduction}
-\label{sec:intro}
-
-Browser engines are an increasingly prominent way
-  that users interact with applications---%
-  not only web applications like Office~365 or Gmail
-  but also desktop applications like Slack, Discord, and VS~Code.
-Browser applications are graphical,
-  and increasingly support complex graphical effects
-  such as shadows, gradients, transparency, and animations.
-Yet drawing these visual effects 60 or even 120 times per second,
-  to keep up with smooth animations or rapid user interaction,
-  is challenging.
-Fast rasterization,
-  the task of actually determining the color of each pixel
-  drawn by the application, is critically.
-Typically, a rasterization library
-  takes as input a high-level description
-  of shapes to be drawn and effects to be applied,
-  and must then color in millions of pixels
-  in the span of hundreds of microseconds.
-
-This requires highly-optimized rasterization libraries.
-The most prominent of these libraries is Skia.
-Skia is used by nearly all browser engines---%
-  it is the only rasterization library
-  for the Google Chrome, Mozilla Firefox, and Ladybird browsers,
-  and the Linux rasterization library
-  for the Webkit engine behind Apple Safari.
-Skia is additionally used in the Android operating system,
-  and is one of two rasterization options in Flutter,
-  a popular mobile application framework.
-Skia is also a popular backend for various libraries
-  for rastering PDFs, images, and icons,
-  and it is also used by a variety of other native applications,
-  like for example Sublime Text.
-Skia clients describe shapes to be drawn,
-  define how different shapes are blended together,
-  and apply effects to the results.
-Skia then converts this description
-  into an efficient sequence of GPU shader calls
-  using GPU backends tuned for various native APIs
-  like Metal, Vulkan, and OpenGL.
-
-To achieve max performance,
-  clients must use Skia the right way.
-Certain Skia commands, for example,
-  allocate additional pixel buffers,
-  perform additional blend operations,
-  or switch between special-case and general-purpose masking routines.
-Two different sequences of commands might draw the same image
-  but with radically different rasterization time.
-Even sophisticated clients like Google Chrome
-  generate subpar command sequences
-  due to the complexity of the Skia command language
-  and the clients' own internal complexity.
-Ideally, these concerns would be handled internally,
-  by an optimization pass within the Skia library,
-  but to date no such optimization pass exists.
-
-We address this with
-  a new formal semantics of Skia, called \muskia,
-  and leverage it to develop such an optimization pass.
-\muskia is a formalization of the command language
-  implicit in the Skia API; it captures key features
+In this paper we clarify the execution model with \muskia,
+  a semantics for the Skia 2D rasterization library,
+  which allows for formal reasoning of Skia programs.
+\muskia captures key features of the Skia API
   like canvas state, the layer stack, clipping, and blending.
-To facilitate automated reasoning and verification,
-  \muskia has a layered structure.
-The top layer is a command language with an operational semantics.
-This operational semantics is phrased in terms of a functional core,
-  which forms the middle layer.
-This functional core then denotes
-  to an abstract model of 2D graphics, which is the bottom layer.
+We then denote \muskia into an abstract model of 2D grapics.
 The abstract model permits multiple instantiations
   to allow reasoning modulo concerns like anti-aliasing and discretization error.
-The semantics including various extensions, is mechanized in Lean.
+The semantics including various extensions, is also mechanized in Lean,
+  which enables automated reasoning and verification of Skia programs.
 
 We then use the \muskia semantics to develop
-  an effective and efficient optimizer for Skia.
+  an effective, efficient, and correct optimizer for Skia.
 We identify 4 rewrite rules
   that optimize common Skia command patterns
   generated by Google Chrome on real-world websites.
@@ -173,10 +92,12 @@ The optimizer is effective across Skia backends and GPUs,
 
 \medskip
 \noindent
-The contributions to this paper are:
+The contributions in this paper are:
 \begin{enumerate}
 \item A new formalization of the Skia API (\Cref{sec:semantics})
 \item A collection of rewrites proven valid using this formalization (\Cref{sec:rewrites})
-\item A optimizer that speeds up real world Skia programs using these rewrites (\Cref{sec:compiler}).
+\item A efficient and correct optimizer that speeds up real world Skia programs using these rewrites (\Cref{sec:compiler}).
 \end{enumerate}
+\end{document}
+
 \end{document}
