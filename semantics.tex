@@ -3,22 +3,18 @@
 \section{Semantics}
 \label{sec:semantics}
 
-This paper's semantics of Skia
-  consists of three components.
-The bottom-most layer is an abstract model of
+Our Skia consists of three strata.
+The bottom-most stratum is an abstract model of
   images, shapes, blends, and filters defined in terms
   of abstract types \Point and \Color,
   which can be instantiated to model
   as much of the actual Skia API as necessary.
 The middle layer is functional operations
-  \Draw and \BlendLayer
-  and an abstract type \textsf{Paint},
-  which denote to our abstract model.
+  \DrawShape and \BlendLayer
+  parameterized by a \Paint object,
+  all of which denote to our abstract model.
 The top layer is an imperative language, \muskia,
   whose operational semantics provides a model of Skia.
-This section describes all three layers
-  and then examines \fillin{4} rewrite rules
-  proven valid using the semantics.
 
 \subsection{Abstract Model}
 \label{subsec:abstractmodel}
@@ -27,7 +23,7 @@ This section describes all three layers
   \centering
   \begin{tabular}{S S S}
     Image  & : \; Point $\to$ Color & \textrm{\textit{e.g.}}\; {\sffamily
-                                      Solid(Color), LinearGradient($\ldots$),
+                                      Solid($c : \text{Color}$), LinearGradient($\ldots$),
                                       $\ldots$} \\[4pt]
     Shape  & : \; Point $\to$ Bool & \textrm{\textit{e.g.}}\; {\sffamily
                                      Rect($\ldots$), RRect($\ldots$),
@@ -48,36 +44,58 @@ This section describes all three layers
   \label{fig:model}
 \end{figure}
 
-Traditional programming language semantics
-  typically do not have to define their abstract model,
-  since it is typically based on commonly-known types
-  such as pairs, functions, and integers.
+In traditional programming language semantics,
+  the abstract model---%
+  objects like pairs, functions, integers, and the like---%
+  is implicit and well understood.
 In the graphics domain, the core types
   are not so well established,
   so the abstract model must be explicitly defined.
-The abstract model of our semantics
-  is shown in \Cref{fig:model};
+The abstract model for \muskia
   it is based around two core abstract types,
   \Point and \Color.
 The \Point and \Color types
-  are then used to define the key types in our abstract model.
+  are then used to define additional types,
+  as shown in \Cref{fig:model}.
+A special \Transparent color is also assumed.
 An \Image is defined
   as a \Color for every \Point
-  while \Shape{}s are defined
+  and \Shape{}s are defined
   as predicates on \Point{}s.
-Equivalence of two \Image{}s is defined
-  as assigning the same \Color to each \Point.
+Equivalence of two \Image{}s is defined extensionally:
+  the same \Color for each \Point.
 Additionally, since a major focus of this semantics
   is reasoning about color blending and filtration,
-  types for \Blend{}s and \Filter{}s are defined
+  \Blend{}s and \Filter{}s are defined
   as binary and unary operators on colors.
 
-This abstract model hides substantial complexity
-  in the actual implementation.%
-\footnote{
-In the same way that a traditional programming language semantics
-  might hide the complexity of actually storing closures on the heap.
-}
+An instantiation of the abstract model
+  would then define specific \Image{}s
+  (solid color fills, gradients, image files),
+  \Shape{}s (rectangles, paths, text outlines),
+  \Blend{}s (roughly two dozen),
+  and \Filter{}s (a few built-in, but extensible with shaders),
+  along with equivalences between them.
+\Cref{fig:1} shows some of the objects of each type.
+This provides extensibility for \muskia:
+  an instantiation of the abstract model
+  can define more or fewer of these objects,
+  and provide more or fewer theorems about them,
+  allowing a trade-off between the accuracy and complexity
+  of our formalism.
+Our Lean mechanization, for example,
+  treats most shapes as entirely symbolic,
+  with only minimal support for reasoning about
+  subset relations between them,
+  sufficient for the rewrites of \Cref{sec:rewrites}
+  and the optimizer of \Cref{sec:compiler}.
+Future work may expand the abstract model
+  or more carefully model its objects
+  so as to provide more theorems about them.
+
+The abstract model also provides some flexibility
+  for choosing either simpler or more accurate
+  models of \Point and \Color.
 The actual Skia implementation
   defines \Point to be a pair of 32-bit floats
   and \Color to be a 32-bit unsigned integer
@@ -91,113 +109,96 @@ The colors are premultiplied, meaning
   that a color with an alpha value of $\alpha$
   will have its red, green, and blue components
   range from $0$ to $\alpha$;
-  this form makes for somewhat more efficient computation.
+  this form makes blending computations somewhat more efficient.
 }
   and operations on points and colors
-  must thus be anti-aliased and rounded.
+  thus reflect effects from anti-aliasing and rounding.
 The exact anti-aliasing and rounding behavior
   is not guaranteed by Skia
   and is also exceptionally complex,
-  including hardware dependence in some back-ends;
-  the abstract model allows our semantics
-  to ignore these details.
-The equivalences proved are thus
-  \emph{up to} anti-aliasing and rounding details
-  (and also assume away issues like coordinate overflow).
-
-Matching the abstract model to Skia
-  would require actually defining
-  the vast array of \Image{}s
-  (solid color fills, gradients, image files),
-  \Shape{}s (rectangles, paths, text outlines),
-  \Blend{}s (roughly two dozen),
-  and \Filter{}s (in fact, these can even be defined
-  by shader programs in a custom SkSL shader language).
-Defining these objects and their equivalences
-  would be a complex undertaking,
-  especially given the pace of change in Skia itself.
-Luckily, the compiler described in \Cref{sec:compiler}
-  does rather superficial reasoning over these objects
-  and only special-cases a handful of them.
-Our Lean formalization only defines those special cases.
-The abstract model nonetheless allows for extensibility;
-  for example, this section does not discuss opacity,
-  but our Lean formalization does include it.
-This extension does not require any changes to the abstract model,
-  and only some tweaks in the denotational semantics defined
-  later in this section.
+  including hardware dependence in some back-ends.
+Our Lean formalization instead uses an abstract model
+  where points and colors are represented by real numbers,
+  which in practice means it assumes away
+  \emph{up to} anti-aliasing and rounding.
 
 \subsection{Skia as Layers}
 \label{subsec:sem-layers}
 
 \begin{figure}
-  \centering
-  \begin{subfigure}[T]{0.45\linewidth}
+  \begin{minipage}{0.50\linewidth}
     \centering
-    \begin{tabular}{SSS}
+    \begin{tabular}{S}
       Layer ::= \\
       | Empty() \\
-      | Draw($\ell$: Layer, $s$: Shape, $p$: Paint) \\
-      | BlendLayer($\ell_{\textsf{bot}}$, $\ell_{\textsf{top}}$: Layer, $p$: Paint) \\[4pt]
+      | DrawShape($\ell: \Layer$, $s: \Shape$, $p: \Paint$) \\
+      | BlendLayer($\ell_{\textsf{bot}}: \Layer$, $\ell_{\textsf{top}}: \Layer$, $p: \Paint$) \\[4pt]
 
       Paint ::= \\
-      | Paint(\textit{fill}: Image, \textit{filter}: Filter, \textit{blend}: Blend)
+      | Paint(\textit{fill} : Image, \textit{filter} : Filter, \textit{blend} : Blend)
     \end{tabular}
-    \caption{}
+    \caption{
+      \Layer objects store images and are modified
+        by drawing and blending operations.
+      Each drawing or blending operation
+        is parameterized by a \Paint object.
+      \Layer terms denote to the abstract model
+        of \Cref{subsec:abstractmodel}.
+      }
     \label{fig:layerlang}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[T]{0.50\linewidth}
+  \end{minipage}%
+  \hfill%
+  \begin{minipage}[T]{0.45\linewidth}
     \centering
-    \begin{tabular}{ScS}
+    \begin{tabular}{S}
       Command ::= \\
-      | Draw($s$: Shape, $p$: Paint) \\
-      | Clip($s$: Shape) \\
+      | Draw($g: \Shape$, $p : \Paint$) \\
+      | Clip($m : \Shape$) \\
       | Save(); $c$; Restore() \\
-      | SaveLayer($p$: Paint); $c$; Restore() \\
+      | SaveLayer($p: \Paint$); $c$; Restore() \\
       | $c$; $c$
     \end{tabular}
-    \caption{}
+    \caption{The \muskia command language.
+      Note that \Save/\Restore and \SaveLayer/\Restore pairs
+        are defined as structured terms
+        wrapping a subsequence of commands.
+      }
     \label{fig:muskia}
-  \end{subfigure}
-  \caption{In \Cref{fig:layerlang} we show the grammar of the \Layer
-    language that constrains the order of operations over our abstract model
-    described in \Cref{subsec:abstractmodel}. Note how all the \Layer terms are
-    made up of the the primitive types defined in the abstract model. In
-    \Cref{fig:muskia} we show the grammar of the \muskia language. \muskia uses
-    the same \Paint used in \Layer terms without any modification. Unlike the
-    Skia API, we define \Save/\Restore and \SaveLayer/\Restore pairs as structured constructs
-    for convenience.}
+  \end{minipage}
 \end{figure}
 
-Skia does not permit
-  arbitrary drawing and blending operations;
-  instead, these always happen in a prescribed order.
-We thus introduce the language of \textsf{Layers},
-  shown in \Cref{fig:layerlang},
-  which defines the core \Draw and \BlendLayer operations
-  in Skia.
-We focus on these two operations specifically
-  because they are the core target of the optimizing compiler
-  described in \Cref{sec:compiler}.
-The \layer constructors can be defined in terms of the abstract model,
-  as shown in \Cref{fig:denote}.
+The execution model of Skia centers around layers,
+  which store images
+  and are modified by drawing and blending.
+\Cref{fig:layerlang} thus introduces \Layer objects
+  with \DrawShape and \BlendLayer operations.
+\DrawShape draws a single shape $s$ on a \Layer $\ell$
+  yielding the new state of $\ell$,,
+  while \BlendLayer blends the layer $\ell_\textsf{top}$
+  into $\ell_\textsf{bot}$, yielding the new state of $\ell_\textsf{bot}$.
+Each operation is parameterized by a \Paint object,
+  which defines a blend mode, fill type, and color filter.
+The paint object configures the various phases
+  of the Skia drawing pipeline.
+Because \Layer has only these two constructors
+  (plus the special \Empty layer),
+  it is particularly easy to induct on them in proofs.
 
 \begin{figure}
   \begin{align*}
     \denote{\Empty()}(\textsf{pt})
     &= \Transparent\\[2pt]
     \denote{\BlendLayer(\ell_\textsf{bot}, \ell_\textsf{bot}, p)}(\mathsf{pt})
-    &= \mathsf{blend_\mathrm{p}}\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
-        \textsf{filter\textsubscript{\textrm{\textit{p}}}}\left(\denote{\mathsf{\ell_{top}}}(\mathsf{pt})\right)
+    &= \mathsf{blend}_\mathrm{p}\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
+        \textsf{filter}_p\left(\denote{\mathsf{\ell_{top}}}(\mathsf{pt})\right)
       \right) \\[2pt]
-    \denote{\Draw(\ell, s, p, c)}(\mathsf{pt})
-    &= \mathsf{blend_\mathrm{p}}\left(\denote{\ell(\mathsf{pt})},\;
-      \textsf{filter\textsubscript{\textrm{\textit{p}}}}\left(
+    \denote{\DrawShape(\ell, s, p)}(\mathsf{pt})
+    &= \mathsf{blend}_p\left(\denote{\ell}(\mathsf{pt}),\;
+      \textsf{filter}_p\left(
        \left\{
        \begin{array}{ll}
-         \mathsf{fill_\mathrm{p}}(\mathsf{pt}) & \mathsf{pt} \in s \\
-         \Transparent & \textsf{otherwise}
+         \mathsf{fill}_p(\mathsf{pt}) & s(\mathsf{pt}) \\
+         \Transparent & \textrm{else}
        \end{array}
        \right\}
        \right)\right)\\
@@ -206,96 +207,81 @@ The \layer constructors can be defined in terms of the abstract model,
   \label{fig:denote}
 \end{figure}
 
-Skia has two core operations:
-  drawing a shape onto an image,
-  and blending two images (representing two layers) into one.
-Each operation is parameterized by a \textsf{Paint} object,
-  which indicates the current blend mode,
-  the fill type, and so on;
-  drawing also requires the clip region from the canvas state.
-The signatures for each operation are defined
-  in \Cref{fig:layer} as constructors of
-  a \textsf{Layer} type.
-Equivalence of two \textsf{Layer} terms
-  is defined by equivalence of their denotations to \Image{}s.
-
-The operations can be denoted to the abstract model,
+The \layer constructors denote to the abstract model,
   as shown in \Cref{fig:denote}.
-\textsf{Empty} has a straightforward denotation
-  to an all-\textsf{Transparent} image.
-\textsf{BlendLayer} is likewise straightforward,
-  applying a blend operator, determined by the paint $p$,
-  point-wise on the two layers being blended.
-\textsf{Draw} is more complex.
-Conceptually, it first performs filling,
-  computing the fill color for each point in the shape;
-  and then it performs blending
-  on the original color and computed fill for each point.
-The blend is performed
-  even for points outside of the shape;
+\Empty has a straightforward denotation
+  to an all-\Transparent image.
+\BlendLayer is likewise straightforward,
+  first applying an image filter to the top layer
+  and then blending it with the bottom layer,
+  both pointwise and with
+  the filter and blend mode determined by the \Paint object.
+\DrawShape is most complex.
+Conceptually, it first computes which points
+  are within the shape $s$;
+  then computes the fill color for each one;
+  and finally blends the layer's current color
+  and computed color for each point.
+The blend is performed even for points outside $s$;
   this is critical for, for example, \textsf{DstIn} blending.
-Note that the equalities over denotations are compositional.
-That is, if we know that $\denote{l} = \denote{l}$,
+
+\Layer{}s are equivalent up to denotation,
+  and permit substitution.
+That is, if $\denote{l} = \denote{l}$,
   then $\denote{m} = \denote{m[l/l']}$.
-The fact that denotations are composable means
-  we can use equalities over denotations as rewrites,
-  enabling us to actually use our semantics
-  to verify optimizations.
+This fact means that equivalences over \Layer terms
+  can be used as rewrite rules,
+  which we leverage in \Cref{sec:rewrites}
+  to prove Skia optimizations correct.
 
 \subsection{\muskia}
 \label{subsec:muskia}
 
-\muskia is a simplified version of the Skia API.
+\muskia is a simplified version of the Skia API itself.
 A \muskia program consists
   of a sequence of commands
-  whose syntax is defined in \Cref{fig:muskia}.
-\muskia includes the critical features
-  described in \Cref{sec:skia},
-  such as the \Draw command for drawing,
+  (see \Cref{fig:muskia}).
+These commands include
+  all the features described in \Cref{sec:skia},
+  including the \Draw command for drawing,
   the \Clip command for manipulating the clip state,
   and the \Save, \SaveLayer, and \Restore
   stack manipulation commands,
-\muskia diverges from the full Skia API
+\muskia diverges from the Skia API
   in two main ways.
 First, the syntax definition is more regular
   to eliminate unimportant special cases:
   \Save, \SaveLayer, and \Restore
   must be properly bracketed,
-  and the \Draw and \Clip commands
+  while the \Draw and \Clip commands
   take arbitrary \Shape{}s,
 Second, only a small fraction of the API is modeled.
-Nonetheless,
-  extending \muskia to cover more of the API is straightforward,
-  and our Lean formalization includes additional features
-  such as opacity, styles, and transforms.
+Our Lean formalization extends the grammar in \Cref{fig:muskia}
+  with several additional features,
+  including opacity, styles, and transforms,
+  and we expect adding even more features to be straightforward.
 
 \muskia programs manipulate a state $\Sigma$:
 \[
-\Sigma:\textsf{List[Layer]} \times \textsf{List[Geometry]}
+\Sigma:\List[\Layer] \times \List[\Shape]
 \]
 The first list in $\Sigma$ is the stack of layers
-  manipulated by \textsf{SaveLayer},
+  manipulated by \SaveLayer,
   while the second list is the stack of canvas states
-  manipulated by \textsf{Save}.
-In this paper, the canvas state is a single \textsf{Geometry}
-  because the only canvas operation is \textsf{Clip},
-  but in our Lean formalization the canvas state
-  includes additional fields.
-As is standard, we treat the head of the list
-  as the top of the stack.
+  manipulated by \Save.
+In the minimal \muskia language of \Cref{fig:muskia},
+  the the canvas state is a single \Shape
+  because the only canvas state operation is \Clip;
+  our Lean formalization adds additional fields.
 The initial state is
   $\langle [ \texttt{Empty()} ], [ \mathcal{U} ] \rangle$,
   an empty layer and the full clip state,
-  each as single-element stacks.
-A \muskia program then performs
-  a sequence of steps  $(c, \Sigma) \longmapsto \Sigma'$,
-  after which the final state
-  consists of a single layer $L$,
-  which is the output image,
-  and some clip state, which is discarded.
+  each as single-element stacks;
+  we treat the head of the list
+  as the top of the stack.
 
-We now describe the core steps
-  in the operational semantics.
+A \muskia program then performs
+  a sequence of steps  $(c, \Sigma) \longmapsto \Sigma'$.
 The simplest is the \textsf{Draw} command,
   which modifies the top \textsf{Layer}:
 \begin{mathpar}
@@ -303,11 +289,11 @@ The simplest is the \textsf{Draw} command,
   { }
   {
     \langle
-    \Draw(s, p),
-    \langle \ell :: L, c :: C \rangle
+    \Draw(g, p),
+    \langle \ell :: L, m :: C \rangle
     \rangle
     \;\longmapsto\;
-    \langle \Draw(\ell, s \cup c, p) :: L, c :: C \rangle
+    \langle \DrawShape(\ell, g \cap m, p) :: L, c :: C \rangle
   }
 \end{mathpar}
 \noindent
@@ -399,6 +385,8 @@ The inference rule for sequential composition is straightforward
 
 \fillin{The \muskia semantics is deterministic,
   and programs never get stuck.}
+The final state consists of a single layer $L$,
+  which is the output image from the program.
 
 \subsection{Lean Formalization}
 
