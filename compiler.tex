@@ -94,13 +94,13 @@ The optimizer then searches the \texttt{SkRecord} buffer
   replacing the matched commands
   with the right-hand side of the rewrite rule.
 Each rewrite is implemented as a single optimization pass
-  that performs a single pass over the command buffer;
-  that single pass can perform multiple matches.
+  that performs a single pass over the command buffer.
+A single pass can perform multiple matches.
 
 Each optimization pass implements
   the \texttt{SkOptPass} interface shown in \Cref{fig:statemachine}.
 Implementation passes subclass from \texttt{SkOptPass}
-  and implement \texttt{on*} callback methods
+  and implement the \texttt{on*} callback methods
   to handle different Skia command types.
 The \texttt{transform} method is the main entry point,
   performing a single optimization pass

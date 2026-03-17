@@ -68,10 +68,10 @@ Each of these \texttt{skp} files is then converted
 Not every \texttt{skp} can be converted,
   since \muskia does not formalize some advanced Skia features
   like mask and image filters,
-  but for \N benchmarks
+  but for \fillin{42} benchmarks
   all steps in the optimization trace convert cleanly.
 The conversion program also performs some minor simplifications,
-  such as down-casing \texttt{SkPath} shapes
+  such as down-casting \texttt{SkPath} shapes
   to simpler shapes like \texttt{SkRect} when possible,
   to invert a transformation done by Skia.
 If all \texttt{skp}s file in the optimization trace
@@ -125,7 +125,7 @@ The remaining \tvgrindtimeout benchmarks
   and times out on complex \muskia terms.
 
 
-\subsubsection{Optimizations yeild the same images}
+\subsubsection{Optimizations yield the same images}
 
 Conformance with the \muskia semantics, however,
   is only as good as the quality of the \muskia semantics themselves.
@@ -223,7 +223,7 @@ In this CDF, benchmarks are arranged vertically,
   and the dotted red line corresponds to ``no speedup''.
 Points to the right of the line get faster when optimized,
   with a maximum speedup of \grmtlmaxspeed.
-The very largest websites are seen
+The very largest speedups are seen
   on \texttt{skp}s from a group of Russian websites
   that use the same web framework;
   this framework, as discussed in \Cref{sec:rewrites},
@@ -263,8 +263,8 @@ This section aims to answer RQ3 by showing
     \centering
     \includegraphics[scale=0.5]{grmtl_opttime.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
-      Graphite/Metal. Runtime scales approximately linearly, and even the largest
-      benchmark optimizes in under \grmtlmaxopttime}
+      Graphite/Metal. Runtime scales approximately linearly, and the all
+      benchmarks optimizes in under \grmtlmaxopttime}
     \label{fig:grmetal-optscatter}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
@@ -284,8 +284,7 @@ We thus measure the total optimization time
 \Cref{fig:grmetal-optscatter} shows the results.
 On the left, the scatter plot shows that
   the optimizer's runtime is linear in the \texttt{skp} size,
-  with even the largest \texttt{skp} taking
-  only \grmtlmaxopttime to optimize.
+  and all \texttt{skp}s optimize under \grmtlmaxopttime.
 The vast majority of \texttt{skp}s are much smaller
   and thus much faster.
 On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,
@@ -295,7 +294,7 @@ Slowdowns are now somewhat more common,
   since some \texttt{skp}s see no optimizations applied
   but still spend time in the optimizer.
 Still, the majority of \texttt{skp} continue to show speed-ups,
-  with the largest speed-ups still as large as \N.
+  with the largest speed-ups still as large as \fillin{3.561\texttimes}.
 
 \subsection{RQ4: Generalizability}
 \label{subsec:rq4}
@@ -335,12 +334,11 @@ The optimizer is effective with both contexts,
   does see more substantial speed-ups
   as well as fewer slow-downs.
 We suspect that the larger speed-ups result
-  for the generally-better performance of Graphite.
+  from the generally-better performance of Graphite.
 The slowdowns with the Ganesh backend
   are on benchmarks that are not optimized,
   so are indicative of greater noise,
-  not lower optimizer effectiveness,
-  on this back-end.
+  not lower optimizer effectiveness.
 
 \subsubsection{Hardware generalizability}
 
@@ -363,7 +361,7 @@ To test the effect of different hardware,
   which runs Ubuntu 24.04.4 on
   an Intel i7-8700K CPU and an Intel CoffeeLake-S GT2 GPU.
 This machine uses Clang version 18.1.3
-  and supports the Vulkan and OpenGL-Intel graphics APIs.
+  and supports the Vulkan and OpenGL graphics APIs.
 Chrome's generated Skia programs differ
   depending on the hardware used%
 \footnote{
