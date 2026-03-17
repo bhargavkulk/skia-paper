@@ -1,8 +1,8 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
 \fillin{GET CHROME VERSIONS FOR BOTH MACHINES}
-\section{Introduction*}
-\label{sec:intronew}
+\section{Introduction}
+\label{sec:intro}
 
 Every pixel you see on a computer screen
   was produced by a process called \emph{rasterization}.
@@ -15,39 +15,35 @@ The rasterization library, which might be Skia, CoreGraphics, or Direct2D,
   then executes the operations,
   ultimately determining the color of every pixel,
   and then presents the resulting image on the screen.
+Skia particullarly enjoys widesprea use,
+  being the rasterization library of choice for
+  the Google Chrome, Firefox, and Ladybird browsers,
+  the Android operating system, the Flutter mobile application framework,
+  as well as for native applications like Sublime Text.
 
 Rasterization must be done at interactive rates,
   ideally 60 to 120 frames per second,
   to ensure a smooth experience for users.
 To do so, libraries ensure that each drawing command
   is executed as efficiently as possible.
-A good example is Skia,
-  a widely used cross-platform 2D graphics library
+\fillin{i dont like this...the crux of this para should be skia is amazeballs}
+Skia, for example,
+  is as widely uses as it is because it targets
   a wide variety of CPU- and GPU-based backends
   using both legacy and modern graphics APIs like OpenGL, Vulkan, and Metal.
 Each backend uses highly-optimized shaders
   to execute drawing commands as quickly as possible.
-This wide support and high performance
-  are why Skia is used in performance-sensitive applications
-  including the Google Chrome, Firefox, and Ladybird browsers,
-  the Android operating system, the Flutter mobile application framework,
-  as well as for native applications like Sublime Text.
-
-However, clients must issue
+Hence there is not much performance to squeeze out of drawing the individual
+  commands themselves,
+  but what can be optimized is the program that Skia consumes,
+  which can have an enormouse impact on performance.
+Hence, clients must issue
   efficient command sequences to get good rasterization performance.
-Skia, for example, has many primitive drawing commands all with different
-  performance characteristics.
-Some commands, for example, draw directly on pixel buffer to be displayed,
-  while others allocate a temporary pixel buffer to draw in.
-Two completely different sequences of commands
-  may thus raster the same image but have vastly difference runtime performance.
-A client needs to issue the most performant commands it can
-  to make rasterizing smooth, but doing so is difficult,
-  even for sophisticated, well-engineered clients.
-For example, Google Chrome---%
-  Skia's largest client, developed alongside Skia at Google---%
-  produces highly suboptimal programs for many popular websites,
-  as shown in \Cref{sec:eval}.
+But doing so is difficult for even sophisticated clients.
+Even Google Chrome, which is developed closely alongside Skia at Google,
+  suffers from generating suboptimial Skia command sequences for some of the
+  most visited websites in the world.
+
 The reason is simple:
   rasterization libraries have opaque and non-obvious execution models
   which clients struggle to reason about.
