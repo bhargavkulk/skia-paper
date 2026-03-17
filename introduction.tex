@@ -4,99 +4,88 @@
 \section{Introduction*}
 \label{sec:intronew}
 
-Modern computing is fundamentally visual.
-Programs, like browsers and desktop applications,
-  convert visual information into a collection of pixels
-  to display on a screen, thorugh a process called rasterization.
-Most user interfaces, such as in browsers, are two-dimensional and
-  are powered by 2D rasterization libraries like Skia,
-  CoreGraphics, and Direct2D.
-These 2D rasterization libraries take as input a series of \emph{drawing
-  commands}, which typically describe graphical actions
-  like drawing shapes, rendering text, filling regions with color or gradients,
+Every pixel you see on a computer screen
+  was produced by a process called \emph{rasterization}.
+In this process, programs like desktop, mobile, and web applications
+  generate a series of instructions to a \emph{rasterization library}
+  describing operations like drawing shapes,
+  rendering text, filling regions with color or gradients,
   and blending overlapping visual elements.
-Rasterization libraries and their clients work in concert to draw complex
-  images.
-Clients of these libraries describe what they want to draw as a series of
-  drawing commands, which they then pass to the library to draw.
+The rasterization library, which might be Skia, CoreGraphics, or Direct2D,
+  then executes these operations,
+  ultimately determining the color of every pixel,
+  and then presents the resulting image on the screen.
 
-
-Rasterization must be done at interactive rates, ideally 60 to 120 frames per second,
+Rasterization must be done at interactive rates,
+  ideally 60 to 120 frames per second,
   to ensure a smooth experience for users.
-On one hand,
-  libraries can ensure that each drawing command is executed as efficiently as
-  possible.
-To achieve this, modern 2D rasterization libraries try to make the best use of
-  modern hardware.
-A prominent example is Skia, a widely used cross-platform 2D graphics library
-  that supports both CPU rendering and GPU-accelerated backends, which serves as the
-  rasterization library for browsers such as Google Chrome, Firefox, and Ladybird,
-  is used in the Android operating system and as one of two rasterization options
-  in Flutter, and also acts as a backend for libraries that rasterize PDFs,
-  images, and icons, as well as for native applications such as Sublime Text.
-On the other hand,
-  clients must issue efficient sequences of drawing commands to the library.
-Skia, for example, has many primitive drawing commands all with different
-  performance characterestics.
-Some commands draw directly on pixel buffer to be displayed,
-  while others may allocate a temporary pixel buffer to draw in.
-Some commands may utilize hardware fast-path to mask images,
-  while others may have to mask each pixel of the image at a time \fillin{this
-    one is weird}.
-Two completely different sequences of a commands may raster to the same image,
-  but may take vastly different times to do so,
-  and a client needs to issue the most performant set of commands it can
-  to make rasterizing smooth.
-In practice, doing so is difficult even for sophisticated, well-engineered
-  clients.
-Google Chrome, which is Skia's largest client,
-  and is also developed alongside Skia at Google,
-  produces \fillin{highly} suboptimal programs for many popular websites.
-The main reason why clients of rasterization libraries
-  are not able to make the best use of them
-  is because these libraries have opaque and non-obvious execution models.
-The ideal solution would be a clear formal semantics that clients of libraries
-  like Skia could use to reason about the programs they generate.
+To do so, libraries ensure that each drawing command
+  is executed as efficiently as possible.
+A good example is Skia,
+  a widely used cross-platform 2D graphics library
+  a wide variety of CPU- and GPU-based backends
+  using both legacy and modern graphics APIs like OpenGL, Vulkan, and Metal.
+Each backend uses highly-optimized shaders
+  to execute drawing commands as quickly as possible.
+This wide support and high performance
+  are why Skia is used in performance-sensitive applications
+  including the Google Chrome, Firefox, and Ladybird browsers,
+  the Android operating system, the Flutter mobile application framework,
+  as well as for native applications like Sublime Text.
 
-In this paper we clarify the execution model with \muskia,
-  a semantics for the Skia 2D rasterization library,
-  which allows for formal reasoning of Skia programs.
+However, clients must also issue
+  efficient command sequences to get the most rasterization performance.
+Skia, for example, has many primitive drawing commands all with different
+  performance characteristics.
+Some commands, for example, draw directly on pixel buffer to be displayed,
+  while others allocate a temporary pixel buffer to draw in.
+Two completely different sequences of a commands
+  may thus raster the same image but take vastly different times to do so.
+A client needs to issue the most performant commands it can
+  to make rasterizing smooth, but doing so is difficult,
+  even for sophisticated, well-engineered clients.
+For example, Google Chrome---%
+  Skia's largest client, developed alongside Skia at Google---%
+  produces highly suboptimal programs for many popular websites,
+  as shown in \Cref{sec:eval}.
+The reason is simple:
+  rasterization libraries have opaque and non-obvious execution models
+  which clients struggle to reason about.
+The ideal solution would be a clear formal semantics.
+
+This thus introduces \muskia,
+  a formal semantics for the Skia 2D rasterization library.
 \muskia captures key features of the Skia API
   like canvas state, the layer stack, clipping, and blending.
-We then denote \muskia into an abstract model of 2D grapics.
-The abstract model permits multiple instantiations
-  to allow reasoning modulo concerns like anti-aliasing and discretization error.
-The semantics including various extensions, is also mechanized in Lean,
+Our formalization is built in three strata---%
+  a command language, a functional core, and an abstract model---%
+  that separates concerns, simplifies reasoning, and allows for extensibility.
+The semantics is mechanized in Lean
   which enables automated reasoning and verification of Skia programs.
 
-We then use the \muskia semantics to develop
-  an effective, efficient, and correct optimizer for Skia.
-We identify 4 rewrite rules
-  that optimize common Skia command patterns
-  generated by Google Chrome on real-world websites.
-We verify each rewrite rule using the \muskia semantics,
-  and then develop an optimizer that applies these rewrite rules.
-The optimizer is highly efficient,
-  optimizing even large Skia programs in microseconds,
-  and significantly reduces rasterization time.
-On a collection of \grmtlnumbench Chrome-generated Skia programs
-  from the top 100 websites,
-  the optimizer is able to improve rasterization time on \grmtlnumspmatch,
+We use this formal semantics to verify three rewrite rules 
+  that optimize common patterns in Chrome-generated Skia programs
+  and build an optimizer that applies these rewrite rules
+  to speed up rasterization.
+We evaluate our optimizer on a collection
+  of \grmtlnumbench Chrome-generated Skia programs
+  from the top 100 websites.
+The optimizer is able to improve rasterization time on \grmtlnumspmatch,
   with speedups ranging from \grmtlspmatchmin to \grmtlspmatchmax.
-Moreover,
-  the optimizer produces optimization traces
-  that can be loaded into Lean
-  for translation validation against our semantics.
-The optimizer is effective across Skia backends and GPUs,
-  and is also effective on Skia programs not seen by the authors.
+The optimizer is also highly efficient,
+  with the largest Skia program taking just \grmtlmaxopttime to optimize,
+  and introduces only minimal, anti-aliasing-driven output changes.
+We also verify that rasterization speedups persist
+  across Skia back-ends, different hardware platforms,
+  and even on a hold-out set of additional websites.
 
 \medskip
 \noindent
-The contributions in this paper are:
+In short, the contributions in this paper are:
 \begin{enumerate}
 \item A new formalization of the Skia API (\Cref{sec:semantics})
 \item A collection of rewrites proven valid using this formalization (\Cref{sec:rewrites})
-\item A efficient and correct optimizer that speeds up real world Skia programs using these rewrites (\Cref{sec:compiler}).
+\item A efficient and correct Skia optimizer that applies these rewrites (\Cref{sec:compiler}).
 \end{enumerate}
 \end{document}
 
