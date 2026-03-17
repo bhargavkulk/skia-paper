@@ -381,43 +381,46 @@ The final state consists of a single layer,
 
 \subsection{Lean Formalization}
 
-\fillin{pavel read this}
+We have mechanized all three strata of this formalization---%
+  the abstract model, \Layer terms, and \muskia commands,
+  and their respective denotational / operational semantics,
+  in the Lean~4 interactive theorem prover~\cite{lean4}.
+We also provide an instantiation of the abstract model,
+ representing \Point as a 2-tuple of reals
+  and \Color as a 4-tuples of real numbers
+  representing premultiplied ARGB colors.
+This means that the alpha channel $\alpha$ is bounded between $0$ and $1$,
+  while the three color channels are bounded between $0$ and $\alpha$.
+By formalizing \Point with reals,
+  this instantiation of the abstract model does not reason about anti-aliasing,
+  and equivalences are only up to anti-aliasing behavior.
+By formalizing \Color with reals, we are able to ignore rounding when blending,
+  and equivalences are only up to rounding behavior.
+We have discussed these choices with the Skia engineering team,
+  who confirmed that anti-aliasing and rounding behavior,
+  while important, are acceptable to change during optimization.
 
-We have mechanized the abstract model, \Layer terms, and \muskia and their
-  respective semantics in the Lean4 interactive theorem prover~\cite{lean4}.
-Of note in our mechanization,
-  we have also concretized both ofthe main types--\Point and \Color--of our abstract model.
-We represent \Point as a 2-tuple of integers,
-  while we represent \Color as a premultiple-ARGB color, \emph{i.e.} we
-  represent \Color as 4 intervals, one for each channel, and the alpha channel
-  is bounded form 0 to 1, while the color channels are bounded from 0 to alpha.
-While the concretization of \Point does not make the mechanization any more
-  interesting,
-  the concretization of \Color does.
-We are able to define blend modes as real valued functions, and prove
-  indentities about them, which we use to prove our rewrites in
-  \Cref{sec:rewrites}.
+Our formalization also includes a number of extensions
+  not discussed in this section.
+We formalize ``style'', like fill versus stroke,
+  as an operation on \Shape{}s,
+  and handle opacity accurately during blending,
+  which requires care in certain rewrites.
+We also extend the canvas state with an affine transform,
+  manipulated by translate, rotate, scale, and perspective operations.
+We also add \texttt{SkClipOp}-style clip operations.
+All these extensions involve new \muskia commands,
+  with associated operational semantics
+  but do not affect the \Layer terms.
+This makes it easy to write proofs that remain valid
+  as the semantics are extended.
 
-We also mechanize certain aspects of the Skia API that we do not discuss in the
-  semantics or use to prove the rewrites.
-Specifically,
-  we formalize the notion of ``style''-- whether a geometry is to be filled, or
-  only its boundaries-- and that of ``opacity'' both only require extensions to
-  the denotational semantics of \Layer terms.
-We also omit the notion of affine transformations in Skia from the smeantics we
-  presented here.
-Like clipping, Skia maintains a stack of the current ``transform'' of the layer,
-  which describes the affine transformation under which the current geometry is
-  to be drawn.
-Supporting this is easy; we only have extend the operational semantics of
-  \muskia to accomadate affine transformations.
-Just like how we get rid of clip state while transforming \muskia terms into
-  \Layer terms, we can do the same with affine transformations.
-
-There are also some parts of Skia's API we do not describe here or mechanize,
-  mainly mask filters and image filters.
-These have no consequence to the rewrite rules,
-  and we also show later on in \Cref{subsec:rq1} that our rewrite rules function on
-  Skia programs that cannot be represented by \muskia.
+There are still some parts of Skia's API
+  that our Lean mechanization does not cover,
+  like mask filters, blurs, and image filters,
+  as well as even more obscure portions of the API
+  like the SkSL shading language or support for bitmap images.
+These have little effect on the rewrite rules of \Cref{sec:rewrites},
+  but we do expect that they could be added to \muskia if a need arose.
 
 \end{document}
