@@ -175,3 +175,7 @@ void draw(SkCanvas* canvas) {
 * Abstract/Intro stuff
 
 - line 31
+
+* Acks
+
+Thalia Archibald

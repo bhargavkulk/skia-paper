@@ -4,32 +4,27 @@
 \section{Introduction*}
 \label{sec:intronew}
 
-Modern computing is fundamentally an interactive experience.
-And for most users, a screen is the primary interface to a computer.
-It is through screen through which people browse webpages, interact with the
-desktops or play video games.
-Although these applications describe visual information in different ways they
-must be displayed as pixels on a screen.
-The process of converting this high-level visual information into a collection
-of pixels is called rasterization.
-While some applications, like video games, have to raster three-dimensional
-scenes, others, like browsers, need to render only flat shapes, images and text.
-Such applications are powered by 2D rasterization libraries like Skia,
-CoreGraphics, and Direct2D.
-While these applications lack the complexity introduced by the third dimension,
-  they still need to render high level descriptions of many shapes with
-  complex effects, gradients, and sometimes even
-  animations.
-Moreover,
-  they must do so at interactive rates (like 60 to 120 frames per second) to
-  ensure a smooth experience for end users.
-Hence, modern 2D rasterization libraries make the best use of modern hardware
-  as possible.
-For example, Skia, the 2D rasterization library of choice of most browser
-  engines, supports multiple backends, including GPU accelerated ones.
-Its newest GPU backend, Graphite, is designed to take better advantage of modern
-  Graphics APIs like Metal and Vulkan.
-However, a fast rasterizeration library is not enough to ensure smooth
+Modern computing is fundamentally visual.
+People use screens to browse webpages and interact with desktop applications.
+Programs describe graphics to be displayed, then convert this
+  high-level visual information into a collection of pixels on a screen, a
+  process called rasterization.
+Most user interfaces, such as in browsers, are two-dimensional and
+  are powered by 2D rasterization libraries like Skia,
+  CoreGraphics, and Direct2D.
+They render flat shapes, images and text, as well as complex effects, gradients,
+  and sometimes even animations.
+
+Rasterization must be at interactive rates, ideally 60 to 120 frames per second,
+  to ensure a smooth experience.
+To achieve this, modern 2D rasterization libraries try to make the best use of
+  modern hardware.
+For example, Skia, the 2D rasterization library used in Chrome and Firefox,
+  takes advantage of modern graphics APIs like Metal and Vulkan.
+On the other side, clients of Skia also need to convey their visual data
+  efficiently to Skia.
+
+However, a fast rasterization library is not enough to ensure smooth
 experience.
 \fillin{i want to say rendering or viewing as an adjective dunno tho}.
 Clients of these libraries still need to make effective use of them.
@@ -37,27 +32,27 @@ But this is difficult for even sophisticated and well-engineered clients.
 Google Chrome is developed alongside Skia at Google, yet it produces
 \fillin{highly} suboptimal Skia \fillin{programs. We never introduce the notion
   that these clients are taking programs as inputs.}
-The main reason for this suboptimiality is the dsiconnect between the data
+The main reason for this suboptimality is the disconnect between the data
 models of the client and the library.
 Chrome describes visual information as HTML and CSS documents,
   while Skia needs
   a sequence of drawing commands describing what shapes to draw, how to draw
   them, and how to blend them together.
-Moreover, not all skia commands have the same performance characteristics.
+Moreover, not all Skia commands have the same performance characteristics.
 Some may allocate extra pixel buffers or perform additional blends.
 Different sequences of Skia commands may draw the same image, but may take
 drastically different amounts of time to draw.
-It is upto the client to generate the \emph{right} sequence of commands.
+It is up to the client to generate the \emph{right} sequence of commands.
 But how is a client supposed to do this?
 
 The relationship between the client and the library is quite
   unlike that of a compiler of a high-level-language and assembly.
 The compiler needs to reason about assembly instructions in order
 to efficiently compile programs written in the high-level language.
-The msot straightforward way to do this, would be to write doen the semantics of
-the assembly instructions we are targetting.
+The most straightforward way to do this, would be to write down the semantics of
+the assembly instructions we are targeting.
 
-In this paper we aim to do something similiar for rasterization libraries.
+In this paper we aim to do something similar for rasterization libraries.
 Specifically, we introduce \muskia, a formalization of the command language of
 the Skia library.
  it captures key features
@@ -113,7 +108,7 @@ The contributions to this paper are:
 
 Browser engines are an increasingly prominent way
   that users interact with applications---%
-  not only web applications like Office~365 or GMail
+  not only web applications like Office~365 or Gmail
   but also desktop applications like Slack, Discord, and VS~Code.
 Browser applications are graphical,
   and increasingly support complex graphical effects
