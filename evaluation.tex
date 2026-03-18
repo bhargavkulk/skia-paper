@@ -28,8 +28,8 @@ We evaluate our optimizer on Skia programs
   using the list on Wikipedia~\cite{wiki-top100},
   which in turn is based on data from Similarweb and Semrush.%
 \footnote{The famous ``Alexa Top 100'' is no longer produced.}
-Google Chrome, via the Playwright, is used to visit
-  the main page of each websites,
+Google Chrome, via the \texttt{playwright} Python library, is used to visit
+  the main page of each website,
   and \texttt{skp} files are dumped as described in \Cref{sec:compiler}.
 Each website produces one \emph{or more} \texttt{skp} files.
 Since our optimizer focuses on reducing
@@ -74,7 +74,7 @@ The conversion program also performs some minor simplifications,
   such as down-casting \texttt{SkPath} shapes
   to simpler shapes like \texttt{SkRect} when possible,
   to invert a transformation done by Skia.
-If all \texttt{skp}s file in the optimization trace
+If all \texttt{skp} files in the optimization trace
   can be converted to a \muskia Lean term,
   a sequence of lemmas is asserted in Lean,
   claiming that each step in the trace
@@ -213,7 +213,7 @@ To verify that the timing is reliable,
     We find a geo-mean speedup of \grmtlgeospeedup across the benchmarks.
     \grmtlnumspmatch benchmarks
     are actually affected by the optimizer,
-    and these see all see speed-ups,
+    and these all see speed-ups,
     ranging from \grmtlspmatchmin to \grmtlspmatchmax.
   }
   \label{fig:grmetal-cdf}
@@ -252,7 +252,7 @@ The noise in measured speed-ups
   \grmtlspmatchmin to \grmtlspmatchmax,
   suggesting that the speed-ups are genuine.
 In short, the optimizer is effective
-  at significantly improves the rasterization time
+  at significantly improving the rasterization time
   of real-world Skia programs.
 
 \subsection{RQ3: Is the Optimizer Fast?}
