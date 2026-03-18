@@ -210,6 +210,7 @@ To verify that the timing is reliable,
     meaning identical runtime for the baseline and optimized \texttt{skp}.
     The vertical axis shows the fraction of benchmarks
     that meet or exceed that speed-up amount.
+    We find a geo-mean speedup of \grmtlgeospeedup across the benchmarks.
     \grmtlnumspmatch benchmarks
     are actually affected by the optimizer,
     and these see all see speed-ups,
@@ -321,6 +322,8 @@ We focus on rasterization time,
   The newer Graphite backend achieves
     larger speed-ups and fewer slow-downs,
     but the optimizer is still effective on both.
+    Graphite/Metal sees a geo-mean speedup of \grmtlgeospeedup
+    and Ganesh/Apple sees a geo-mean speedup of \gnapgeospeedup.
   }
   \label{fig:cdfs-backend}
 \end{figure}
@@ -364,6 +367,8 @@ In fact, the speedup is almost the same
     The optimizer is still effective, with the exception of one benchmark,
     Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
     slow-down.
+    Graphite/Vulkan sees a geo-mean speedup of \grvkgeospeed
+    and Ganesh/Intel sees a geo-mean speedup of \gningeospeedup.
   }
   \label{fig:cdfs-hardware}
 \end{figure}
