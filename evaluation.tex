@@ -130,7 +130,7 @@ The remaining \tvgrindtimeout benchmarks
 Conformance with the \muskia semantics, however,
   is only as good as the quality of the \muskia semantics themselves.
 We therefore compare the baseline and optimized \texttt{skp}
-  by rendering both \texttt{skp} to PNG images
+  by rasterizing both \texttt{skp} to PNG images
   and performing a pixel diff using ImageMagick \texttt{compare}.
 The \muskia rewrites of \Cref{sec:rewrites}
   are proven in a real-valued abstract model,
@@ -186,7 +186,7 @@ This section aims to answer RQ2 by showing
   that the optimizer is effective
   at reducing the rasterization time of Skia programs.
 
-To measure render time, we use \texttt{nanobench},
+To measure raster time, we use \texttt{nanobench},
   Skia's standard, internal benchmarking tool.
 We specifically use the \texttt{playback} benchmarking option,
   which rasters the same exact \texttt{skp} in a loop,
@@ -317,7 +317,7 @@ We focus on rasterization time,
   \includegraphics[scale=0.5]{grmtl_cdf.pdf}
   \includegraphics[scale=0.5]{gnap_cdf.pdf}
   \caption{
-  Render-time CDFs for the
+  Raster-time CDFs for the
     Graphite/Metal (left) and Ganesh/Apple (right) backends.
   The newer Graphite backend achieves
     larger speed-ups and fewer slow-downs,
@@ -362,7 +362,7 @@ In fact, the speedup is almost the same
   \includegraphics[scale=0.5]{grvk_cdf.pdf}
   \includegraphics[scale=0.5]{gnin_cdf.pdf}
   \caption{
-    Render-time CDFs for the Graphite/Vulkan (left) and
+    Raster-time CDFs for the Graphite/Vulkan (left) and
       Ganesh/Intel (right) backends on Machine \#2.
     The optimizer is still effective, with the exception of one benchmark,
     Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
@@ -434,7 +434,7 @@ In any case, this Canva benchmark is
 \begin{SCfigure}[1.0][t]
   \centering
   \includegraphics[width=0.45\linewidth]{grmtlnew_cdf.pdf}
-  \caption{Render time CDF on Graphite/Metal with the new set of 100 websites.}
+  \caption{Raster-time CDF on Graphite/Metal with the new set of 100 websites.}
   \label{fig:cdf-newsites}
 \end{SCfigure}
 

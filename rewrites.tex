@@ -246,7 +246,7 @@ This is proven by case analysis on $x \in g$ and $x \in m$.
     \centering
     \frame{\includegraphics[width=\linewidth]{canva.pdf}}
   \end{minipage}
-  \caption{SVG snippet used in this subsection, shown alongside its rendered result.}
+  \caption{SVG snippet used in this subsection, shown alongside its rasterized result.}
   \label{fig:subsume-svg}
 \end{figure}
 
@@ -305,7 +305,7 @@ The replacement pattern on the right
   removes the luminance conversion \SaveLayer
   and simply pre-computes the luminance of the mask fill color.
 The remaining \SaveLayer in the replacement pattern
-  can be removed using the \Dstin-\Clip rewrite
+  can be removed using the \DstIn-\Clip rewrite
   of \Cref{subsec:dstin-clip}.
 However, this equivalence \emph{does not} generalize
   to cases where the inner \SaveLayer contains

@@ -33,7 +33,7 @@ At execution time, the behavior is backend-dependent:
   while GPU backends enqueue work that is flushed to backend API objects,
   and then submitted for GPU execution.
 But in either case,
-  this list of commands issued prior to rendering
+  this list of commands issued prior to rasterization
   can be stored in an intermeddiate buffer of commands
   to be use for either serialization, replaying, or optimizations,
   which we can take to be a stand-alone programming language.
@@ -571,7 +571,7 @@ In \Cref{sec:semantics}
   that rewrites programs to reduce the use
   of multiple layers.
 \Cref{sec:eval} then shows that this compiler
-  results in dramatically faster rendering
+  results in dramatically faster rasterization
   on a wide range of real-world Skia programs.
 
 \end{document}
