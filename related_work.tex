@@ -3,64 +3,72 @@
 \section{Related Work}
 \label{sec:related}
 
-\paragraph{Web Browser Optimizations}
-There has been of lot of research into optimizing various parts of the modern
-  web browser.
-The JavaScript and Layout engines have garnered the most interest.
-Prior work on optimizing JavaScript engines have focused on different parts of
-  the modern JavaScript engines used in browsers.
-For example, \citet{membalancer} introduces a new heap-sizing formula for Chrome's V8
-JavaScript engine, \citet{tracemonkey} introduces a new JIT compilation strategy
-for Firefox's JavaScript engine.
-Lot of the prior work into layout engine optimiziation has focused on improving the core
-  layout algorithm that renders websites.
-\citet{parlayout} introduces a parrellel layout algorithm, \citet{layoutsynth}
-introduces a synthesis algorithm for optimal web browser layout engine algorithms, and
-\citet{spineless} algorithmically improves on the core invalidation strategy
-used in modern web browsers.
-The work on layout engines is closest to the work introduced in this
-  paper, but most layout engine work has focused on frame-to-frame re-renderering
-  while we have focused on optimizing individual frames of rendering.
 
 \paragraph{2D graphics}
 
-The scheme of blending colors, which we describe in the abstract model in
-  \Cref{sec:semantics}, was introduced by \citet{blendmodes}.
-Also of note is \citet{pipeline}, which introduces a rudimentary rendering
-  pipeline seperating the concerns between what is being drawn (objects and
-  their spacial positions) and how it is being drawn (rendering).
-In the vast modern literature of 2D graphics rendering and processing, the Halide
-language stands out.
-Halide, introduced in \cite{halide}, is a language helps in describing both the
-  computation and scheduling of high performance 2D image processing kernels.
-Later work, \citep{halide-auto, halide-tree} have focused on automatically
-  generating performant computation schedules for Halide programs.
-Of note to readers of this paper is work by \citet{halide-verif} on
-  automatically verifying optimizing rewrites used in the Halide compiler.
-Although Halide and the work in this paper both focus on trying to improve image
-  rendering, Halide focuses on the underlying computation done while rendering,
-  while our work focuses on the higher level ordering of drawing instructions
-  prior to rendering.
+Modern rasterization can be said to start with
+  Warnock and Geschke's Interpress system at Xerox PARC~\cite{interpress}.
+Warnock and Geschke then founded Adobe~\cite{about-adobe},
+  which introduced PostScript~\cite{postscript}, then PDF~\cite{pdf}.
+Color blending introduced by \citet{blendmodes}.
+\citet{pipeline} introduced a rudimentary rendering pipeline
+  separating what is being drawn (objects and their spacial positions)
+  from how it is being drawn (rendering).
+The standard textbook on the topic is
+  \textit{Computer Graphics: Principles and Practice},
+  especially the first edition~\cite{cgpp}.
+A more recent thread of development
+  in the programming languages community
+  is the Halide programming language~\cite{halide}.
+In Halide, individual graphical kernels,
+  like those that implement drawing or blending operations,
+  are described as a combination of computation and \emph{schedule}.
+Schedules can inline across operations, tile and vectorize operations,
+  and even split operations across multiple cores or accelerators
+  without affecting the computation itself.
+Further work \citep{halide-auto, halide-tree}
+  introduced an auto-tuner to automatically generate high-quality schedules.
+Work by \citet{halide-verif},
+  on automatically verifying optimizing rewrites in the Halide compiler,
+  is particularly relevant to this work.
+All that said, Halide and \muskia focus on different aspects of rasterization:
+  Halide focuses on the implementation of individual instructions,
+  while \muskia focuses on the semantics of the Skia command language itself.
 
-\fillin{scene graphs}
+\paragraph{Web Browser Optimizations}
+Web browsers are prominent and demanding clients of rasterization libraries,
+  and have been a focus of recent research.
+Web browser JavaScript engines have seen significant work,
+  dating back to  \citet{tracemonkey}'s initial JIT compiler
+  for Firefox's JavaScript engine.
+Layout engines are also an area of active research,
+  including \citet{parlayout}'s parallel layout algorithm,
+  \citet{layoutsynth}'s a synthesis algorithm for web browser layout algorithms,
+  and \citet{spineless}'s algorithm for optimized layout invalidation.
+However, while web browsers are important clients for rasterization libraries,
+  rasterization is a later phase in the browser rendering pipeline
+  and does not directly interact with layout.
 
-\paragraph{Semantics for unusual domains}
+\paragraph{Semantics for graphical domains}
 
-The semantics introduced in this paper are specifically to reason about the
-  equality of images, and programs that produce images.
-There exists prior working on formalizing semantics for weirder, non-traditional
-  prgramming languages.
-Closest in relation to the work in this paper is work by \citet{cassius} on
-  formalizing a significant portion of the CSS specification, and
-  \citet{vizassert} which formalizes a large fragement of the browser rendering
-  algorithm to verify assertions about web page layout.
-A visual format that has also been a focus for formalization are for programs that
-  describe physical 3D models, like CAD and G-code.
-\citet{reincarnate} introduces denotational semantics for CAD programs into meshes, similiar
-  to that of \Layer terms to \Image{}s in our work.
-\citet{gcode} on the other hand introduces a semantics for the lower level
+A number of papers have defined semantics for
+  programming languages in other graphical domains.
+\citet{cassius} formalize a significant fraction of the CSS specification,
+  and later work from the same authors~\cite{vizassert}
+  uses that formalization to verify geometric assertions
+  about web page layouts,
+  such as guaranteeing that two page components do not overlap.
+\citet{reincarnate} introduces denotational semantics
+  for the compilation of CAD programs into 3D meshes,
+  and \citet{gcode} introduce a semantics for the lower level
   G-code instructions used by 3D printing machines.
-There is also a series of papers on both the higher and lower level semantics of
-  knitting machines (\citet*{knitsem, knitequiv, ufo}).
+The Marshall language~\cite{marshall}
+  likewise defines a semantics for CAD,
+  with a focus on defining the semantics of continuous real operators.
+There is also a body of work on semantics and decision procedures
+  for knitting machines and knitting programs (\citet*{knitsem, knitequiv, ufo}).
+While there's no direct relation with our work,
+  these papers demonstrate the significant interest in graphical computing
+  in the programming languages community.
 
 \end{document}
