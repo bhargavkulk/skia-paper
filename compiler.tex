@@ -66,11 +66,12 @@ struct SkOptPass {
       \end{tikzpicture}
     \end{minipage}
   \end{tabular}
-  \caption{Here we show both the definition of rewrite pass, here the opaque
-    \SaveLayer rewrite, and a corresponding state machine implementing the
-    rewrite. The state machine state is managed by the \texttt{MatchState}
+  \caption{Here we show both the definition of the abstract \texttt{SkOptPass}
+    rewrite pass,
+    and the corresponding state machine implementing the
+    \SrcOver-\SaveLayer rewrite. The state machine state is managed by the \texttt{MatchState}
     struct. It tracks the state, and any metadata needed to complete the
-    rewrite. In this case the only extra state needed is the location of the
+    rewrite. In this case the only extra metadata needed is the location of the
     \SaveLayer to be removed. The state machine we show is the state machine for
     only one layer for simplicity. The rewriter actually functions like a stack
     of state machines, with each \SaveLayer pushing the start of a new state
@@ -150,7 +151,7 @@ For example, the \SrcOver-\SaveLayer rewrite
   uses two states, \texttt{Matching} and \texttt{Ignore},
   shown in \Cref{fig:statemachine}.
 The initial \texttt{MatchState} is \texttt{Matching}
-  for \SrcOver \SaveLayer commands%
+  for \SrcOver-\SaveLayer commands%
 \footnote{
 The optimizer also requires
   the \SaveLayer command to be opaque;
@@ -162,15 +163,15 @@ The \texttt{MatchState} also stores
   the index in the \texttt{SkRecord}
   of the \SaveLayer command,
   for later rewriting.
-\SrcOver \Draw commands stay in the \texttt{Matching} state,
+\SrcOver-\Draw commands stay in the \texttt{Matching} state,
   while all other \Draw commands and all \SaveLayer commands
   transition to the \texttt{Ignore} state.
 All other commands (\Clip, \Save, \Restore)
   do not affect the match state.
 The \texttt{MatchState} therefore indicates
   whether a given layer
-  is a \SrcOver \SaveLayer containing only
-  \SrcOver \Draw commands---%
+  is a \SrcOver-\SaveLayer containing only
+  \SrcOver-\Draw commands---%
   exactly the requirements of the \SrcOver-\SaveLayer rewrite
   in \Cref{sec:rewrites}.
 The other rewrites in \Cref{sec:rewrites} have
