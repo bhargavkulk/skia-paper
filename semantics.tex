@@ -3,17 +3,17 @@
 \section{Semantics}
 \label{sec:semantics}
 
-Our Skia consists of three strata.
+Our Skia semantics consists of three strata.
 The bottom-most stratum is an abstract model of
   images, shapes, blends, and filters defined in terms
   of abstract types \Point and \Color,
   which can be instantiated to model
   as much of the actual Skia API as necessary.
-The middle layer is functional operations
+The middle stratum is functional operations
   \DrawShape and \BlendLayer
   parameterized by a \Paint object,
   all of which denote to our abstract model.
-The top layer is an imperative language, \muskia,
+The top stratum is an imperative language, \muskia,
   whose operational semantics provides a model of Skia.
 
 \subsection{Abstract Model}
@@ -38,7 +38,7 @@ The top layer is an imperative language, \muskia,
     Our abstract model of \Image{}s
       and \Shape{}s is built from
       abstract types \Point{}s and \Color{}s.
-    We also include the various instantiations of the types in model we us in
+    We also include the various instantiations of the types in the model we us in
       our formalization.
   }
   \label{fig:model}
@@ -173,12 +173,12 @@ The execution model of Skia centers around layers,
 \Cref{fig:layerlang} thus introduces \Layer objects
   with \DrawShape and \BlendLayer operations.
 \DrawShape draws a single shape $s$ on a \Layer $\ell$
-  yielding the new state of $\ell$,,
+  yielding the new state of $\ell$,
   while \BlendLayer blends the layer $\ell_\textsf{top}$
   into $\ell_\textsf{bot}$, yielding the new state of $\ell_\textsf{bot}$.
 Each operation is parameterized by a \Paint object,
   which defines a blend mode, fill type, and color filter.
-The paint object configures the various phases
+The \Paint object configures the various phases
   of the Skia drawing pipeline.
 Because \Layer has only these two constructors
   (plus the special \Empty layer),
@@ -216,7 +216,7 @@ The \layer constructors denote to the abstract model,
   and then blending it with the bottom layer,
   both pointwise and with
   the filter and blend mode determined by the \Paint object.
-\DrawShape is most complex.
+\DrawShape is the most complex.
 Conceptually, it first computes which points
   are within the shape $s$;
   then computes the fill color for each one;
@@ -227,7 +227,7 @@ The blend is performed even for points outside $s$;
 
 \Layer{}s are equivalent up to denotation,
   and permit substitution.
-That is, if $\denote{\ell} = \denote{\ell}$,
+That is, if $\denote{\ell} = \denote{\ell'}$,
   then $\denote{m} = \denote{m[\ell/\ell']}$.
 This fact means that equivalences over \Layer terms
   can be used as rewrite rules,
@@ -246,7 +246,7 @@ These commands include
   including the \Draw command for drawing,
   the \Clip command for manipulating the clip state,
   and the \Save, \SaveLayer, and \Restore
-  stack manipulation commands,
+  stack manipulation commands.
 \muskia diverges from the Skia API
   in two main ways.
 First, the syntax definition is more regular
@@ -275,7 +275,7 @@ In the minimal \muskia language of \Cref{fig:muskia},
   our Lean formalization adds additional fields.
 The initial state is
   $\langle [ \texttt{Empty()} ], [ \mathcal{U} ] \rangle$,
-  an empty layer and the full clip state,
+  an \Empty layer and the full clip state,
   each as single-element stacks;
   we treat the head of the list
   as the top of the stack.
@@ -344,8 +344,8 @@ Note that \Restore does not make
   any changes to the layer state.
 
 The \textsf{SaveLayer} command, meanwhile,
-  allocates a new, empty layer
-  for the top of the layer stack and,
+  allocates a new, \Empty layer
+  to push onto the layer stack and,
   when the \textsf{Restore} command is reached,
   blends that new layer with the one below:
 \begin{mathpar}
