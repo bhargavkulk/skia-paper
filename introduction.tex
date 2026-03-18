@@ -9,11 +9,10 @@ Every pixel you see on a computer screen
 Programs like desktop, mobile, and web applications
   generate a series of instructions to a \emph{rasterization library};
   these instructions draw shapes, render text,
-  fill regions with color or gradients,
   and blend overlapping visual elements.
-Then, the rasterization library,
-  which might be Skia, CoreGraphics, Direct2D, Cairo, or something else,
-  then executes the instructions,
+Then, the rasterization library---%
+  which might be Skia, CoreGraphics, Direct2D, Cairo, or something else---%
+  executes the instructions,
   determining the color of every pixel on the screen.
 Rasterization must be done at interactive rates,
   ideally 60 to 120 frames per second,
@@ -23,9 +22,10 @@ Skia, for example, targets
   a wide variety of CPU- and GPU-based backends
   using both legacy and modern graphics APIs
   like OpenGL, Vulkan, and Metal.
-Each backend uses custom-written shaders
-  to execute instructions as quickly as possible,
-  and the Skia team employs numerous GPU experts.
+In fact, between 2021 and 2025, the Skia team
+  wrote an entirely new backend, Graphite,
+  to improve rasterization times by about 15\%~\cite{graphite-blog-post}
+  by leveraging new GPU APIs.
 It's therefore no surprise
   that Skia is the rasterization library of choice for
   the Google Chrome, Firefox, and Ladybird browsers,
@@ -35,13 +35,13 @@ It's therefore no surprise
 Despite this extreme performance focus,
   rasterization is \emph{not} a solved problem.
 Web browsers, for example, struggle to render modern web pages,
-  with their various flashy effects,
+  with trendy effects like partial transparency, animations, and blurs,
   at a stable 60 frames per second,
-  especially on lower-end mobile devices,
-  and the trend toward 120\,Hz displays only raises the bar.
-The reason is that while rasterization libraries
-  implement individual instructions efficiently,
-  \emph{clients ask them to execute inefficient sequences of instructions}.
+  especially on lower-end mobile devices.
+The trend toward 120\,Hz displays only raises the bar.
+The reason this is so hard is that
+  while rasterization libraries implement individual instructions efficiently,
+  \emph{clients ask them to execute inefficient instruction sequences}.
 For example, the authors have manually examined
   the instructions that Chrome executes to raster the top 100 websites
   and identified numerous straightforward performance problems.
@@ -49,12 +49,12 @@ And Chrome is surely the most sophisticated Skia client:
   it is developed at the same company,
   with engineers working in such close coordination
   that Chrome and Skia make simultaneous releases.
-Other Skia clients are surely even worse off.
-Improving the quality of rasterization instruction sequences
-  would dramatically reduce rasterization time.
-But doing that is difficult,
+Other Skia clients are even worse off.
+Improving the quality of rasterization programs
+  would dramatically reduce rasterization time,
+  but doing that is unnecessarily difficult
   because rasterization libraries have strange, imperative semantics
-  and an opaque, non-obvious non-obvious execution model.
+  and an opaque, non-obvious execution model.
 
 We address this problem with \muskia,
   a formal semantics for the Skia 2D rasterization library.
@@ -81,16 +81,16 @@ For each one, we provide a more efficient instruction sequence
 We then build an optimizer that
   applies these rewrite rules before rasterization,
   enabling significant speed-ups to rasterization.
-On \grmtlnumbench Chrome-generated Skia programs
-  from the top 100 websites,
-  the optimizer is able to improve rasterization time on \grmtlnumspmatch,
-  with speedups ranging from \grmtlspmatchmin to \grmtlspmatchmax.
+This simple optimizer results in an average speedup
+  of \grmtlgeospeedup over Skia's most modern Graphite backend
+  on \grmtlnumbench Chrome-generated Skia programs
+  from the top 100 websites.
 The optimizer is also highly efficient,
   with the largest Skia program taking just \grmtlmaxopttime to optimize,
-  and improves rasterization time across Skia back-ends and GPUs.
+  and the optimizer improves rasterization time across Skia back-ends and GPUs.
 Moreover, the optimizer is able to generate optimization traces
   that can be translation validated using \muskia,
-  providing an end-to-end proof of correctness for those Skia programs.
+  providing an end-to-end proof of correctness for those programs.
 
 \medskip
 \noindent
