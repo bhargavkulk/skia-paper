@@ -8,9 +8,9 @@ Powerful rasterization libraries
   like Skia, CoreGraphics, and Direct2D
   put exceptional effort into drawing, blending, and rendering efficiently.
 Yet applications are still hindered
-  by the inefficient sequences of operations
+  by the inefficient sequences of instructions
   that they ask these libraries to perform.
-Even Google Chrome, a highly optimized program
+Even Google Chrome, a highly optimized web browser
   co-developed with the Skia rasterization library,
   still produces inefficient instruction sequences
   even on the top 100 most visited websites.
@@ -28,13 +28,13 @@ To address this issue, we introduce \muskia,
 We then identify four patterns
   of sub-optimal Skia code produced by Google Chrome,
   and then write replacements for each pattern.
-\muskia allows us to verify the replacements are correct,
+\muskia allows us to verify that the replacements are correct,
   including identifying numerous tricky side conditions.
 We then develop a high-performance Skia optimizer
   that applies these patterns to speed up rasterization.
 On \grmtlnumbench Skia programs
   gathered from the top 100 websites,
-  this optimizer yields a speedup \grmtlgeospeedup
+  this optimizer yields a speedup of \grmtlgeospeedup
   over Skia's most modern GPU backend,
   while taking just \grmtlmaxopttime for optimization.
 The speedups persist across a variety of

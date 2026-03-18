@@ -188,7 +188,7 @@ That second stage is a bit difficult to see here,
   which can matter even for opaque fills due to anti-aliasing,
   but in our examples all the colors are opaque
   and we ignore anti-aliasing as a simplification.}
-A program can, however, select a different blend modes instead.
+A program can, however, select a different blend mode instead.
 For example, the \skmultiply blend mode %
   combines both colors being blended:
 
@@ -265,7 +265,7 @@ The canvas state is stored in the canvas object
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
-    canvas->clipRect(c\_rect);\\
+    canvas->clipRect(clip\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
     canvas->drawRect(rect2, bluePaint);
   \end{tabular}
@@ -291,7 +291,7 @@ Luckily, Skia maintains a \emph{stack} of canvas states;
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     canvas->save();\\
-    canvas->clipRect(c\_rect);\\
+    canvas->clipRect(clip\_rect);\\
     canvas->drawRect(rect1, redPaint);\\
     canvas->restore();\\
     canvas->drawRect(rect2, bluePaint);
@@ -342,7 +342,7 @@ All drawing commands until the corresponding \skrestore
   \layerstack{drawing9.pdf}{drawing2.pdf}
 \end{figure}
 
-Then, when the \skrestore command it reached,
+Then, when the \skrestore command is reached,
   the whole resulting drawing surface is blended back into
   the original drawing surface.
 
@@ -443,7 +443,7 @@ Finally, on \skrestore,
   \end{tabular}
 \end{figure}
 
-\skdstin blending far more powerful than \skcliprect
+\skdstin blending is far more powerful than \skcliprect
   because it also allows masking with
   arbitrary Skia-drawable images.
 For example,
