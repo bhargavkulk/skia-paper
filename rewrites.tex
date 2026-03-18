@@ -166,7 +166,7 @@ The equivalence holds because
   the $\ell_2$ \Clip{}s intersect with $g$,
   which then acts as a mask for the entire image drawn by $\ell_1$.
 The proof therefore proceeds by induction over $\ell_1$,
-  but then defines a helper function \textsf{clipAll} on \Layer terms:
+  and we define a helper function \textsf{clipAll} on \Layer terms to aid the proof:
 \begin{align*}
   &\mathsf{clipAll} : \Layer \to \Shape \to \Layer \\
   &\mathsf{clipAll}(\Empty(), m) = \Empty() \\
@@ -187,7 +187,7 @@ With this induction proven,
 \BlendLayer(\ell, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell, m)
 \end{equation*}
 This is then proven by induction over $\ell$,
-  using as a lemma that fact that,
+  using as a lemma that states as a fact that,
   since $\ell$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
 The base case, where $\ell$ is \Empty, is trivial,
@@ -251,7 +251,7 @@ This is proven by case analysis on $x \in g$ and $x \in m$.
 \end{figure}
 
 \Cref{fig:subsume-svg} shows a snippet of SVG code;
-  this snippet specifically is from the Canva website.%
+  this snippet specifically is from the Canva website.
 SVG is a declarative, XML-based language for vector graphics
   implemented by Google Chrome.%
 \footnote{
@@ -376,8 +376,8 @@ Converting to \Layer terms, the rewrite unfolds to:
 \begin{center}
   \begin{tabular}{S c S}
     \begin{tabular}{@{}l@{}}
-      BlendLayer(Draw(Empty(), $s$, $p_1$)\\
-      \quad \quad Draw(Empty(), $s$, $p_2$)\\
+      BlendLayer(Draw(Empty(), $s$, $p_1$),\\
+      \quad \quad Draw(Empty(), $s$, $p_2$),\\
       \quad \quad \{ DstIn \})
     \end{tabular}
     & = &
