@@ -387,15 +387,14 @@ We have mechanized all three strata of this formalization---%
   in the Lean~4 interactive theorem prover~\cite{lean4}.
 We also provide an instantiation of the abstract model,
  representing \Point as a 2-tuple of reals
-  and \Color as a 4-tuples of real numbers
+  and \Color as a 4-tuple of real numbers
   representing premultiplied ARGB colors.
 This means that the alpha channel $\alpha$ is bounded between $0$ and $1$,
   while the three color channels are bounded between $0$ and $\alpha$.
 By formalizing \Point with reals,
-  this instantiation of the abstract model does not reason about anti-aliasing,
-  and equivalences are only up to anti-aliasing behavior.
-By formalizing \Color with reals, we are able to ignore rounding when blending,
-  and equivalences are only up to rounding behavior.
+  equivalences in this abstract model are only up to anti-aliasing.
+By formalizing \Color with reals,
+  equivalences in this abstract model are also only up to rounding.
 We have discussed these choices with the Skia engineering team,
   who confirmed that anti-aliasing and rounding behavior,
   while important, are acceptable to change during optimization.
@@ -403,17 +402,23 @@ We have discussed these choices with the Skia engineering team,
 Our formalization also includes a number of extensions
   not discussed in this section.
 We formalize ``style'', like fill versus stroke,
-  as an operation on \Shape{}s,
+  as a unary function on \Shape{}s,
   and handle opacity accurately during blending,
-  which requires care in certain rewrites.
+  which requires care with certain blend modes.
 We also extend the canvas state with an affine transform,
-  manipulated by translate, rotate, scale, and perspective operations.
-We also add \texttt{SkClipOp}-style clip operations.
+  manipulated by translate, rotate, scale, and perspective operations,
+  and add \texttt{SkClipOp}-style clip operations.
 All these extensions involve new \muskia commands,
-  with associated operational semantics
+  or new parameters to existing \muskia commands,
   but do not affect the \Layer terms.
 This makes it easy to write proofs that remain valid
   as the semantics are extended.
+More speculatively, we also expect that
+  \Layer terms will be useful for formalizing
+  rasterization libraries besides Skia,
+  since most existing rasterization libraries
+  share a similar drawing pipeline
+  due to a shared heritage from PostScript.
 
 There are still some parts of Skia's API
   that our Lean mechanization does not cover,

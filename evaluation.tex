@@ -223,6 +223,9 @@ In this CDF, benchmarks are arranged vertically,
   and the dotted red line corresponds to ``no speedup''.
 Points to the right of the line get faster when optimized,
   with a maximum speedup of \grmtlmaxspeed.
+The average geo-mean speedup
+  across all \grmtlnumbench benchmarks
+  is \grmtlgeospeedup.
 The very largest speedups are seen
   on \texttt{skp}s from a group of Russian websites
   that use the same web framework;
@@ -339,6 +342,15 @@ The slowdowns with the Ganesh backend
   are on benchmarks that are not optimized,
   so are indicative of greater noise,
   not lower optimizer effectiveness.
+We were also able to reproduce
+  Graphite's claimed 15\% speedup
+  (we measured a geo-mean of 18\%)
+  over Ganesh on fixed hardware.
+In fact, the speedup is almost the same
+  as the speedup of optimized over non-optimized programs,
+  meaning that the older Ganesh backend
+  with optimized Skia programs is about as fast
+  as the newer Graphite backend with Chrome-generated Skia programs.
 
 \subsubsection{Hardware generalizability}
 
