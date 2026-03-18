@@ -439,18 +439,14 @@ In any case, this Canva benchmark is
 \end{SCfigure}
 
 Finally, we ask whether the optimizer is effective
-  on across different websites.
-The initial set of rewrites described in \Cref{sec:rewrites}
-  was developed by the authors by
-  examining the top 100 websites used for RQs 1--3,
-  and could overfit to those websites.
-To test this, we froze the optimization passes and pass order
+  on different websites than the ones the authors examined.
+To test this, we froze the optimization passes and their order
   and performed the same \texttt{skp} gathering process
-  for the next 100 most-visited websites (according to the same source),
+  for the next 100 most-visited websites,
   which yielded \grmtlnewnumbench new benchmarks.
 The authors have never examined
   the generated Skia programs for these websites
-  and have made not attempt to
+  and have made no attempt to
   tune the optimizer to perform better on these benchmarks.
 
 \Cref{fig:cdf-newsites} shows the results.
@@ -460,9 +456,8 @@ Like in the old benchmarks set,
   websites actually rewritten by the optimizer
   show significantly larger speed-ups than
   those that see slowdowns.
-All of the slowdowns are not optimized,
-  suggesting the slowdown is the result of noise.
-
+All of the slowdowns are websites unaffected by the optimizer,
+  so the slowdowns are just noise.
 Considering the optimization passes individually,
   the gradient mask optimization does not fire at all
   on the new set of  benchmarks.
@@ -474,14 +469,16 @@ This is expected,
   any websites using this framework.
 The other optimization passes all see use
   on the new set of benchmarks.
-We expect that the new benchmark set
+
+We expect that this new set of benchmarks
   has new, suboptimal patterns
-  in its Chrome-generated Skia programs.
-We believe that the \muskia semantics and Lean formalization,
+  in its Chrome-generated Skia programs,
+  and that other Skia users have their own
+  patterns of suboptimal Skia programs.
+We expect the \muskia semantics and Lean formalization,
   plus the compiler architecture detailed in \Cref{sec:compiler},
-  could be used to prove correct optimization passes
-  that improve these suboptimal patterns
-  and lead to even larger speed-ups
-  on an even larger set of websites.
+  to prove useful in writing more optimal replacement patterns,
+  proving them correct, and enabling our optimizer
+  to speed up rasterization for those clients as well.
 
 \end{document}
