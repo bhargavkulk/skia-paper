@@ -11,7 +11,7 @@ Yet applications are still hindered
   by the inefficient sequences of operations
   that they ask these libraries to perform.
 Even Google Chrome, a highly optimized program
-  co-developed with the Skia rasterization library
+  co-developed with the Skia rasterization library,
   still produces inefficient instruction sequences
   even on the top 100 most visited websites.
 The underlying reason for this inefficiency
@@ -22,16 +22,16 @@ To address this issue, we introduce \muskia,
   a formal semantics for the Skia 2D graphics library,
   and mechanize this semantics in Lean.
 \muskia covers language and graphics features
-  like canvas state, the layer stack, blending, and color filters.
-We demonstrate this semantics
-  by providing replacements for
-  four patterns of sub-optimal Skia code produced by Google Chrome,
-  and then prove those replacements correct,
-  including numerous tricky side conditions,
-  using \muskia.
-We then develop a high-performance Skia optimizer,
-  which can apply these replacement patterns in microseconds
-  to speed up rasterization.
+  like canvas state, the layer stack, blending, and color filters,
+  and the semantics itself is split into three strata
+  to separate concerns and enable extensibility.
+We then identify four patterns
+  of sub-optimal Skia code produced by Google Chrome,
+  and then write replacements for each pattern.
+\muskia allows us to verify the replacements are correct,
+  including identifying numerous tricky side conditions.
+We then develop a high-performance Skia optimizer
+  that applies these patterns to speed up rasterization.
 On \grmtlnumbench Skia programs
   gathered from the top 100 websites,
   this optimizer yields a speedup \grmtlgeospeedup
@@ -39,10 +39,9 @@ On \grmtlnumbench Skia programs
   while taking just \grmtlmaxopttime for optimization.
 The speedups persist across a variety of
   websites, Skia backends, and GPUs.
-To provide a true end-to-end verification,
+To provide true, end-to-end verification,
   optimization traces produced by the optimizer
-  can be loaded back into the \muskia semantics
-  and translation validated in Lean.
+  are loaded back into the \muskia semantics and translation validated in Lean.
 \end{abstract}
 
 \end{document}
