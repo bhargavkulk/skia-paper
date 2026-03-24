@@ -184,13 +184,13 @@ We then prove, by induction,
 With this induction proven,
   the core \Layer equivalence becomes:
 \begin{equation*}
-\BlendLayer(\ell, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell, m)
+\BlendLayer(\ell_1, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell_1, m)
 \end{equation*}
-This is then proven by induction over $\ell$,
+This is then proven by induction over $\ell_1$,
   using as a lemma that states as a fact that,
-  since $\ell$ contains no \SaveLayer commands,
+  since $\ell_1$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
-The base case, where $\ell$ is \Empty, is trivial,
+The base case, where $\ell_1$ is \Empty, is trivial,
   while the inductive case reduces to the following
   in the abstract model:
 \begin{gather*}
