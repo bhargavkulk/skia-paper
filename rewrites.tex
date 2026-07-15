@@ -226,52 +226,44 @@ This is proven by case analysis on $x \in g$ and $x \in m$.
   \centering
   \begin{minipage}[c]{0.62\linewidth}
 \begin{BVerbatim}[fontsize=\scriptsize]
-<svg width="80" height="30" viewBox="0 0 80 30">
-  <defs>
-    <radialGradient id="b" ...>...</radialGradient>
-    ...
-    <pattern id="x" ...>
-      <rect width="100" height="100" fill="#7D2AE7"/>
-      ...
-    </pattern>
-  </defs>
-  <mask id="a" ...>
-    <path fill="#fff" d="M79.444 18.096 ... 69.192 21.888z"/>
+<svg width="350" height="268" viewBox="0 0 350 268">
+  <mask id="a" x="0" y="0">
+    <path d="M345.05 0H4.95C2.21619 ... 345.05 0Z" fill="white"/>
   </mask>
-  <rect mask="url(#a)" width="100" height="100" fill="url(#x)"/>
+  <g mask="url(#a)">
+    <path d="M345.05 ... 0Z" fill="white"/>
+    ...
+  </g>
 </svg>
 \end{BVerbatim}
   \end{minipage}\hfill
   \begin{minipage}[c]{0.25\linewidth}
     \centering
-    \frame{\includegraphics[width=\linewidth]{canva.pdf}}
+    \frame{\includegraphics[width=\linewidth]{gravatar.pdf}}
   \end{minipage}
   \caption{SVG snippet used in this subsection, shown alongside its rasterized result.}
   \label{fig:subsume-svg}
 \end{figure}
 
 \Cref{fig:subsume-svg} shows a snippet of SVG code;
-  this snippet specifically is from the Canva website.
+  this snippet specifically is from \texttt{gravatar.com}.
 SVG is a declarative, XML-based language for vector graphics
   implemented by Google Chrome.%
 \footnote{
-It is delightfully recursive
-  that Canva is itself an online vector graphics tool,
-  which was probably used to make this SVG logo;
+It is delightfully recursive that
   SVG is itself a vector graphics language,
   which Chrome executes with Skia;
   and then Skia itself offers vector graphics operations.
 }
-In this snippet, \texttt{<rect>} declares a rectangle,
-  but that rectangle uses a custom fill
-  (a \texttt{<radialGradient>} defined in a \texttt{<defs>})
-  and a custom mask (defined by a \texttt{<mask>}).
-When drawn, the rectangle thus actually looks like the Canva logo.
-Unfortunately, the Skia program Chrome generates for this code
-  is not straightforward.
 
-Chrome performs the fill-and-mask operation
-  by drawing the mask on a \SaveLayer and blending it on the fill
+In this snippet, the \texttt{<g>} element groups a bunch of \texttt{<path>} operations to draw the various inner
+details we see in the figure.
+The \texttt{<g>} element also applies a mask, which is defined by \texttt{<mask>}.
+The specific mask shape is a rounded rectangle, and this mask cuts out nice rounded corners for the
+image drawn by the \texttt{<g>} block.
+
+Chrome performs the draw-and-mask operation
+  by drawing the mask on a \SaveLayer and blending it on the various paths that are being drawn
   using \DstIn blending.
 However, while \DstIn blending is based on mask layer transparency,
   SVG masking (by default) is based on luminance,
@@ -409,3 +401,4 @@ The \muskia semantics, and the rigorous proofs it enables,
   and ensuring that each rewrite was correct.
 
 \end{document}
+ open-init-file" "coq-mode" "elpaca-try" "restart-emacs"  -visual-line-mode"                                                                                                                                                                                                                                                                          

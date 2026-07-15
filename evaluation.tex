@@ -36,7 +36,7 @@ Since our optimizer focuses on reducing
   the number of \texttt{SaveLayer} commands,
   we focus on \texttt{skp} files that have \texttt{SaveLayer} commands.
 For our primary evaluation in RQs 1--3,
-  this leaves \grmtlnumbench benchmarks across \N websites.
+  this leaves \graphiteAppleNumBench benchmarks across \N websites.
 
 The optimizer itself is based off of Skia commit \texttt{f931a2e},
   on the \texttt{main} branch between milestones 143 and 144~\cite{skia-releases}.
@@ -108,7 +108,7 @@ The \texttt{grind} database is loaded with
   as well as general theorems about \muskia equivalence.
 \Cref{fig:layerTV} shows an example proof.
 Translation validation succeeds for \tvpass benchmarks
-  of \grmtlnumbench benchmarks,
+  of \graphiteAppleNumBench benchmarks,
   demonstrating that our optimizer conforms with the \muskia semantics
   and providing a ``foundational'' certification of its correctness
   on these benchmarks.
@@ -146,10 +146,10 @@ Notably, we perform the pixel comparison to all benchmarks,
   even for benchmarks that use features
   not formalized in \muskia.
 
-Across the \grmtlnumbench benchmarks,
-  only \grmtlpixdif report significant pixel differences.
+Across the \graphiteAppleNumBench benchmarks,
+  only \graphiteAppleNumWithPixDiff report significant pixel differences.
 We examine all such instances manually;
-  \Cref{fig:diff} shows one example, from TikTok.
+  \Cref{fig:diff} shows one example, from Yahoo.
 In all such instances, the differing pixels
   are clearly caused by anti-aliasing,
   as evident by the ``spotted'' nature of differences
@@ -162,12 +162,12 @@ Skia does not guarantee its anti-aliasing behavior,
   that anti-aliasing changes are acceptable.
 
 \begin{figure}
-  \includegraphics[scale=0.7]{TikTok__layer_5.png}
-  \includegraphics[scale=0.7]{TikTok__layer_5__ee.png}
-  \includegraphics[scale=0.7]{TikTok__layer_5__diff.png}
+  \includegraphics[scale=0.7]{yahoo.com__layer_45.png}\hspace{0.5em}
+  \includegraphics[scale=0.7]{yahoo.com__layer_45__ee.png}\hspace{0.5em}
+  \includegraphics[scale=0.7]{yahoo.com__layer_45__diff.png}
   \caption{
     On the left, a button drawn by the \texttt{skp}
-      captured for Layer 5 on the TikTok website.
+      captured for Layer 45 on \texttt{yahoo.com}.
     In the middle,
       the same button drawn by the optimized \texttt{skp}.
     On the right, the same button is drawn, lighter,
@@ -200,9 +200,10 @@ To verify that the timing is reliable,
   100 times for each benchmark
   and consider the geometric mean.
 
-\begin{SCfigure}[1.0][t]
+\begin{figure}
   \centering
-  \includegraphics[width=0.45\linewidth]{grmtl_cdf.pdf}
+  \includegraphics[scale=0.4]{graphite_apple_cdf.pdf}
+  \includegraphics[scale=0.4]{ganesh_apple_cdf.pdf}
   \caption{
     Raster-time speed-up CDF.
     The horizontal axis shows a speedup value,
@@ -210,46 +211,65 @@ To verify that the timing is reliable,
     meaning identical runtime for the baseline and optimized \texttt{skp}.
     The vertical axis shows the fraction of benchmarks
     that meet or exceed that speed-up amount.
-    We find a geo-mean speedup of \grmtlgeospeedup across the benchmarks.
-    \grmtlnumspmatch benchmarks
+    We find a geo-mean speedup of \graphiteAppleGeoSpeedup across the benchmarks.
+    \graphiteAppleNumWithSpeedupMatched benchmarks
     are actually affected by the optimizer,
     and these all see speed-ups,
-    ranging from \grmtlspmatchmin to \grmtlspmatchmax.
+    ranging from \graphiteAppleMinSpeedupMatched to \graphiteAppleMaxSpeedupMatched.
   }
   \label{fig:grmetal-cdf}
-\end{SCfigure}
+\end{figure}
+
+% \begin{SCfigure}[1.0][t]
+%   \centering
+%   \includegraphics[width=0.45\linewidth]{graphite_apple_cdf.pdf}
+%   \caption{
+%     Raster-time speed-up CDF.
+%     The horizontal axis shows a speedup value,
+%     with the red line marking a 1\texttimes{} speedup
+%     meaning identical runtime for the baseline and optimized \texttt{skp}.
+%     The vertical axis shows the fraction of benchmarks
+%     that meet or exceed that speed-up amount.
+%     We find a geo-mean speedup of \graphiteAppleGeoSpeedup across the benchmarks.
+%     \graphiteAppleNumWithSpeedupMatched benchmarks
+%     are actually affected by the optimizer,
+%     and these all see speed-ups,
+%     ranging from \graphiteAppleMinSpeedupMatched to \graphiteAppleMaxSpeedupMatched.
+%   }
+%   \label{fig:grmetal-cdf}
+% \end{SCfigure}
 
 \Cref{fig:grmetal-cdf} show our results.
 In this CDF, benchmarks are arranged vertically,
   and the dotted red line corresponds to ``no speedup''.
 Points to the right of the line get faster when optimized,
-  with a maximum speedup of \grmtlmaxspeed.
+  with a maximum speedup of \graphiteAppleMaxSpeedup.
 The average geo-mean speedup
-  across all \grmtlnumbench benchmarks
-  is \grmtlgeospeedup.
+  across all \graphiteAppleNumBench benchmarks
+  is \graphiteAppleGeoSpeedup.
 The very largest speedups are seen
   on \texttt{skp}s from a group of Russian websites
   that use the same web framework;
   this framework, as discussed in \Cref{sec:rewrites},
   uses redundant gradient masks that seem very expensive in Skia.
-Slowdowns are seen on \grmtlpctslow of benchmarks;
+Slowdowns are seen on \graphiteApplePctSlower of benchmarks;
   however, all of the \texttt{skp}s that see slowdowns
   are \emph{not optimized} suggesting that the slowdowns are noise.
 All of the significant speedups, by contrast,
   are on websites that \emph{are optimized},
   suggesting the speed-ups are genuine.
-Specifically, out of \grmtlnumbench benchmarks,
-  \grmtlnumspeed see speedups,
-  and of these, \grmtlnumspmatch
+Specifically, out of \graphiteAppleNumBench benchmarks,
+  \graphiteAppleNumWithSpeedup see speedups,
+  and of these, \graphiteAppleNumWithSpeedupMatched
   are actually optimized by the optimizer.
 The noise in measured speed-ups
   could be due to GPU load, scheduling, or other concerns,
   or it could be due to
   the \texttt{skp} serialization and deserialization machinery;
   in any case, the range of speed-ups for unoptimized benchmarks,
-  \grmtlspnomatchmin to \grmtlspnomatchmax,
+  \graphiteAppleMinSpeedupNoMatched to \graphiteAppleMaxSpeedupNoMatched,
   is much smaller than the range of speed-ups for optimized benchmarks,
-  \grmtlspmatchmin to \grmtlspmatchmax,
+  \graphiteAppleMinSpeedupMatched to \graphiteAppleMaxSpeedupMatched,
   suggesting that the speed-ups are genuine.
 In short, the optimizer is effective
   at significantly improving the rasterization time
@@ -265,15 +285,15 @@ This section aims to answer RQ3 by showing
   \centering
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{grmtl_opttime.pdf}
+    \includegraphics[scale=0.4]{graphite_apple_scatter.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and the all
-      benchmarks optimizes in under \grmtlmaxopttime}
+      benchmarks optimizes in under \graphiteAppleMaxOptTime}
     \label{fig:grmetal-optscatter}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{grmtl_total_cdf.pdf}
+    \includegraphics[scale=0.4]{graphite_apple_total.pdf}
     \captionof{figure}{CDF with optimization time included.}
     \label{fig:grmetal-optcdf}
   \end{minipage}
@@ -288,7 +308,7 @@ We thus measure the total optimization time
 \Cref{fig:grmetal-optscatter} shows the results.
 On the left, the scatter plot shows that
   the optimizer's runtime is linear in the \texttt{skp} size,
-  and all \texttt{skp}s optimize under \grmtlmaxopttime.
+  and all \texttt{skp}s optimize under \graphiteAppleMaxOptTime.
 The vast majority of \texttt{skp}s are much smaller
   and thus much faster.
 On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,
@@ -298,7 +318,7 @@ Slowdowns are now somewhat more common,
   since some \texttt{skp}s see no optimizations applied
   but still spend time in the optimizer.
 Still, the majority of \texttt{skp} continue to show speed-ups,
-  with the largest speed-ups still as large as \fillin{3.561\texttimes}.
+  with the largest speed-ups still as large as \graphiteAppleMaxTotalSpeedup.
 
 \subsection{RQ4: Generalizability}
 \label{subsec:rq4}
@@ -314,16 +334,16 @@ We focus on rasterization time,
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{grmtl_cdf.pdf}
-  \includegraphics[scale=0.5]{gnap_cdf.pdf}
+  \includegraphics[scale=0.4]{graphite_apple_cdf.pdf}
+  \includegraphics[scale=0.4]{ganesh_apple_cdf.pdf}
   \caption{
   Raster-time CDFs for the
     Graphite/Metal (left) and Ganesh/Apple (right) backends.
   The newer Graphite backend achieves
     larger speed-ups and fewer slow-downs,
     but the optimizer is still effective on both.
-    Graphite/Metal sees a geo-mean speedup of \grmtlgeospeedup
-    and Ganesh/Apple sees a geo-mean speedup of \gnapgeospeedup.
+    Graphite/Metal sees a geo-mean speedup of \graphiteAppleGeoSpeedup
+    and Ganesh/Apple sees a geo-mean speedup of \ganeshAppleGeoSpeedup.
   }
   \label{fig:cdfs-backend}
 \end{figure}
@@ -345,10 +365,10 @@ The slowdowns with the Ganesh backend
   are on benchmarks that are not optimized,
   so are indicative of greater noise,
   not lower optimizer effectiveness.
-We were also able to reproduce
+\fillin{We were also able to reproduce
   Graphite's claimed 15\% speedup
-  (we measured a geo-mean of 18\%)
-  over Ganesh on fixed hardware.
+  (we measured a geo-mean of 37\%)
+  over Ganesh on fixed hardware.}
 In fact, the speedup is almost the same
   as the speedup of optimized over non-optimized programs,
   meaning that the older Ganesh backend
@@ -359,16 +379,16 @@ In fact, the speedup is almost the same
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{grvk_cdf.pdf}
-  \includegraphics[scale=0.5]{gnin_cdf.pdf}
+  \includegraphics[scale=0.4]{graphite_intel_cdf.pdf}
+  \includegraphics[scale=0.4]{ganesh_intel_cdf.pdf}
   \caption{
     Raster-time CDFs for the Graphite/Vulkan (left) and
       Ganesh/Intel (right) backends on Machine \#2.
     The optimizer is still effective, with the exception of one benchmark,
     Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
     slow-down.
-    Graphite/Vulkan sees a geo-mean speedup of \grvkgeospeed
-    and Ganesh/Intel sees a geo-mean speedup of \gningeospeedup.
+    Graphite/Vulkan sees a geo-mean speedup of \graphiteIntelGeoSpeedup
+    and Ganesh/Intel sees a geo-mean speedup of \ganeshIntelGeoSpeedup.
   }
   \label{fig:cdfs-hardware}
 \end{figure}
@@ -380,7 +400,7 @@ To test the effect of different hardware,
 This machine uses Clang version 18.1.3
   and supports the Vulkan and OpenGL graphics APIs.
 Chrome's generated Skia programs differ
-  depending on the hardware used%
+  depending on the hardware used
 \footnote{
 Chrome will split the same web page
   into more or fewer layers depending on
@@ -391,18 +411,18 @@ Plus, the evaluations were performed
   different versions of the websites in question.
 }
   so the benchmark set is re-captured on this machine,
-  resulting in \grvknumbench benchmarks.
+  resulting in \graphiteIntelNumBench benchmarks.
 The resulting \texttt{skp}s are optimized
   and measured with both the Graphite
   and Ganesh backends.
 
 \Cref{fig:cdfs-hardware} shows the results.
 The optimizer is effective on the second machine too.
-The maximum speed-up with the Graphite backend
+\fillin{The maximum speed-up with the Graphite backend
   is somewhat smaller
-  (\grvkmaxspeed instead of \grmtlmaxspeed)
+  (\graphiteIntelMaxSpeedupMatched instead of \graphiteAppleMaxSpeedupMatched)
   though in this case the Russian websites are
-  more clearly outliers.
+  more clearly outliers.}
 Slow-downs on Graphite continue to be largely due
   to noise on benchmarks that aren't optimized,
   while speed-ups are much larger than
@@ -410,9 +430,9 @@ Slow-downs on Graphite continue to be largely due
 
 With the Ganesh backend,
   the same pattern persists
-  (with an even lower maximum speed-up of \gninmaxspeed),
+  (with an even lower maximum speed-up of \ganeshIntelMaxSpeedupMatched),
   except for one benchmark: Canva.
-The relevant part of the Canva benchmark
+\fillin{The relevant part of the Canva benchmark
   is described in more detail in \Cref{sec:rewrites};
   in short, it uses a number of SVG features
   that trigger a number of separate optimization passes,
@@ -427,23 +447,33 @@ If support for Ganesh were important,
 In any case, this Canva benchmark is
   the only benchmark significantly slowed down by the optimizer,
   suggesting that the optimizer generalizes well
-  across different hardware platforms.
+  across different hardware platforms.}
 
 \subsubsection{Website generalizability}
 
-\begin{SCfigure}[1.0][t]
+% \begin{SCfigure}[1.0][t]
+%   \centering
+%   \includegraphics[width=0.45\linewidth]{graphite_apple_new_cdf.pdf}
+%   \caption{Raster-time CDF on Graphite/Metal with the new set of 100 websites.}
+%   \label{fig:cdf-newsites}
+% \end{SCfigure}
+
+\begin{figure}
   \centering
-  \includegraphics[width=0.45\linewidth]{grmtlnew_cdf.pdf}
-  \caption{Raster-time CDF on Graphite/Metal with the new set of 100 websites.}
+  \includegraphics[scale=0.4]{graphite_apple_new_cdf.pdf}
+  \includegraphics[scale=0.4]{graphite_apple_new_cdf.pdf}
+  \caption{
+    Raster-time CDF on Graphite/Metal with the new set of 100 websites
+  }
   \label{fig:cdf-newsites}
-\end{SCfigure}
+\end{figure}
 
 Finally, we ask whether the optimizer is effective
   on different websites than the ones the authors examined.
 To test this, we froze the optimization passes and their order
   and performed the same \texttt{skp} gathering process
   for the next 100 most-visited websites,
-  which yielded \grmtlnewnumbench new benchmarks.
+  which yielded \nextGraphiteAppleNumBench new benchmarks.
 The authors have never examined
   the generated Skia programs for these websites
   and have made no attempt to
@@ -451,14 +481,14 @@ The authors have never examined
 
 \Cref{fig:cdf-newsites} shows the results.
 Like in the old benchmarks set,
-  we see significant speedups of up to \grmtlnewmaxspeed,
+  we see significant speedups of up to \nextGraphiteAppleMaxSpeedup,
   and, like before,
   websites actually rewritten by the optimizer
   show significantly larger speed-ups than
   those that see slowdowns.
 All of the slowdowns are websites unaffected by the optimizer,
   so the slowdowns are just noise.
-Considering the optimization passes individually,
+\fillin{Considering the optimization passes individually,
   the gradient mask optimization does not fire at all
   on the new set of  benchmarks.
 This is expected,
@@ -468,7 +498,7 @@ This is expected,
   likely the new benchmark set does not have
   any websites using this framework.
 The other optimization passes all see use
-  on the new set of benchmarks.
+  on the new set of benchmarks.}
 
 We expect that this new set of benchmarks
   has new, suboptimal patterns

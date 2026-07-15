@@ -66,7 +66,7 @@ More generally,
   for future language-driven rasterization research.
 Our formalization is built in three strata---%
   a command language, a functional core, and an abstract model---%
-  that seperate concerns, simplify reasoning, and allow for extensibility.
+  that separate concerns, simplify reasoning, and allow for extensibility.
 The semantics is mechanized in Lean
   and enables automated reasoning and verification of \muskia programs.
 
@@ -81,11 +81,11 @@ We then build an optimizer that
   applies these rewrite rules before rasterization,
   enabling significant speed-ups to rasterization.
 This simple optimizer results in an average speedup
-  of \grmtlgeospeedup over Skia's most modern Graphite backend
-  on \grmtlnumbench Chrome-generated Skia programs
+  of \graphiteAppleGeoSpeedup over Skia's most modern Graphite backend
+  on \graphiteAppleNumBench Chrome-generated Skia programs
   from the top 100 websites.
 The optimizer is also highly efficient,
-  with optimization taking at most \grmtlmaxopttime,
+  with optimization taking at most \graphiteAppleMaxOptTime,
   and the optimizer improves rasterization time across Skia back-ends and GPUs.
 Moreover, the optimizer is able to generate optimization traces
   that can be translation validated using \muskia,
