@@ -68,7 +68,7 @@ Each of these \texttt{skp} files is then converted
 Not every \texttt{skp} can be converted,
   since \muskia does not formalize some advanced Skia features
   like mask and image filters,
-  but for \fillin{42} benchmarks
+  but for \tvCompilePassN benchmarks
   all steps in the optimization trace convert cleanly.
 The conversion program also performs some minor simplifications,
   such as down-casting \texttt{SkPath} shapes
@@ -107,7 +107,7 @@ The \texttt{grind} database is loaded with
   theorems for the rewrite rules applied by the optimizer in this step
   as well as general theorems about \muskia equivalence.
 \Cref{fig:layerTV} shows an example proof.
-Translation validation succeeds for \tvpass benchmarks
+Translation validation succeeds for \tvPassN benchmarks
   of \graphiteAppleNumBench benchmarks,
   demonstrating that our optimizer conforms with the \muskia semantics
   and providing a ``foundational'' certification of its correctness
@@ -118,7 +118,7 @@ Some of the successful translation validations are quite complex;
 Three separate optimization passes fire on this benchmark,
   with each one exposing the next rewrite opportunity;
   all three translation validate.
-The remaining \tvgrindtimeout benchmarks
+The remaining \tvGrindN benchmarks
   do not translation validate due to \texttt{grind} timeouts;
   as a general-purpose proof search engine,
   \texttt{grind} is slower than our optimizer
@@ -219,25 +219,6 @@ To verify that the timing is reliable,
   }
   \label{fig:grmetal-cdf}
 \end{figure}
-
-% \begin{SCfigure}[1.0][t]
-%   \centering
-%   \includegraphics[width=0.45\linewidth]{graphite_apple_cdf.pdf}
-%   \caption{
-%     Raster-time speed-up CDF.
-%     The horizontal axis shows a speedup value,
-%     with the red line marking a 1\texttimes{} speedup
-%     meaning identical runtime for the baseline and optimized \texttt{skp}.
-%     The vertical axis shows the fraction of benchmarks
-%     that meet or exceed that speed-up amount.
-%     We find a geo-mean speedup of \graphiteAppleGeoSpeedup across the benchmarks.
-%     \graphiteAppleNumWithSpeedupMatched benchmarks
-%     are actually affected by the optimizer,
-%     and these all see speed-ups,
-%     ranging from \graphiteAppleMinSpeedupMatched to \graphiteAppleMaxSpeedupMatched.
-%   }
-%   \label{fig:grmetal-cdf}
-% \end{SCfigure}
 
 \Cref{fig:grmetal-cdf} show our results.
 In this CDF, benchmarks are arranged vertically,
@@ -393,6 +374,23 @@ In fact, the speedup is almost the same
   \label{fig:cdfs-hardware}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.4]{graphite_intel_ci.pdf}
+  \includegraphics[scale=0.4]{ganesh_intel_ci.pdf}
+  \caption{
+    Raster-time CDFs for the Graphite/Vulkan (left) and
+      Ganesh/Intel (right) backends on Machine \#2.
+    The optimizer is still effective, with the exception of one benchmark,
+    Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
+    slow-down.
+    Graphite/Vulkan sees a geo-mean speedup of \graphiteIntelGeoSpeedup
+    and Ganesh/Intel sees a geo-mean speedup of \ganeshIntelGeoSpeedup.
+  }
+  \label{fig:cdfs-hardware}
+\end{figure}
+
+
 To test the effect of different hardware,
   we repeated our evaluation on a second machine,
   which runs Ubuntu 24.04.4 on
@@ -431,32 +429,25 @@ Slow-downs on Graphite continue to be largely due
 With the Ganesh backend,
   the same pattern persists
   (with an even lower maximum speed-up of \ganeshIntelMaxSpeedupMatched),
-  except for one benchmark: Canva.
-\fillin{The relevant part of the Canva benchmark
-  is described in more detail in \Cref{sec:rewrites};
-  in short, it uses a number of SVG features
-  that trigger a number of separate optimization passes,
-  resulting in a \texttt{clipPath} command
-  with a complex clipping path.
-We suspect that the complex clipping path
-  somehow triggers bad behavior
-  in the older Ganesh backend.
-If support for Ganesh were important,
-  the \DstIn mask optimization pass
-  could be disabled for complex paths.
-In any case, this Canva benchmark is
-  the only benchmark significantly slowed down by the optimizer,
-  suggesting that the optimizer generalizes well
-  across different hardware platforms.}
+  except for one benchmark: Avast Layer \#0.
+\fillin{
+  This benchmark mainly triggers the \DstIn to Mask rewrite described in detail in \fillin{foo}.
+  But unlike the example used to explain the rewrite, which uses a rounded rectangle as its mask,
+    this benchmark uses a very complicated \Path shape.
+  Applying this rewrite converts the \Path into a \texttt{clipPath} command with a complex clipping \Path.
+  We suspect that the complex clipping path
+    somehow triggers bad behavior
+    in the older Ganesh backend.
+  If support for Ganesh were important,
+    the \DstIn mask optimization pass
+    could be disabled for complex paths.
+  In any case, this Canva benchmark is
+    the only benchmark significantly slowed down by the optimizer,
+    suggesting that the optimizer generalizes well
+    across different hardware platforms.
+  }
 
 \subsubsection{Website generalizability}
-
-% \begin{SCfigure}[1.0][t]
-%   \centering
-%   \includegraphics[width=0.45\linewidth]{graphite_apple_new_cdf.pdf}
-%   \caption{Raster-time CDF on Graphite/Metal with the new set of 100 websites.}
-%   \label{fig:cdf-newsites}
-% \end{SCfigure}
 
 \begin{figure}
   \centering
