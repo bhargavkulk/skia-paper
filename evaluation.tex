@@ -202,7 +202,7 @@ Each call to nanobench \texttt{nanobench} measures the rasterization time
   for each \texttt{skp} 100 times,
   and we use the geometric mean of these samples.
 
-\fillin{
+% \fillin{
 However, during the development and testing of the optimizer,
   we found that individual calls to \texttt{nanobench} were still noisy.
 This variability may result from GPU load,
@@ -216,7 +216,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
   compute a speedup from the geomean runtime of each invocation,
   and report the median of these speedups
   together with a 95\% bootstrap confidence interval.
-}
+% }
 
 \begin{figure}[t]
   \centering
@@ -274,7 +274,8 @@ Each succesive rewrite is enabled by the previous one.
 We also see very large speedups on \texttt{dzen.ru} (2.41\texttimes)
   which only uses the gradient mask rewrite,
   which we discussed as being exclusive to a group of Russian websites using the same framework.
-\fillin{We also draw all the confidence intervals of each benchmark in \Cref{fig:grmetal-ci}.
+% \fillin{
+We also draw all the confidence intervals of each benchmark in \Cref{fig:grmetal-ci}.
 38 of the 51 rewritten benchmarks have intervals entirely above 1\texttimes,
   suggesting that their measured speedups are unlikely to be explained by run-to-run noise alone.
 The remaining 13 rewritten benchmarks have confidence intervals that cross 1\texttimes{} speedup,
@@ -282,7 +283,8 @@ The remaining 13 rewritten benchmarks have confidence intervals that cross 1\tex
   does not significantly slow down any rewritten benchmark.
 In short, the optimizer is effective
   at significantly improving the rasterization time
-  of real-world Skia programs.}
+  of real-world Skia programs.
+% }
 % Slowdowns are seen on \graphiteApplePctSlower of benchmarks;
 %   however, all of the \texttt{skp}s that see slowdowns
 %   are \emph{not optimized} suggesting that the slowdowns are noise.
@@ -393,7 +395,8 @@ The optimizer is effective with both contexts,
   as well as fewer slow-downs.
 We suspect that the larger speed-ups result
   from the generally-better performance of Graphite.
-\fillin{\Cref{fig:cdfs-backend} also shows the 95\% confidence intervals for all benchmarks
+% \fillin{
+\Cref{fig:cdfs-backend} also shows the 95\% confidence intervals for all benchmarks
   running on the Ganesh backend.
 Like in Graphite, majority of the rewritten benchmarks have CI's squarely above 1\texttimes{}
   and none of rewritten benchmarks are below 1\texttimes{}.
@@ -401,7 +404,8 @@ Like in Graphite, majority of the rewritten benchmarks have CI's squarely above 
 We were also able to reproduce
   Graphite's claimed speedup
   (we measured a geo-mean of 37\%)
-  over Ganesh on fixed hardware.}
+  over Ganesh on fixed hardware.
+% }
 % In fact, the speedup is almost the same
 %   as the speedup of optimized over non-optimized programs,
 %   meaning that the older Ganesh backend
@@ -463,7 +467,8 @@ The resulting \texttt{skp}s are optimized
 
 \Cref{fig:cdfs-hardware} shows the results.
 The optimizer is effective on the second machine too.
-\fillin{The maximum speed-up with the Graphite/Intel backend
+% \fillin{
+The maximum speed-up with the Graphite/Intel backend
   is somewhat larger but still in line with the numbers we see on the Graphite/Apple backed.
   (\graphiteIntelMaxSpeedupMatched instead of \graphiteAppleMaxSpeedupMatched)
 Looking at the 95\% confidence intervals for the Graphite backend in \Cref{fig:cis-hardware},
@@ -479,9 +484,9 @@ But once the \SaveLayer is removed, this can no longer be done,
   and Graphite allocates a GPU pipeline to do the solid fill.
 However, because this \texttt{skp} contains only 25 commands,
   even this small additional cost becomes significant relative to the total rasterization time.
-}
+% }
 
-\fillin{
+% \fillin{
 With the Ganesh backend,
   the same pattern persists
   (with an even lower maximum speed-up of \ganeshIntelMaxSpeedupMatched),
@@ -502,7 +507,7 @@ In any case, this benchmark is
   the only benchmark significantly slowed down by the optimizer on this backend,
   suggesting that the optimizer generalizes well
   across different hardware platforms.
-  }
+  % }
 
 \subsubsection{Website generalizability}
 
@@ -536,7 +541,8 @@ Like in the old benchmarks set,
   those that see slowdowns.
 All of the slowdowns are websites unaffected by the optimizer,
   so the slowdowns are just noise.
-\fillin{Considering the optimization passes individually,
+% \fillin{
+Considering the optimization passes individually,
   the gradient mask optimization fires only on 2 \texttt{skp}s,
   both from \texttt{ivi.ru}.
 This validates our approach for developing a rewrite tailored for one popular framework,
@@ -544,7 +550,8 @@ This validates our approach for developing a rewrite tailored for one popular fr
   like Tailwind,
   will also yield good rewrites.
 Moreover, the other, more general, optimization passes all see use
-  on the new set of benchmarks.}
+  on the new set of benchmarks.
+% }
 
 We expect that this new set of benchmarks
   has new, suboptimal patterns
