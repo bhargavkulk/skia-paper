@@ -241,7 +241,7 @@ This is proven by case analysis on $x \in g$ and $x \in m$.
     \centering
     \frame{\includegraphics[width=\linewidth]{gravatar.pdf}}
   \end{minipage}
-  \caption{SVG snippet used in this subsection, shown alongside its rasterized result.}
+  \caption{SVG snippet from \texttt{gravatar.com}, used in this section. This snippet draws contents of the image, and then mask the contents with a rounded rectangle.}
   \label{fig:subsume-svg}
 \end{figure}
 
@@ -256,11 +256,10 @@ It is delightfully recursive that
   and then Skia itself offers vector graphics operations.
 }
 
-In this snippet, the \texttt{<g>} element groups a bunch of \texttt{<path>} operations to draw the various inner
-details we see in the figure.
-The \texttt{<g>} element also applies a mask, which is defined by \texttt{<mask>}.
-The specific mask shape is a rounded rectangle, and this mask cuts out nice rounded corners for the
-image drawn by the \texttt{<g>} block.
+In this snippet, the \texttt{<g>} element contains two sets of elements.
+The first set of elements draws the title bar, logo, and all the various content elements seen in the picture
+  using SVG shape constructs like \texttt{path}
+The \texttt{<mask>} element then clips what was drawn with a rounded-rectangle.
 
 Chrome performs the draw-and-mask operation
   by drawing the mask on a \SaveLayer and blending it on the various paths that are being drawn
@@ -401,4 +400,3 @@ The \muskia semantics, and the rigorous proofs it enables,
   and ensuring that each rewrite was correct.
 
 \end{document}
- open-init-file" "coq-mode" "elpaca-try" "restart-emacs"  -visual-line-mode"                                                                                                                                                                                                                                                                          

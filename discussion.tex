@@ -1,6 +1,6 @@
 \documentclass[main.tex]{subfiles}
 \begin{document}
-\section{Discussion}
+\section{Discussion and Future Work}
 \label{sec:discussion}
 
 We initially began this project by attempting to develop the optimizer directly,
@@ -9,31 +9,44 @@ We initially began this project by attempting to develop the optimizer directly,
   and developing the side conditions requires careful reasoning
   about both geometry and the semantics of Skia,
   which at the time we didn’t have a good grasp of.
-We were thus “forced” to develop the formalization, which is why it is the focus of the paper.
+An example of this is the complexity involved in dealing with \Clip{s}.
+The \Clip command,
+  together with the \Transform command described in \Cref{subsec:lean},
+  are imperative in nature:
+  they modify, instead of replacing, the clip (and transform) state.
+So, we made the \Layer to make this clip (and transform) state explicit and functional.
+We were thus ``forced'' to develop the formalization,
+  which then enabled us to rapidly develop the rewrite rules (described in \Cref{sec:rewrites}) and
+  the optimizer (described in \Cref{sec:compiler}).
 
-We found three aspects of Skia that made formalization and optimization hard.
+Our experience suggests several directions for future work on improving
+  the formalization and optimization of Skia.
 
-\begin{enumerate}
-\item Skia provides a variety of representations of shapes: rectangles, pixel-boundary-aligned rectangles, rounded rectangles, polygons, paths, and even text.
-      Paths are the most general of the shapes, but the more specific path types are special-cased in various ways.
-      Transformations between the varios types of shapes can also be confusing;
-        for example, the intersection of two rectangles is a rectangle, but the intersection of two rounded rectangles is a path.
-      Text also has some specialized code paths as well, due to hinting (a kind of anti-aliasing).
-      Our abstract model simplifies all these shapes into various constructors of one type, \Shape,
-        ut tracking the different types and the allowable transformations between them could be helpful to more granular rewrite rules.
-\item The \Clip command that changes the clip state (along with the \Transform command that changes the transform state,
-        which we discuss briefly in Section 3.4) are imperative in nature:
-        they modify, instead of replacing, the clip and transform state.
-      The \Layer grammar exists specifically, to make this clip state explicit and functional.
-\item Mask filters, mostly used to apply gaussian blurs, interact with shape boundaries in non-trivial ways
-        and we never really understood their semantics well enough to formalize.
-      The complicated nature of mask filters has been acknowledged by the Skia team,
-        and they are trying to replace mask with image filters to simplify the API.
-\end{enumerate}
+Skia supports many representations of shapes,
+  including rectangles, pixel-boundary-aligned rectangles,
+  rounded rectangles, polygons, paths, and text.
+Although paths provide a general representation, Skia often handles more specific shape types through specialized code paths.
+Transformations between these representations can also be confusing;
+for example, the intersection of two rectangles is a rectangle,
+  but the intersection of two rounded rectangles is a path.
+Currently, our abstract model coalesces all these shapes into various constructors of on type, \Shape.
+Future work could track the different types of shapes and the allowable transformations between,
+  which could enable more granual rewrite rules.
 
-On the course of exploring Skia we noticed that Skia and other 2D graphics libraries share a lot of features, and are quite similar.
-Hence, one direction we plan to explore in the future is expanding our formalization to other graphics APIs so that,
+Mask filters, which are commonly used to apply Gaussian blurs,
+  interact with shape boundaries in ways that are not yet fully captured by our model.
+Future work could formalize these interactions.
+This direction may be particularly relevant as
+  the Skia team has acknowledged the complexity of mask filters,
+  and they are trying to replace them with image filters to simplify the API.
+
+On the course of exploring Skia we noticed that Skia and other 2D graphics libraries share a lot of features,
+  and are quite similar.
+Hence, one direction we plan to explore in the future
+  is expanding our formalization to other graphics APIs so that,
   for example, we could verify a compiler from, say, SVG or HTML <canvas> to Skia or another back-end library.
-We also hope to explore compositing, a type of caching used in animations, and how it impacts graphics library correctness and performance.
+We also hope to explore compositing,
+ a type of caching used in animations,
+ and how it impacts graphics library correctness and performance.
 
 \end{document}
