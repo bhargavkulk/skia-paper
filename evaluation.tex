@@ -27,7 +27,7 @@ We evaluate our optimizer on Skia programs
 \footnote{Excluding a few pornographic websites.}
   using the list collected by \texttt{tranco-list.eu}~\cite{trancolist}.%
 \footnote{The famous ``Alexa Top 100'' is no longer produced.}
-Note that the list collected from \texttt{tranco-list} also include
+Note that the list collected from \texttt{tranco-list} also includes
   infrastructural domains like \texttt{gltd-servers.net}
   which do not have any user facing websites, making them unusable for our evaluation.
 So we further filter this list through the Chrome User Experience Report (CrUX)~\cite{crux}
@@ -111,8 +111,8 @@ The \texttt{grind} database is loaded with
   theorems for the rewrite rules applied by the optimizer in this step
   as well as general theorems about \muskia equivalence.
 \Cref{fig:layerTV} shows an example proof.
-Translation validation succeeds for \tvPassN benchmarks
-  of \graphiteAppleNumBench benchmarks,
+Translation validation succeeds for \tvPassN{}
+  out of \graphiteAppleNumBench benchmarks,
   demonstrating that our optimizer conforms with the \muskia semantics
   and providing a ``foundational'' certification of its correctness
   on these benchmarks.
@@ -199,11 +199,10 @@ We specifically use the \texttt{playback} benchmarking option,
 This makes timing overhead negligible.
 \texttt{nanobench} also performs warm-up iterations
   to avoid measuring shader compilation time.
-Each call to nanobench \texttt{nanobench} measures the rasterization time
+Each call to \texttt{nanobench} measures the rasterization time
   for each \texttt{skp} 100 times,
   and we use the geometric mean of these samples.
 
-% \fillin{
 However, during the development and testing of the optimizer,
   we found that individual calls to \texttt{nanobench} were still noisy.
 This variability may result from GPU load,
@@ -217,7 +216,6 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
   compute a speedup from the geomean runtime of each invocation,
   and report the median of these speedups
   together with a 95\% bootstrap confidence interval.
-% }
 
 \begin{figure}[t]
   \centering
@@ -470,12 +468,12 @@ The resulting \texttt{skp}s are optimized
 The optimizer is effective on the second machine too.
 % \fillin{
 The maximum speed-up with the Graphite/Intel backend
-  is somewhat larger but still in line with the numbers we see on the Graphite/Apple backed.
-  (\graphiteIntelMaxSpeedupMatched instead of \graphiteAppleMaxSpeedupMatched)
+  is somewhat larger but still in line with the numbers we see on the Graphite/Apple backend
+  (\graphiteIntelMaxSpeedupMatched instead of \graphiteAppleMaxSpeedupMatched).
 Looking at the 95\% confidence intervals for the Graphite backend in \Cref{fig:cis-hardware},
   majority of the rewritten benchmarks have CI's squarely above 1\texttimes.
 Three benchmarks have CI's below 1\texttimes.
-The first regression is from \texttt{intuit.com} Layer \#15.
+The first regression is from \texttt{intuit.com} layer \#15.
 This layer just has one opaque \SrcOver-\SaveLayer removed.
 Of note, the first \Draw command in this \SaveLayer is a solid-white fill.
 After inspecting the GPU traces for the rasterization of the baseline and optimized versions of this \texttt{skp},
@@ -485,9 +483,9 @@ But once the \SaveLayer is removed, this can no longer be done,
   and Graphite allocates a GPU pipeline to do the solid fill.
 However, because this \texttt{skp} contains only 25 commands,
   even this small additional cost becomes significant relative to the total rasterization time.
-% }
+The other two regressions are from \texttt{gravatar.com},
+  whose measure slowdowns we found to be rather inconsistent.
 
-% \fillin{
 With the Ganesh backend,
   the same pattern persists
   (with an even lower maximum speed-up of \ganeshIntelMaxSpeedupMatched),
@@ -508,7 +506,6 @@ In any case, this benchmark is
   the only benchmark significantly slowed down by the optimizer on this backend,
   suggesting that the optimizer generalizes well
   across different hardware platforms.
-  % }
 
 \subsubsection{Website generalizability}
 
