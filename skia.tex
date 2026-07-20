@@ -377,7 +377,8 @@ For example, with \skmultiply blending,
   \end{tabular}
 \end{figure}
 
-It is important to note that, \sksavelayer besides pushing a new
+It is important to note that \sksavelayer, besides allocating a new drawing surface, also pushes
+  onto the canvas stack like \sksave does.
 
 \subsection{Masking}
 \label{subsubsec:masking}
@@ -464,9 +465,6 @@ For example,
     \frame{\includegraphics[scale=0.15]{gradient_mandrill.png}}
   \end{tabular}
 \end{figure}
-
-It is important to note that \sksavelayer, besides allocating a new drawing surface, also pushes
-  onto the canvas stack like \sksave does.
 
 \subsection{Equivalences}
 \label{subsec:equivalences}

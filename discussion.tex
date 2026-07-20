@@ -14,8 +14,8 @@ The \Clip command,
   together with the \Transform command described in \Cref{subsec:lean},
   are imperative in nature:
   they modify, instead of replacing, the clip (and transform) state.
-So, we made the \Layer to make this clip (and transform) state explicit and functional.
-We were thus ``forced'' to develop the formalization,
+So, we were ``forced'' to make the \Layer language to make this clip (and transform) state explicit and functional.
+Thus we changed our focus to develop the formalization,
   which then enabled us to rapidly develop the rewrite rules (described in \Cref{sec:rewrites}) and
   the optimizer (described in \Cref{sec:compiler}).
 
@@ -29,19 +29,19 @@ Although paths provide a general representation, Skia often handles more specifi
 Transformations between these representations can also be confusing;
 for example, the intersection of two rectangles is a rectangle,
   but the intersection of two rounded rectangles is a path.
-Currently, our abstract model coalesces all these shapes into various constructors of on type, \Shape.
-Future work could track the different types of shapes and the allowable transformations between,
-  which could enable more granual rewrite rules.
+Currently, our abstract model coalesces all these shapes into various constructors of one type, \Shape.
+Future work could track the different types of shapes and the allowable transformations between them,
+  which could enable more granular rewrite rules.
 
 Mask filters, which are commonly used to apply Gaussian blurs,
   interact with shape boundaries in ways that are not yet fully captured by our model.
 Future work could formalize these interactions.
 This direction may be particularly relevant as
-  the Skia team has acknowledged the complexity of mask filters,
-  and they are trying to replace them with image filters to simplify the API.
+  the Skia team has acknowledged the complexity of mask filters
+  and are trying to replace them with image filters to simplify the API.
 
-On the course of exploring Skia we noticed that Skia and other 2D graphics libraries share a lot of features,
-  and are quite similar.
+In the course of exploring Skia we noticed that Skia and other 2D graphics libraries share a lot of features,
+  and often have quite similar APIs too.
 Hence, one direction we plan to explore in the future
   is expanding our formalization to other graphics APIs so that,
   for example, we could verify a compiler from, say, SVG or HTML <canvas> to Skia or another back-end library.
