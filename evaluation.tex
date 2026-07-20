@@ -315,7 +315,7 @@ This section aims to answer RQ3 by showing
     \includegraphics[scale=0.5]{graphite_apple_scatter.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and the all
-      benchmarks optimizes in under \graphiteAppleMaxOptTime}
+      benchmarks optimizes in under \graphiteAppleMaxOptTime ms}
     \label{fig:grmetal-optscatter}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
@@ -335,7 +335,7 @@ We thus measure the total optimization time
 \Cref{fig:grmetal-optscatter} shows the results.
 On the left, the scatter plot shows that
   the optimizer's runtime is linear in the \texttt{skp} size,
-  and all \texttt{skp}s optimize under \graphiteAppleMaxOptTime.
+  and all \texttt{skp}s optimize under \graphiteAppleMaxOptTime ms.
 The vast majority of \texttt{skp}s are much smaller
   and thus much faster.
 On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,
@@ -419,7 +419,7 @@ We were also able to reproduce
     The optimizer is still effective, with the exception of one benchmark,
     Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
     slow-down.
-    Graphite/Vulkan sees a geo-mean speedup of \graphiteIntelGeoSpeedup
+    Graphite/Intel sees a geo-mean speedup of \graphiteIntelGeoSpeedup
     and Ganesh/Intel sees a geo-mean speedup of \ganeshIntelGeoSpeedup.
   }
   \label{fig:cdfs-hardware}
