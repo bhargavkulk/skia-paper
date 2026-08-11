@@ -15,10 +15,10 @@ The optimizer is highly efficient,
 
 \begin{figure}[h]
   \footnotesize
-  \begin{tabular}{cc}
+  \begin{tabular}{@{}cc@{}}
     \begin{minipage}[t]{0.42\linewidth}
       \vspace{0pt}
-      \begin{BVerbatim}[baselinestretch=1.1,fontsize=\footnotesize]
+      \begin{BVerbatim}[baselinestretch=1.1,fontsize=\scriptsize]
 template <typename MatchState>
 struct SkOptPass {
     struct Frame {
@@ -45,6 +45,8 @@ struct SkOptPass {
       \vspace{0pt}
       \centering
       \begin{tikzpicture}[
+        scale=0.9,
+        transform shape,
         baseline=(current bounding box.north),
         >=to,
         every state/.append style={minimum size=12mm, font=\scriptsize}
