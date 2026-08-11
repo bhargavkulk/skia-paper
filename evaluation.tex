@@ -218,7 +218,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
   \centering
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{graphite_apple_cdf.png}
+    \includegraphics[scale=0.5]{graphite_apple_cdf.pdf}
     \captionof{figure}{
       Raster-time speed-up CDF.
       The horizontal axis shows a speedup value,
@@ -236,7 +236,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{graphite_apple_ci.png}
+    \includegraphics[scale=0.5]{graphite_apple_ci.pdf}
     \captionof{figure}{
       95\% Confidence Intervals of the geo-mean speedup
         from 25 \texttt{nanobench} for all \graphiteAppleNumBench benchmarks.
@@ -312,7 +312,7 @@ This section aims to answer RQ3 by showing
   \centering
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{graphite_apple_scatter.png}
+    \includegraphics[scale=0.5]{graphite_apple_scatter.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and the all
       benchmarks optimizes in under \graphiteAppleMaxOptTime ms}
@@ -320,7 +320,7 @@ This section aims to answer RQ3 by showing
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
     \centering
-    \includegraphics[scale=0.5]{graphite_apple_total.png}
+    \includegraphics[scale=0.5]{graphite_apple_total.pdf}
     \captionof{figure}{CDF with optimization time included.}
     \label{fig:grmetal-optcdf}
   \end{minipage}
@@ -361,9 +361,9 @@ We focus on rasterization time,
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{ganesh_apple_cdf.png}
+  \includegraphics[scale=0.5]{ganesh_apple_cdf.pdf}
   \hspace{3em}
-  \includegraphics[scale=0.5]{ganesh_apple_ci.png}
+  \includegraphics[scale=0.5]{ganesh_apple_ci.pdf}
   \caption{
   Raster-time CDFs and 95\% confidence intervals for the
     Ganesh/Apple (right) backend.
@@ -410,9 +410,9 @@ We were also able to reproduce
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{graphite_intel_cdf.png}
+  \includegraphics[scale=0.5]{graphite_intel_cdf.pdf}
   \hspace{3em}
-  \includegraphics[scale=0.5]{ganesh_intel_cdf.png}
+  \includegraphics[scale=0.5]{ganesh_intel_cdf.pdf}
   \caption{
     Raster-time CDFs for the Graphite/Intel (left) and
       Ganesh/Intel (right) backends on Machine \#2.
@@ -427,9 +427,9 @@ We were also able to reproduce
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{graphite_intel_ci.png}
+  \includegraphics[scale=0.5]{graphite_intel_ci.pdf}
   \hspace{3em}
-  \includegraphics[scale=0.5]{ganesh_intel_ci.png}
+  \includegraphics[scale=0.5]{ganesh_intel_ci.pdf}
   \caption{
     95\% confidence intervals for Graphite/Intel (right) and Ganesh/Intel (left).
     Graphite/Intel sees 3 statistical slowdowns and Ganesh/Intel sees only 1.
@@ -508,9 +508,9 @@ In any case, this benchmark is
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{graphite_apple_new_cdf.png}
+  \includegraphics[scale=0.5]{graphite_apple_new_cdf.pdf}
   \hspace{3em}
-  \includegraphics[scale=0.5]{graphite_apple_new_ci.png}
+  \includegraphics[scale=0.5]{graphite_apple_new_ci.pdf}
   \caption{
     Raster-time CDF and 95\% confidence intervals of Graphite/Metal with the new set of 100 websites.
   }
