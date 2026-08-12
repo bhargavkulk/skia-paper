@@ -102,35 +102,52 @@
 
 \input{macros.tex}
 
+%%% The following is specific to  and the paper
+%%% 'Semantics for 2D Rasterization'
+%%% by Bhargav Kulkarni, Henry Whiting, and Pavel Panchekha.
+%%%
+\setcopyright{cc}
+\setcctype{by}
+\acmDOI{10.1145/3839471}
+\acmYear{2026}
+\acmJournal{PACMPL}
+\acmVolume{10}
+\acmNumber{OOPSLA2}
+\acmArticle{339}
+\acmMonth{10}
+\acmSubmissionID{oopslab26main-p563-p}
+\received{2026-03-17}
+\received[accepted]{2026-08-06}
+\acmDOI{10.1145/3839471}
+
 \begin{document}
 
-%% Title information
 \title{Semantics for 2D Rasterization}
 
-%% Author with single affiliation.
-\author{Bhargav K Kulkarni}
-\affiliation{
+\author{Bhargav Kulkarni}
+\correspondingauthor
+\orcid{0009-0008-2320-6112}
+\affiliation{%
   \institution{University of Utah}
   \city{Salt Lake City}
-  \state{UT}
   \country{USA}
 }
-\email{bhargavk@utah.edu}
+\email{bhargavk@cs.utah.edu}
 
 \author{Henry Whiting}
-\affiliation{
+\orcid{0009-0005-9559-8395}
+\affiliation{%
   \institution{University of Utah}
   \city{Salt Lake City}
-  \state{UT}
   \country{USA}
 }
 \email{u1598085@utah.edu}
 
 \author{Pavel Panchekha}
-\affiliation{
+\orcid{0000-0003-2621-3592}
+\affiliation{%
   \institution{University of Utah}
   \city{Salt Lake City}
-  \state{UT}
   \country{USA}
 }
 \email{pavpan@cs.utah.edu}
@@ -190,7 +207,7 @@ We will also be providing the script we used to pull \texttt{skp} files for
 \section*{Acknowledgments}
 We thank Thalia Archibald, Andrew Riachi, and Artem Yadrov for helpful feedback on drafts, and Artem
 Yadrov additionally for testing the artifact.
-We thank the Brian Osman and Michael Ludwig at Google for multiple conversations clarifying Skia's
+We thank Brian Osman and Michael Ludwig at Google for multiple conversations clarifying Skia's
 semantics, guarantees, and performance properties, and the many other Skia developers for the
 quality of the Skia codebase.
 Finally, we thank the anonymous reviewers for suggestions that made this paper much stronger.

@@ -392,7 +392,7 @@ This refers to clipping one image
 \begin{figure}[H]
   \centering
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.15]{jellybean_input.png}}
+    \frame{\includegraphics[scale=0.15]{cat.png}}
   \end{tabular}
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
@@ -402,7 +402,7 @@ This refers to clipping one image
     canvas->saveLayer(blendPaint);
   \end{tabular}
   \quad
-  \layerstack{drawing0.pdf}{jellybean_input.png}
+  \layerstack{drawing0.pdf}{cat.png}
 \end{figure}
 
 Here the initial state is the image to be masked,
@@ -411,7 +411,7 @@ We now draw the mask shape on the new layer.
 
 \begin{figure}[H]
   \centering
-  \layerstack{drawing0.pdf}{jellybean_input.png}
+  \layerstack{drawing0.pdf}{cat.png}
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     SkPaint p;\\
@@ -419,7 +419,7 @@ We now draw the mask shape on the new layer.
     canvas->drawRect(rect2, p);
   \end{tabular}
   \quad
-  \layerstack{mask.pdf}{jellybean_input.png}
+  \layerstack{mask.pdf}{cat.png}
 \end{figure}
 
 Finally, on \skrestore,
@@ -435,14 +435,14 @@ Finally, on \skrestore,
 
 \begin{figure}[H]
   \centering
-  \layerstack{mask.pdf}{jellybean_input.png}
+  \layerstack{mask.pdf}{cat.png}
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     restore();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.15]{masked_jellybean.png}}
+    \frame{\includegraphics[scale=0.15]{masked_cat.png}}
   \end{tabular}
 \end{figure}
 
@@ -455,14 +455,14 @@ For example,
 
 \begin{figure}[H]
   \centering
-  \layerstack{gradient.png}{jellybean_input.png}
+  \layerstack{gradient.png}{cat.png}
   \quad
   \begin{tabular}{>{\smaller\ttfamily\raggedright\arraybackslash}m{0.42\linewidth}}
     restore();
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.15]{gradient_jellybean.png}}
+    \frame{\includegraphics[scale=0.15]{gradient_cat.png}}
   \end{tabular}
 \end{figure}
 
@@ -499,7 +499,7 @@ Nonetheless, simple rectangular clips
   \end{tabular}
   \quad
   \begin{tabular}{c}
-    \frame{\includegraphics[scale=0.15]{rect_jellybean.png}}
+    \frame{\includegraphics[scale=0.15]{rect_cat.png}}
   \end{tabular}
 \end{figure}
 
