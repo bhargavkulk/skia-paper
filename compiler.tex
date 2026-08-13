@@ -81,6 +81,7 @@ struct SkOptPass {
     of the top most state machine can change the state of the ones below. We
     implement this by allowing the rewriter to look beyond the top of the stack.}
   \label{fig:statemachine}
+  \Description{The interface of the SkOpt class, followed by the state machine of the SrcOver SaveLayer rewrite.}
 \end{figure}
 
 When a Skia client calls a method on the \texttt{SkCanvas} object,
@@ -246,6 +247,7 @@ Importantly, this design means that
     into a contiguous chunk of record objects (\texttt{fAlloc}),
     each of which represents a single Skia command.
   }
+  \Description{A block diagram of the memory layout of SkRecord}
   \label{fig:skrecord-layout}
 \end{figure}
 

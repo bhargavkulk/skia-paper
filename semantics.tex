@@ -41,7 +41,8 @@ The top stratum is an imperative language, \muskia,
     We also include the various instantiations of the types of the abstract model we use in
       our formalization.
   }
-  \label{fig:model}
+  \Description{Abstract model of Images and Shapes, along with instantiations of the same}
+\label{fig:model}
 \end{figure}
 
 In traditional programming language semantics,
@@ -165,6 +166,7 @@ Our Lean formalization instead uses an abstract model
       }
     \label{fig:muskia}
   \end{minipage}
+  \Description{Definitions of the Layer and muSkia language}
 \end{figure}
 
 The execution model of Skia centers around layers,
@@ -205,6 +207,7 @@ Because \Layer has only these two constructors
   \end{align*}
   \caption{Denotational semantics for \Layer terms.}
   \label{fig:denote}
+  \Description{Denotational semantics for Layer terms}
 \end{figure}
 
 The \layer constructors denote to the abstract model,

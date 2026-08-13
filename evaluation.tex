@@ -103,6 +103,7 @@ theorem src_eq_opt1 : denote src = denote opt1 := by
   The \texttt{gen} argument to \texttt{grind}
     increases its search fuel
     to enable proofs for larger \muskia terms.}
+  \Description{Theorem statement and proof used by translation validation.}
 \label{fig:layerTV}
 \end{figure}
 
@@ -180,6 +181,7 @@ Skia does not guarantee its anti-aliasing behavior,
       a curved shape edge,
       exactly where anti-aliasing effects are expected.
   }
+  \Description{Figure showing 3 images side-by-side, the left is the unoptimized skp, the middle is the optimized, and the right is the diff.}
 \label{fig:diff}
 \end{figure}
 
@@ -249,6 +251,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
       }
     \label{fig:grmetal-ci}
   \end{minipage}
+  \Description{CDF and confidence intervals for Graphite/Apple}
 \end{figure}
 
 \Cref{fig:grmetal-cdf} shows our results.
@@ -324,6 +327,7 @@ This section aims to answer RQ3 by showing
     \captionof{figure}{CDF with optimization time included.}
     \label{fig:grmetal-optcdf}
   \end{minipage}
+  \Description{Scatter plot for optimization time and total time CDF.}
 \end{figure}
 
 Skia rasterization must be extremely fast:
@@ -374,6 +378,7 @@ We focus on rasterization time,
     and Ganesh/Apple sees a geo-mean speedup of \ganeshAppleGeoSpeedup.
   }
   \label{fig:cdfs-backend}
+  \Description{CDF and confidence intervals for Ganes/Apple}
 \end{figure}
 
 To test different Skia backends,
@@ -423,6 +428,7 @@ We were also able to reproduce
     and Ganesh/Intel sees a geo-mean speedup of \ganeshIntelGeoSpeedup.
   }
   \label{fig:cdfs-hardware}
+  \Description{CDF for Graphite/Intel and Ganesh/Intel}
 \end{figure}
 
 \begin{figure}
@@ -435,6 +441,7 @@ We were also able to reproduce
     Graphite/Intel sees 3 statistical slowdowns and Ganesh/Intel sees only 1.
   }
   \label{fig:cis-hardware}
+  \Description{Confidence intervals for Graphite/Intel and Ganesh/Intel}
 \end{figure}
 
 
@@ -515,6 +522,7 @@ In any case, this benchmark is
     Raster-time CDF and 95\% confidence intervals of Graphite/Metal with the new set of 100 websites.
   }
   \label{fig:cdf-newsites}
+  \Description{CDF and confidence intervals for Graphite/Metal on next 100 top websites}
 \end{figure}
 
 Finally, we ask whether the optimizer is effective

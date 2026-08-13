@@ -60,6 +60,7 @@ The \skdrawrect command draws a rectangle:%
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing1.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a draw rect command, followed by a canvas with a black square}
 \end{figure}
 
 % paint.setColor(SK_ColorRED);
@@ -93,6 +94,7 @@ The default fill for a \skpaint is the color black,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing2.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a draw rect command, followed by a canvas with a red square}
 \end{figure}
 
 \noindent
@@ -115,6 +117,7 @@ It's also possible to specify a non-constant fill,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing3.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a draw rect command, followed by a canvas with a gradient fill square}
 \end{figure}
 
 \noindent
@@ -168,6 +171,7 @@ Suppose we draw a second, overlapping, blue square:
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing4.pdf}}
   \end{tabular}
+  \Description{Canvas with a red square to the right, followed by a draw rect command, followed by a canvas with a red and blue square}
 \end{figure}
 
 % paint.setColor(SK_ColorBLUE);
@@ -208,6 +212,7 @@ For example, the \skmultiply blend mode %
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing5.pdf}}
   \end{tabular}
+  \Description{Canvas with a red square to the right, followed by a draw rect command, followed by a canvas with a red and blue square}
 \end{figure}
 
 In the intersection of the two rectangles,
@@ -244,6 +249,7 @@ But Skia also provides a \skcliprect command
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing6.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a clip and draw rect command, followed by a canvas with a clipped red square}
 \end{figure}
 
 \noindent
@@ -273,6 +279,7 @@ The canvas state is stored in the canvas object
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing7.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a clip and two draw rect commands, followed by a canvas with a clipped red and blue square}
 \end{figure}
 
 Naturally, one might want to limit
@@ -300,6 +307,7 @@ Luckily, Skia maintains a \emph{stack} of canvas states;
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing8.pdf}}
   \end{tabular}
+  \Description{Empty canvas to the right, followed by a clip and and draw rect command out inside a save command and one draw rect command outside, followed by a canvas with a clipped red and unclipped blue square}
 \end{figure}
 
 \noindent
@@ -326,6 +334,7 @@ Conceptually, \sksavelayer allocates
   \end{tabular}
   \quad
   \layerstack{drawing0.pdf}{drawing2.pdf}
+  \Description{Canvas with red square, followed by a save layer command, followed by a stack of a red square canvas and empty square}
 \end{figure}
 
 All drawing commands until the corresponding \skrestore
@@ -340,6 +349,7 @@ All drawing commands until the corresponding \skrestore
   \end{tabular}
   \quad
   \layerstack{drawing9.pdf}{drawing2.pdf}
+  \Description{Stack of a red square canvas and empty canvas, followed by a draw rect command, followed by a stack of a red square canvas and blue square canvas}
 \end{figure}
 
 Then, when the \skrestore command is reached,
@@ -357,6 +367,7 @@ Then, when the \skrestore command is reached,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing4.pdf}}
   \end{tabular}
+  \Description{Stack of a red square canvas and blue square canvas, followed by a restore command, followed by a canvas with a red and blue square}
 \end{figure}
 
 The \sksavelayer operation accepts an \skpaint argument
@@ -375,6 +386,7 @@ For example, with \skmultiply blending,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{drawing5.pdf}}
   \end{tabular}
+  \Description{Stack of a red square canvas and blue square canvas, followed by a restore command, followed by a canvas with a red and blue square}
 \end{figure}
 
 It is important to note that \sksavelayer, besides allocating a new drawing surface, also pushes
@@ -403,6 +415,7 @@ This refers to clipping one image
   \end{tabular}
   \quad
   \layerstack{drawing0.pdf}{cat.png}
+  \Description{Canvas with a cat, followed by a save layer command, followed by a stack of a cat canvas and a empty canvas}
 \end{figure}
 
 Here the initial state is the image~\footnote{%
@@ -424,6 +437,7 @@ We now draw the mask shape on the new layer.
   \end{tabular}
   \quad
   \layerstack{mask.pdf}{cat.png}
+  \Description{Stack of a cat canvas and an empty canvas, followed by two draw rect commands, followed by a stack of a cat canvas and a canvas with 2 rectangles}
 \end{figure}
 
 Finally, on \skrestore,
@@ -448,6 +462,7 @@ Finally, on \skrestore,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{masked_cat.png}}
   \end{tabular}
+  \Description{Stack of a cat canvas and a canvas with 2 rectangles, followed by a restore, followed by a clipped cat canvas}
 \end{figure}
 
 \skdstin blending is far more powerful than \skcliprect
@@ -468,6 +483,7 @@ For example,
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{gradient_cat.png}}
   \end{tabular}
+  \Description{Stack of a cat canvas and a canvas with a gradient, followed by a restore, followed by a clipped cat canvas}
 \end{figure}
 
 \subsection{Equivalences}
@@ -505,6 +521,7 @@ Nonetheless, simple rectangular clips
   \begin{tabular}{c}
     \frame{\includegraphics[scale=0.15]{rect_cat.png}}
   \end{tabular}
+  \Description{Empty canvas, followed by a 2 equivalent Skia programs, followed by a clipped cat canvas}
 \end{figure}
 
 However, the \sksavelayer-based program
