@@ -53,7 +53,7 @@ In the graphics domain, the core types
   are not so well established,
   so the abstract model must be explicitly defined.
 The abstract model for \muskia
-  it is based around two core abstract types,
+  is based around two core abstract types,
   \Point and \Color.
 The \Point and \Color types
   are then used to define additional types,
@@ -190,7 +190,7 @@ Because \Layer has only these two constructors
   \begin{align*}
     \denote{\Empty()}(\textsf{pt})
     &= \Transparent\\[2pt]
-    \denote{\BlendLayer(\ell_\textsf{bot}, \ell_\textsf{bot}, p)}(\mathsf{pt})
+    \denote{\BlendLayer(\ell_\textsf{bot}, \ell_\textsf{top}, p)}(\mathsf{pt})
     &= \mathsf{blend}_\mathrm{p}\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
         \textsf{filter}_p\left(\denote{\mathsf{\ell_{top}}}(\mathsf{pt})\right)
       \right) \\[2pt]
@@ -273,7 +273,7 @@ The first list in $\Sigma$ is the stack of layers
   while the second list is the stack of canvas states
   manipulated by \Save.
 In the minimal \muskia language of \Cref{fig:muskia},
-  the the canvas state is a single \Shape
+  the canvas state is a single \Shape
   because the only canvas state operation is \Clip;
   our Lean formalization adds additional fields.
 The initial state is

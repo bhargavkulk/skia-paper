@@ -61,7 +61,7 @@ This section aims to answer RQ1 by showing
 \subsubsection{Conformance with \muskia Semantics}
 
 To test whether the optimizer conforms with the \muskia semantics,
-  we extended it with a mode that outputs an \texttt{skp}
+  we extended it with a mode that outputs a \texttt{skp}
   after each individual rewrite pass,
   forming an ``optimization trace''.
 Each of these \texttt{skp} files is then converted
@@ -241,7 +241,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
     \includegraphics[scale=0.5]{graphite_apple_ci.pdf}
     \captionof{figure}{
       95\% Confidence Intervals of the geo-mean speedup
-        from 25 \texttt{nanobench} for all \graphiteAppleNumBench benchmarks.
+        from 25 \texttt{nanobench} runs for all \graphiteAppleNumBench benchmarks.
       The \orange{orange} intervals are from benchmarks that have been rewritten
         by the optimizer.
       The \blue{blue} intervals are from benchmarks that have not been rewritten
@@ -421,9 +421,6 @@ We were also able to reproduce
   \caption{
     Raster-time CDFs for the Graphite/Intel (left) and
       Ganesh/Intel (right) backends on Machine \#2.
-    The optimizer is still effective, with the exception of one benchmark,
-    Canva, on the older Ganesh back-end, which sees a dramatic but easily-avoided
-    slow-down.
     Graphite/Intel sees a geo-mean speedup of \graphiteIntelGeoSpeedup
     and Ganesh/Intel sees a geo-mean speedup of \ganeshIntelGeoSpeedup.
   }
