@@ -37,7 +37,7 @@ Web browsers, for example, struggle to render modern web pages,
   with trendy effects like partial transparency, animations, and blurs,
   at a stable 60 frames per second,
   especially on lower-end mobile devices.
-The trend toward 120\,Hz displays only raises the bar.
+The trend toward \SI{120}{Hz} displays only raises the bar.
 The reason this is so hard is that
   while rasterization libraries implement individual instructions efficiently,
   \emph{clients ask them to execute inefficient instruction sequences}.
@@ -85,7 +85,7 @@ This simple optimizer results in an average speedup
   on \graphiteAppleNumBench Chrome-generated Skia programs
   from the top 100 websites.
 The optimizer is also highly efficient,
-  with optimization taking at most \graphiteAppleMaxOptTime ms,
+  with optimization taking at most \graphiteAppleMaxOptTime,
   and the optimizer improves rasterization time across Skia back-ends and GPUs.
 Moreover, the optimizer is able to generate optimization traces
   that can be translation validated using \muskia,

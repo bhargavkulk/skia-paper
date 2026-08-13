@@ -1,12 +1,25 @@
 #+title: Skia Paper
 
-* TODOS [0/1]
-- [-] Eval [1/5]
-  - [X] Translation Validation
-  - [ ] Count number of matches for each rewrite
-  - [ ] Add Henry's rules
-  - [ ] Fix bugs in matcher (Naver)
-
+* TODOS [14/19]
+- [X] is based on the most recent version of the formatting template/style (see details below),
+- [X] does not change any style or formatting settings of the template,
+- [ ] does not exceed the page limit specified in the acceptance-notification e-mail,
+- [X] is in PDF format,
+- [X] has all fonts embedded in the PDF file,
+- [X] uses only scalable font types (like Type 1, TrueType) --- bit-mapped font types (like Type 3) are not acceptable,
+- [X] provides the affiliation (institution and country) in the author information on the first page,
+- [X] defines all authors individually (not as a list),
+- [X] has the title and all headings properly capitalized,
+- [X] does not use footnotes and references in the abstract,
+- [X] provides a DOI for each item in the References section (if possible),
+- [X] has all diagrams embedded in vector graphics
+- [X] (if not possible, use a high-resolution bitmap format of at least 300 dpi; do not use JPG, but a lossless format like PNG or GIF; JPG is ok for photos),
+- [X] has all text in figures and tables large enough and readable when printed,
+- [X] has a caption for every figure or table,
+- [ ] has all units consistently separated from their values with a half space (e.g., '\SI{33}{GB}'),
+- [ ] has no orphans and widows,
+- [ ] has reduced the use of bold face and bright colors in the text as much as possible, underlining is not used at all in the text,
+- [ ] has all third-party material appropriately attributed (mention author, copyright holder, and origin).
 * Skia Examples
 
 #+begin_src c++

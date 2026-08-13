@@ -195,7 +195,7 @@ To measure raster time, we use \texttt{nanobench},
 We specifically use the \texttt{playback} benchmarking option,
   which rasters the same exact \texttt{skp} in a loop,
   calibrating the number of loops so that
-  the total GPU rasterization time is 5 milliseconds.
+  the total GPU rasterization time is \SI{5}{ms}.
 This makes timing overhead negligible.
 \texttt{nanobench} also performs warm-up iterations
   to avoid measuring shader compilation time.
@@ -315,7 +315,7 @@ This section aims to answer RQ3 by showing
     \includegraphics[scale=0.5]{graphite_apple_scatter.pdf}
     \captionof{figure}{Optimization time versus \texttt{skp} size on
       Graphite/Metal. Runtime scales approximately linearly, and the all
-      benchmarks optimizes in under \graphiteAppleMaxOptTime ms}
+      benchmarks optimizes in under \graphiteAppleMaxOptTime}
     \label{fig:grmetal-optscatter}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.49\linewidth}
@@ -335,7 +335,7 @@ We thus measure the total optimization time
 \Cref{fig:grmetal-optscatter} shows the results.
 On the left, the scatter plot shows that
   the optimizer's runtime is linear in the \texttt{skp} size,
-  and all \texttt{skp}s optimize under \graphiteAppleMaxOptTime ms.
+  and all \texttt{skp}s optimize under \graphiteAppleMaxOptTime.
 The vast majority of \texttt{skp}s are much smaller
   and thus much faster.
 On the right, the CDF of \Cref{fig:grmetal-cdf} is redrawn,

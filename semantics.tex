@@ -21,7 +21,7 @@ The top stratum is an imperative language, \muskia,
 
 \begin{figure}
   \centering
-  \begin{tabular}{S S S}
+  \begin{tabular}{L L L}
     Image  & : \; Point $\to$ Color & \textrm{\textit{e.g.}}\; {\sffamily
                                       Solid($c : \text{Color}$), LinearGradient($\ldots$),
                                       $\ldots$} \\[4pt]
@@ -128,7 +128,7 @@ Our Lean formalization instead uses an abstract model
 \begin{figure}
   \begin{minipage}{0.51\linewidth}
     \centering
-    \begin{tabular}{S}
+    \begin{tabular}{L}
       Layer ::= \\
       | Empty() \\
       | DrawShape($\ell: \Layer$, $s: \Shape$, $p: \Paint$) \\
@@ -150,7 +150,7 @@ Our Lean formalization instead uses an abstract model
   \hfill%
   \begin{minipage}[T]{0.45\linewidth}
     \centering
-    \begin{tabular}{S}
+    \begin{tabular}{L}
       Command ::= \\
       | Draw($g: \Shape$, $p : \Paint$) \\
       | Clip($m : \Shape$) \\

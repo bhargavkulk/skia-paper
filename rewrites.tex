@@ -48,7 +48,7 @@ The common patterns we identify
   are often unnecessary,
   suggesting the following idealized equivalence:
 \begin{center}
-  \begin{tabular}{S c S}
+  \begin{tabular}{L c L}
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
       SaveLayer($p$ \{ \SrcOver, \Id \}); \\
@@ -130,7 +130,7 @@ In a number of cases, Chrome uses \dstin
 This suggests the following idealized equivalence:
 
 \begin{center}
-  \begin{tabular}{S c S}
+  \begin{tabular}{L c L}
     \begin{tabular}{@{}l@{}}
       $\ell_1\ldots$ \\
       SaveLayer($p_1$ \{ \DstIn \}); \\
@@ -272,7 +272,7 @@ Chrome performs this conversion using
 This is suboptimal:
 
 \begin{center}
-  \begin{tabular}{S c S}
+  \begin{tabular}{L c L}
     \begin{tabular}{@{}l@{}}
       $\ell\ldots$ \\
       SaveLayer($p$ \{ \DstIn \}); \\
@@ -338,7 +338,7 @@ The gradients \emph{do not} actually mask out any content,
   but they are expensive for Skia to raster.
 This suggests the following idealized equivalence:
 \begin{center}
-  \begin{tabular}{S c S}
+  \begin{tabular}{L c L}
     \begin{tabular}{@{}l@{}}
       Draw($s$, $p_1$ \{ SrcOver \});\\
       SaveLayer(\{ DstIn \});\\
@@ -365,7 +365,7 @@ Again, no induction is needed,
 Converting to \Layer terms, the rewrite unfolds to:
 
 \begin{center}
-  \begin{tabular}{S c S}
+  \begin{tabular}{L c L}
     \begin{tabular}{@{}l@{}}
       BlendLayer(Draw(Empty(), $s$, $p_1$),\\
       \quad \quad Draw(Empty(), $s$, $p_2$),\\
