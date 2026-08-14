@@ -47,7 +47,7 @@ The top stratum is an imperative language, \muskia,
 
 In traditional programming language semantics,
   the abstract model---%
-  objects like pairs, functions, integers, and the like---%
+  pairs, functions, integers, and the like---%
   is implicit and well understood.
 In the graphics domain, the core types
   are not so well established,
@@ -120,7 +120,7 @@ The exact anti-aliasing and rounding behavior
   including hardware dependence in some back-ends.
 Our Lean formalization instead uses an abstract model
   where points and colors are represented by real numbers,
-  which in practice means it assumes away
+  which in practice means it is accurate
   \emph{up to} anti-aliasing and rounding.
 
 \subsection{Skia as Layers}
@@ -184,14 +184,14 @@ The \Paint object configures the various phases
   of the Skia drawing pipeline.
 Because \Layer has only these two constructors
   (plus the special \Empty layer),
-  it is particularly easy to induct on them in proofs.
+  it is particularly easy to induct on in proofs.
 
 \begin{figure}
   \begin{align*}
     \denote{\Empty()}(\textsf{pt})
     &= \Transparent\\[2pt]
     \denote{\BlendLayer(\ell_\textsf{bot}, \ell_\textsf{top}, p)}(\mathsf{pt})
-    &= \mathsf{blend}_\mathrm{p}\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
+    &= \mathsf{blend}_p\left(\denote{\mathsf{\ell_{bot}}}(\mathsf{pt}),\;
         \textsf{filter}_p\left(\denote{\mathsf{\ell_{top}}}(\mathsf{pt})\right)
       \right) \\[2pt]
     \denote{\DrawShape(\ell, s, p)}(\mathsf{pt})
@@ -317,7 +317,7 @@ The \textsf{Clip} command modifies the canvas state,
 \noindent
 Note that the actual Skia \texttt{clipRect} command
   has an optional \texttt{SkClipOp} parameter
-  that allows instead taking the difference instead of intersecting
+  that allows taking the difference instead of intersecting
   the new mask with the clip state;
   this paper does not show that (straightforward) extension
   but our Lean formalization does include it.
@@ -389,21 +389,18 @@ We have mechanized all three strata of this formalization---%
   the abstract model, \Layer terms, and \muskia commands,
   and their respective denotational / operational semantics,
   in the Lean~4 interactive theorem prover~\cite{lean4}.
-Our mechanization, which we intend to submit as an artifact,
-  is 453 lines of code in total.
-We also provide an instantiation of the abstract model,
- representing \Point as a 2-tuple of reals
-  and \Color as a 4-tuple of real numbers
+Our mechanization, which we submitted as an artifact,
+  is under a thousand lines of code.
+We also provide an instantiation of the \Color abstract type
+  as a 4-tuple of real numbers
   representing premultiplied ARGB colors.
 This means that the alpha channel $\alpha$ is bounded between $0$ and $1$,
   while the three color channels are bounded between $0$ and $\alpha$.
-By formalizing \Point with reals,
-  equivalences in this abstract model are only up to anti-aliasing.
 By formalizing \Color with reals,
-  equivalences in this abstract model are also only up to rounding.
+  equivalences in this abstract model are only up to rounding.
 We have discussed these choices with the Skia engineering team,
-  who confirmed that anti-aliasing and rounding behavior,
-  while important, are acceptable to change during optimization.
+  who confirmed that rounding behavior,
+  while important, is acceptable to change during optimization.
 
 Our formalization also includes a number of extensions
   not discussed in this section.

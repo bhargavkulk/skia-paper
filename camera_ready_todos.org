@@ -12,3 +12,22 @@
 * Skia [2/2]
 - [X] "restricting the effect of clipRect to the enclosed commands:" — should end in a period, not a colon
 - [X] Extra space in cat image footnote
+* Semantics [8/8]
+- [X] "objects like pairs, functions, integers, and the like" — I would drop "objects like"
+- [X] "which in practice means it assumes away up to anti-aliasing and rounding." — this doesn't
+  make sense, gotta say either "assumes away anti-aliasing and rounding" or "is accurate up to
+  anti-aliasing and rounding"
+- [X] The p in the blend_p in the top row should be italics but isn't, gotta fix that!
+- [X] "Because Layer has only these two constructors (plus the special Empty layer), it is particularly easy to induct on them in proofs." — The "them" seems to refer to something in the previous sentence, just drop it
+- [X] "allows instead taking the difference instead of intersecting the new mask" — similar
+- [X] "which we intend to submit as an artifact," — no longer intend, write "which we submitted as an artifact"
+- [X] "is 453 lines of code in total." — I assume this is out of date, just say "under a thousand"
+- [X] "We also provide an instantiation of the abstract model, representing Point as a
+2-tuple of reals and Color as a 4-tuple of real numbers representing premultiplied ARGB colors."
+— do we?
+
+
+
+# - [ ] "including pages like the Amazon, Github, New York Times, and Tiktok home pages." — more duplication
+# - [ ] "others were specific to particular, widely-used, web frameworks" — maybe drop "widely-used" now?
+# - [ ] "Because 𝜇Skia programs are imperative, however, equivalence does not generally allow" — Next sentence has another "however", let's drop this one
