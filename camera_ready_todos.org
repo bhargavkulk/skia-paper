@@ -4,8 +4,11 @@
 - [X] translation validated in Lean" — maybe a hyphen between "translation" and "validated"?
 * Introduction [3/3]
 - [X] And Chrome is surely the most sophisticated Skia client: it is developed at the same company," —
-  replace "it is" with "both are" (edited)
+  replace "it is" with "both are"
 - [X] across Skia back-ends and GPUs" — maybe "across GPUs and Skia back-ends", otherwise it's a bit
   unclear what "Skia" applies to
 - [X] (3) A efficient and correct Skia optimizer that applies these optimizations (Section 5)." — "An"
   not "A", or change to "correct and efficient" to preserve rhythm
+* Skia [2/2]
+- [X] "restricting the effect of clipRect to the enclosed commands:" — should end in a period, not a colon
+- [X] Extra space in cat image footnote

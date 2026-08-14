@@ -312,7 +312,7 @@ Luckily, Skia maintains a \emph{stack} of canvas states;
 
 \noindent
 In other words, \sksave and \skrestore act like brackets,
-  restricting the effect of \skcliprect to the enclosed commands:
+  restricting the effect of \skcliprect to the enclosed commands.
 
 \subsection{Layers}
 \label{subsec:layers}
@@ -418,7 +418,8 @@ This refers to clipping one image
   \Description{Canvas with a cat, followed by a save layer command, followed by a stack of a cat canvas and a empty canvas}
 \end{figure}
 
-Here the initial state is the image~\footnote{%
+Here the initial state is the image%
+\footnote{%
 Photograph by Carol M.
 Highsmith, ``A contented cat at Yoder's Amish Home, an authentic Amish farm near Walnut Creek,
 Ohio.''
