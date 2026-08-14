@@ -25,9 +25,15 @@
 - [X] "We also provide an instantiation of the abstract model, representing Point as a
 2-tuple of reals and Color as a 4-tuple of real numbers representing premultiplied ARGB colors."
 — do we?
+* Rewrites [6/6]
+- [X] "including pages like the Amazon, Github, New York Times, and Tiktok home pages." — more duplication
+- [X] "others were specific to particular, widely-used, web frameworks" — maybe drop "widely-used" now?
+- [X] "Because 𝜇Skia programs are imperative, however, equivalence does not generally allow" — Next
+  sentence has another "however", let's drop this one
+- [X] "using as a lemma that states as a fact that," — I'm not even sure what this was trying to say, please fix it
+- [X] "This snippet draws contents of the image, and" — draws the contents
+- [X] "would require this more general equation and incorrect equation:" — another one
 
-
-
-# - [ ] "including pages like the Amazon, Github, New York Times, and Tiktok home pages." — more duplication
-# - [ ] "others were specific to particular, widely-used, web frameworks" — maybe drop "widely-used" now?
-# - [ ] "Because 𝜇Skia programs are imperative, however, equivalence does not generally allow" — Next sentence has another "however", let's drop this one
+# - [ ] "that applies rewrites discussed in Section 4." — I would add "the" before rewrites, otherwise it sounds like we maybe apply only a subset of them.
+# - [ ] "Some times the actions of the top most" — should be "Sometimes" with no space, and "top-most" with a hyphen (edited)
+# - [ ] "searches the SkRecord buffer for each rewrite rule from Section 4, replacing the matched commands with the right-hand side of the rewrite rule." — this is a bit confusing because we refer to the right-hand side but not the left-hand side. Maybe we say "matched left-hand side commands"?

@@ -8,8 +8,8 @@
   about the equivalence of Skia programs.
 As a case study,
   we collected Chrome-generated Skia programs
-  from the top 100 websites, including pages like
-  the Amazon, Github, New York Times, and Tiktok home pages.%
+  from the top 100 websites, including popular web pages like
+  Amazon, Github, New York Times, and Tiktok.%
 \footnote{
 And many international pages like Bilibili, Mail.ru, and Yahoo.jp.
 }
@@ -19,7 +19,7 @@ A manual examination showed that many included
   and performed unnecessary blends.
 We identified four common patterns of suboptimal Skia instructions;
   some patterns were common across many pages,
-  while others were specific to particular, widely-used, web frameworks.
+  while others were specific to particular web frameworks.
 For each one, we wrote a more optimized pattern
   and verified each replacement using the \muskia semantics,
   including identifying the necessary side conditions
@@ -27,7 +27,7 @@ For each one, we wrote a more optimized pattern
 
 Formally, two \muskia programs are equal
   when they evaluate to the same \Image in the \muskia semantics.
-Because \muskia programs are imperative, however,
+Because \muskia programs are imperative,
   equivalence does \emph{not} generally allow substitution.
 However, because \muskia commands
   only modify the top of the state or layer stack,
@@ -187,8 +187,8 @@ With this induction proven,
 \BlendLayer(\ell_1, \Draw(\Empty(), m, p_2), p_1) = \mathsf{clipAll}(\ell_1, m)
 \end{equation*}
 This is then proven by induction over $\ell_1$,
-  using as a lemma that states as a fact that,
-  since $\ell_1$ contains no \SaveLayer commands,
+  using the fact that
+  $\ell_1$ contains no \SaveLayer commands,
   its denotation will contain no \BlendLayer{}s.
 The base case, where $\ell_1$ is \Empty, is trivial,
   while the inductive case reduces to the following
@@ -241,7 +241,7 @@ This is proven by case analysis on $x \in g$ and $x \in m$.
     \centering
     \frame{\includegraphics[width=\linewidth]{gravatar.pdf}}
   \end{minipage}
-  \caption{SVG snippet from \texttt{gravatar.com}, used in this section. This snippet draws contents of the image, and then masks the contents with a rounded rectangle.}
+  \caption{SVG snippet from \texttt{gravatar.com}, used in this section. This snippet draws the contents of the image, and then masks the contents with a rounded rectangle.}
   \label{fig:subsume-svg}
   \Description{Snippet of SVG code followed by rendering of the same code.}
 \end{figure}
@@ -318,7 +318,7 @@ This reduces to the following equation in the abstract model:
 The equation is trivially true
   because $\SrcOver(\Transparent, c) = c$.
 An analogous rewrite with two or more \Draw commands,
-  by contrast, would require this more general equation and incorrect equation:
+  by contrast, would require this more general and incorrect equation:
 \begin{equation*}
 \Luma(\srcover(c_1, c_2)) \ne \srcover(\Luma(c_1), \Luma(c_2))
 \end{equation*}
