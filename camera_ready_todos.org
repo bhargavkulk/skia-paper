@@ -1,0 +1,11 @@
+* Abstract [2/2]
+- [X] We then identify four ... by Google Chrome, and then write replacements ..." — drop the comma and
+  "then"
+- [X] translation validated in Lean" — maybe a hyphen between "translation" and "validated"?
+* Introduction [3/3]
+- [X] And Chrome is surely the most sophisticated Skia client: it is developed at the same company," —
+  replace "it is" with "both are" (edited)
+- [X] across Skia back-ends and GPUs" — maybe "across GPUs and Skia back-ends", otherwise it's a bit
+  unclear what "Skia" applies to
+- [X] (3) A efficient and correct Skia optimizer that applies these optimizations (Section 5)." — "An"
+  not "A", or change to "correct and efficient" to preserve rhythm

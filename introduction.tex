@@ -45,7 +45,7 @@ For example, the authors have manually examined
   the instructions that Chrome executes to raster the top 100 websites (by traffic)
   and identified numerous straightforward performance problems.
 And Chrome is surely the most sophisticated Skia client:
-  it is developed at the same company,
+  both are developed at the same company,
   with engineers working in such close coordination
   that Chrome and Skia make simultaneous releases.
 Other Skia clients are even worse off.
@@ -86,7 +86,7 @@ This simple optimizer results in an average speedup
   from the top 100 websites.
 The optimizer is also highly efficient,
   with optimization taking at most \graphiteAppleMaxOptTime,
-  and the optimizer improves rasterization time across Skia back-ends and GPUs.
+  and the optimizer improves rasterization time across GPUs and Skia back-ends.
 Moreover, the optimizer is able to generate optimization traces
   that can be translation validated using \muskia,
   providing an end-to-end proof of correctness for those programs.
@@ -95,7 +95,7 @@ In short, the contributions in this paper are:
 \begin{enumerate}
 \item A new formalization of the Skia API and rasterization more generally (\Cref{sec:semantics})
 \item A collection of focused optimizations proven valid using this formalization (\Cref{sec:rewrites})
-\item A efficient and correct Skia optimizer that applies these optimizations (\Cref{sec:compiler}).
+\item A correct and efficient Skia optimizer that applies these optimizations (\Cref{sec:compiler}).
 \end{enumerate}
 % \newpage
 
