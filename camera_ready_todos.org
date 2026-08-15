@@ -55,10 +55,11 @@
 - [X] "Thus we changed our focus to develop the formalization" → "We thus changed our focus toward developing the formalization"
 - [X] "SVG or HTML <canvas>" — the <canvas> should be in typewriter text.
 - [X] "so that, for example, we could verify a compiler from, say," — duplicative
-
-# - [ ] "Warnock and Geschke then founded Adobe [1], which introduced PostScript [4], then PDF [3]." — replace indicated by "and"
-# - [ ] "Color blending was introduced by Porter and Duff [32]." — add indicated "was"
-# - [ ] "and later work from the same authors [28] uses" — I think Emina isn't actually on the follow-on papers, so you should use the singular "author"
-# - [ ] "We will be submitting two artifacts. The first being the Lean mechanization of 𝜇Skia semantics and the rewrites discussed in Section 4." — replace indicated with "is", otherwise it is not grammatical
-# - [ ] "The second being our fork of Skia with our optimizer that implements the aforementioned rewrites." — Likewise, this might be a difference between Indian English and American English, dunno
-# - [ ] "and the another 100 websites" — drop "an", otherwise it's doing two articles to one word
+* Related Works [3/3]
+- [X] "Warnock and Geschke then founded Adobe [1], which introduced PostScript [4], then PDF [3]." — replace indicated by "and"
+- [X] "Color blending was introduced by Porter and Duff [32]." — add indicated "was"
+- [X] "and later work from the same authors [28] uses" — I think Emina isn't actually on the follow-on papers, so you should use the singular "author"
+* COMMENT Data [/]
+- [ ] "We will be submitting two artifacts. The first being the Lean mechanization of 𝜇Skia semantics and the rewrites discussed in Section 4." — replace indicated with "is", otherwise it is not grammatical
+- [ ] "The second being our fork of Skia with our optimizer that implements the aforementioned rewrites." — Likewise, this might be a difference between Indian English and American English, dunno
+- [ ] "and the another 100 websites" — drop "an", otherwise it's doing two articles to one word
