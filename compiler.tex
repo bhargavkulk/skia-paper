@@ -6,7 +6,7 @@
 To demonstrate the utility of the \muskia semantics
   for developing impactful Skia tooling,
   this section discusses a Skia optimizer
-  that applies rewrites discussed in \Cref{sec:rewrites}.
+  that applies the rewrites discussed in \Cref{sec:rewrites}.
 The optimizer is highly efficient,
   processing thousands of Skia commands in microseconds,
   allowing Skia clients to meet demanding refresh rate targets.
@@ -77,8 +77,8 @@ struct SkOptPass {
     \SaveLayer to be removed. The state machine we show is the state machine for
     only one layer for simplicity. The rewriter actually functions like a stack
     of state machines, with each \SaveLayer pushing the start of a new state
-    machine onto a stack, and a \Restore popping it off. Some times the actions
-    of the top most state machine can change the state of the ones below. We
+    machine onto a stack, and a \Restore popping it off. Sometimes the actions
+    of the top-most state machine can change the state of the ones below. We
     implement this by allowing the rewriter to look beyond the top of the stack.}
   \label{fig:statemachine}
   \Description{The interface of the SkOpt class, followed by the state machine of the SrcOver SaveLayer rewrite.}
@@ -95,7 +95,7 @@ Yes, the class name for the collection is singular
 }
 The optimizer then searches the \texttt{SkRecord} buffer
   for each rewrite rule from \Cref{sec:rewrites},
-  replacing the matched commands
+  replacing the matched left-hand side commands
   with the right-hand side of the rewrite rule.
 Each rewrite is implemented as a single optimization pass
   that performs a single pass over the command buffer.
@@ -288,7 +288,7 @@ It is important to note here that Chrome generates
   for a single website.
 These multiple programs represent different ``layers'' of the page,
   which are then composited in a later step;
-  this split into layers chosen by Chrome
+  this split into layers is chosen by Chrome
   to optimize animations~\cite{wbe}
   and is unrelated to Skia's concept of layers.
 Our optimizer operates on
