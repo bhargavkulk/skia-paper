@@ -15,7 +15,7 @@ The \Clip command,
   are imperative in nature:
   they modify, instead of replacing, the clip (and transform) state.
 So, we were ``forced'' to make the \Layer language to make this clip (and transform) state explicit and functional.
-Thus we changed our focus to develop the formalization,
+We thus changed our focus to develop the formalization,
   which then enabled us to rapidly develop the rewrite rules (described in \Cref{sec:rewrites}) and
   the optimizer (described in \Cref{sec:compiler}).
 
@@ -44,7 +44,7 @@ In the course of exploring Skia we noticed that Skia and other 2D graphics libra
   and often have quite similar APIs too.
 Hence, one direction we plan to explore in the future
   is expanding our formalization to other graphics APIs so that,
-  for example, we could verify a compiler from, say, SVG or HTML <canvas> to Skia or another back-end library.
+  for example, we could verify a compiler from SVG or HTML \texttt{<canvas>} to Skia or another back-end library.
 We also hope to explore compositing,
  a type of caching used in animations,
  and how it impacts graphics library correctness and performance.

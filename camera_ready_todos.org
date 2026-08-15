@@ -51,11 +51,11 @@
 4.4." I would rewrite to avoid the which-which
 - [X] "Like in Graphite, the majority of the rewritten benchmarks have CI’s" — add "the" as indicated
 - [X] "the solid-white fill, as its the first command in a Layer" — should be "it's"
+* Discussion [3/3]
+- [X] "Thus we changed our focus to develop the formalization" → "We thus changed our focus toward developing the formalization"
+- [X] "SVG or HTML <canvas>" — the <canvas> should be in typewriter text.
+- [X] "so that, for example, we could verify a compiler from, say," — duplicative
 
-
-# - [ ] "Thus we changed our focus to develop the formalization" → "We thus changed our focus toward developing the formalization"
-# - [ ] "SVG or HTML <canvas>" — the <canvas> should be in typewriter text.
-# - [ ] "so that, for example, we could verify a compiler from, say," — duplicative
 # - [ ] "Warnock and Geschke then founded Adobe [1], which introduced PostScript [4], then PDF [3]." — replace indicated by "and"
 # - [ ] "Color blending was introduced by Porter and Duff [32]." — add indicated "was"
 # - [ ] "and later work from the same authors [28] uses" — I think Emina isn't actually on the follow-on papers, so you should use the singular "author"
