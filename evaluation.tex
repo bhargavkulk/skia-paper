@@ -47,7 +47,7 @@ The optimizer itself is based off of Skia commit \texttt{f931a2e},
 For our primary evaluation in RQs 1--3,
   we build Skia with Clang version 17.0.0 with \texttt{-O3} and \texttt{-flto=thin}
   and run it on an 8-core Apple M2 unified CPU/GPU with 16GB RAM
-  with Skia's ``Graphite'' graphics backend and the Metal GPU API.
+  using Skia's ``Graphite'' graphics backend and the Metal GPU API.
 
 \subsection{RQ1: Is the Optimizer Correct?}
 \label{subsec:rq1}
@@ -124,7 +124,7 @@ Three separate optimization passes fire on this benchmark,
   with each one exposing the next rewrite opportunity;
   all three translation validate.
 The remaining \tvGrindN benchmarks
-  do not translation validate due to \texttt{grind} timeouts;
+  do not translation-validate due to \texttt{grind} timeouts;
   as a general-purpose proof search engine,
   \texttt{grind} is slower than our optimizer
   and times out on complex \muskia terms.
@@ -146,7 +146,7 @@ The \muskia rewrites of \Cref{sec:rewrites}
   to \texttt{compare},
   asking it to report the number of pixels
   that differ by more than \texttt{1\%} in a color channel.
-Notably, we perform the pixel comparison to all benchmarks,
+Notably, we perform the pixel comparison on all benchmarks,
   and can thus test the optimizer's correctness
   even for benchmarks that use features
   not formalized in \muskia.
@@ -176,7 +176,7 @@ Skia does not guarantee its anti-aliasing behavior,
     In the middle,
       the same button drawn by the optimized \texttt{skp}.
     On the right, the same button is drawn, lighter,
-      with differing pixels are drawn in red.
+      with differing pixels drawn in red.
     The differing pixels are clearly placed along
       a curved shape edge,
       exactly where anti-aliasing effects are expected.
@@ -229,10 +229,6 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
       The vertical axis shows the fraction of benchmarks
       that meet or exceed that speed-up amount.
       We find a geo-mean speedup of \graphiteAppleGeoSpeedup across the benchmarks.
-      \graphiteAppleNumWithSpeedupMatched benchmarks
-      are actually affected by the optimizer,
-      and these all see speed-ups,
-      ranging from \graphiteAppleMinSpeedupMatched to \graphiteAppleMaxSpeedupMatched.
       }
     \label{fig:grmetal-cdf}
   \end{minipage}\hfill
@@ -246,7 +242,7 @@ Hence, we perform 25 independent \texttt{nanobench} runs for each benchmark,
         by the optimizer.
       The \blue{blue} intervals are from benchmarks that have not been rewritten
         by the optimizer.
-      We consider a speedup for a benchmark to be genuine and not influenced by noise,
+      We consider a speedup for a benchmark to be genuine and not influenced by noise
         when the entire interval is to the right of the 1\texttimes\xspace line.
       }
     \label{fig:grmetal-ci}
@@ -268,9 +264,9 @@ The very largest speedups are seen
   converting a \DstIn mask into a \Clip,
   and removing an opaque \SaveLayer.
 Each succesive rewrite is enabled by the previous one.
-We also see very large speedups on \texttt{dzen.ru} (2.41\texttimes)
-  which only uses the gradient mask rewrite,
-  which uses the framework discussed in \Cref{subsec:grad-masks}.
+We also see very large speedups on \texttt{dzen.ru} (2.41\texttimes),
+  which only uses the gradient mask rewrite
+  that uses the framework discussed in \Cref{subsec:grad-masks}.
 % \fillin{
 We also draw all the confidence intervals of each benchmark in \Cref{fig:grmetal-ci}.
 38 of the 51 rewritten benchmarks have intervals entirely above 1\texttimes,
@@ -397,8 +393,8 @@ We suspect that the larger speed-ups result
 % \fillin{
 \Cref{fig:cdfs-backend} also shows the 95\% confidence intervals for all benchmarks
   running on the Ganesh backend.
-Like in Graphite, majority of the rewritten benchmarks have CI's squarely above 1\texttimes{}
-  and none of rewritten benchmarks are below 1\texttimes{}.
+Like in Graphite, the majority of the rewritten benchmarks have CI's squarely above 1\texttimes{}
+  and none of the rewritten benchmarks are below 1\texttimes{}.
 
 We were also able to reproduce
   Graphite's claimed speedup
@@ -479,7 +475,7 @@ This layer just has one opaque \SrcOver-\SaveLayer removed.
 Of note, the first \Draw command in this \SaveLayer is a solid-white fill.
 After inspecting the GPU traces for the rasterization of the baseline and optimized versions of this \texttt{skp},
   we see that in the baseline, Graphite seems to be able to optimize away the solid-white fill,
-  as its the first command in a \Layer.
+  as it is the first command in a \Layer.
 But once the \SaveLayer is removed, this can no longer be done,
   and Graphite allocates a GPU pipeline to do the solid fill.
 However, because this \texttt{skp} contains only 25 commands,
