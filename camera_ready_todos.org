@@ -38,3 +38,27 @@
 - [X] "Some times the actions of the top most" — should be "Sometimes" with no space, and "top-most" with a hyphen (edited)
 - [X] "searches the SkRecord buffer for each rewrite rule from Section 4, replacing the matched commands with the right-hand side of the rewrite rule." — this is a bit confusing because we refer to the right-hand side but not the left-hand side. Maybe we say "matched left-hand side commands"?
 - [X] "this split into layers is chosen by Chrome to optimize animations" — add "is" as shown
+
+* Evaluation [9/9]
+- [X] "an 8-core Apple M2 unified CPU/GPU with 16GB RAM with Skia’s “Graphite” graphics backend" — I'd replace the second "with" with "using" to avoid duplication
+- [X] "do not translation validate due to" — again, I'd add a hyphen in "translation-validate"
+- [X] "with differing pixels are drawn in red." — extra word
+- [X] "Notably, we perform the pixel comparison to all benchmarks" — "to" to "on "
+- [X] 49 benchmarks are actually affected by the optimizer, and these all see speed-ups, ranging
+  from 0.99× to 3.04×." — I mean "all see speed-ups" is now false
+- [X] "genuine and not influenced by noise, when the entire interval" — ok, here I do not like the comma
+- [X] "which only uses the gradient mask rewrite, which uses the framework discussed in Section
+4.4." I would rewrite to avoid the which-which
+- [X] "Like in Graphite, the majority of the rewritten benchmarks have CI’s" — add "the" as indicated
+- [X] "the solid-white fill, as its the first command in a Layer" — should be "it's"
+
+
+# - [ ] "Thus we changed our focus to develop the formalization" → "We thus changed our focus toward developing the formalization"
+# - [ ] "SVG or HTML <canvas>" — the <canvas> should be in typewriter text.
+# - [ ] "so that, for example, we could verify a compiler from, say," — duplicative
+# - [ ] "Warnock and Geschke then founded Adobe [1], which introduced PostScript [4], then PDF [3]." — replace indicated by "and"
+# - [ ] "Color blending was introduced by Porter and Duff [32]." — add indicated "was"
+# - [ ] "and later work from the same authors [28] uses" — I think Emina isn't actually on the follow-on papers, so you should use the singular "author"
+# - [ ] "We will be submitting two artifacts. The first being the Lean mechanization of 𝜇Skia semantics and the rewrites discussed in Section 4." — replace indicated with "is", otherwise it is not grammatical
+# - [ ] "The second being our fork of Skia with our optimizer that implements the aforementioned rewrites." — Likewise, this might be a difference between Indian English and American English, dunno
+# - [ ] "and the another 100 websites" — drop "an", otherwise it's doing two articles to one word
